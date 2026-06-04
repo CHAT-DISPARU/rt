@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/04 15:22:41 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/04 15:29:00 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,6 +240,6 @@ Vec3	Point_Mult_mat4(const Vec3& v, const Mat4& m)
 
 std::ostream&	operator<<(std::ostream& out, const Vec3& v)
 {
-	out << "--------\n  Vec3  \nx = " << v._x << "\ny = " << v._y << "\nz = " << v._z << "\n--------\n";
+	out << "--------\n  Vec3  \n x = " << v._x << "\n y = " << v._y << "\n z = " << v._z << "\n--------\n";
 	return (out);
 };
