@@ -1,7 +1,7 @@
 # RT C++ + Vulkan TODO LIST
  
 ## 1 - Math
-- [ ] Vec3      -- surcharge +, -, *, /, dot, cross, length, normalized
+- [x] Vec3      -- surcharge +, -, *, /, dot, cross, length, normalized
 - [ ] Mat4		-- surcharge + - * / ~ 
 - [ ] Ray       -- origin + dir, at(t) = origin + t*dir
 - [ ] HitRecord -- point, normale, t, front_face, materiau

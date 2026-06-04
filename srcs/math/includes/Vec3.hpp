@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/04 15:31:53 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/04 18:15:20 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,53 +74,29 @@ struct Vec3
 
 	Vec3	operator-() const
 	{
-		Vec3	tmp(*this);
-		tmp._x = -_x;
-		tmp._y = -_y;
-		tmp._z = -_z;
-		return (tmp);
+		return Vec3(-_x , -_y, -_z);
 	};
 
 	Vec3	operator+(const Vec3& v) const
 	{
-		Vec3	tmp(*this);
-		tmp._x = _x + v._x;
-		tmp._y = _y + v._y;
-		tmp._z = _z + v._z;
-		return (tmp);
-	};
+		return Vec3(_x + v._x, _y + v._y, _z + v._z);
+	}
 	Vec3	operator-(const Vec3& v) const
 	{
-		Vec3	tmp(*this);
-		tmp._x = _x - v._x;
-		tmp._y = _y - v._y;
-		tmp._z = _z - v._z;
-		return (tmp);
+		return Vec3(_x - v._x, _y - v._y, _z - v._z);
 	};
 	Vec3	operator*(const Vec3& v) const
 	{
-		Vec3	tmp(*this);
-		tmp._x = _x * v._x;
-		tmp._y = _y * v._y;
-		tmp._z = _z * v._z;
-		return (tmp);
+		return Vec3(_x * v._x, _y * v._y, _z * v._z);
 	};
 	
 	Vec3	operator*(float t) const
 	{
-		Vec3	tmp(*this);
-		tmp._x = _x * t;
-		tmp._y = _y * t;
-		tmp._z = _z * t;
-		return (tmp);
+		return Vec3(_x * t, _y * t, _z * t);
 	};
 	Vec3	operator/(float t) const
 	{
-		Vec3	tmp(*this);
-		tmp._x = _x / t;
-		tmp._y = _y / t;
-		tmp._z = _z / t;
-		return (tmp);
+		return Vec3(_x / t, _y / t, _z / t);
 	};
 
 	Vec3	operator*(const Mat4& m) const
@@ -185,11 +161,7 @@ struct Vec3
 
 Vec3	operator*(float t, const Vec3& v)
 {
-	Vec3	tmp(v);
-	tmp._x = v._x * t;
-	tmp._y = v._y * t;
-	tmp._z = v._z * t;
-	return (tmp);
+	return Vec3(v._x * t, v._y * t, v._z * t);
 };
 float	dot(const Vec3& u, const Vec3& v)
 {
@@ -219,12 +191,19 @@ Vec3	normalize(Vec3 v)
 	res._z = v._z * inv_len;
 	return (res);
 };
-Vec3	reflect(const Vec3& v, const Vec3& n, const float fuzz)
+Vec3	reflect(const Vec3& v, const Vec3& n)
 {
+    return (v - 2.0f * dot(v, n) * n);
 };
-Vec3	refract(const Vec3& uv, const Vec3& n, float etai_over_etat)
+Vec3	refract(const Vec3& uv, const Vec3& n, float ni)
 {
-};
+    float	cos_theta = fmin(dot(-uv, n), 1.0f);
+    
+    Vec3	r_out_perp = ni * (uv + cos_theta * n);
+    Vec3	r_out_parallel = -sqrt(fabs(1.0f - r_out_perp.length_sq())) * n;
+    
+    return (r_out_perp + r_out_parallel);
+}
 Vec3	Point_Mult_mat4(const Vec3& v, const Mat4& m)
 {
 	Vec3	res;
