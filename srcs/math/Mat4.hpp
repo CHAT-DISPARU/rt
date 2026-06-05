@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 12:47:34 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/04 21:15:33 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/05 13:12:29 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -371,7 +371,7 @@ std::ostream	&operator<<(std::ostream &out, const Mat4<T> &m)
 	{
 		out << "| ";
 		for (int j = 0; j < 4; j++)
-			out << std::setw(8) << m._m[i][j] << " | ";
+			out << std::setw(6) << m._m[i][j] << " | ";
 		out << "\n";
 	}
 	out << "------------------------------------------";

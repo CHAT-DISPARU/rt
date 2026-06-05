@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/04 21:15:36 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/05 15:35:20 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,16 @@ struct Vec3
 		_z *= t;
 		return (*this);
 	};
+
+	Vec3&	operator*=(const Mat4<T>& m)
+	{
+		Vec3	copy(*this);
+		
+		_x = copy._x * m._m[0][0] + copy._y * m._m[0][1] + copy._z * m._m[0][2];
+		_y = copy._x * m._m[1][0] + copy._y * m._m[1][1] + copy._z * m._m[1][2];
+		_z = copy._x * m._m[2][0] + copy._y * m._m[2][1] + copy._z * m._m[2][2];
+		return (*this);
+	}
 	Vec3&	operator/=(T t)
 	{
 		_x /= t;
@@ -197,6 +207,25 @@ struct Vec3
 		res._z = (v._x * m._m[2][0] + v._y * m._m[2][1] + v._z * m._m[2][2] + m._m[2][3]) / w;
 		return (res);
 	};
+
+	static Vec3	vec_min(const Vec3& v1, const Vec3& v2)
+	{
+		Vec3	res;
+
+		res._x = v1._x < v2._x ? v1._x : v2._x;
+		res._y = v1._y < v2._y ? v1._y : v2._y;
+		res._z = v1._z < v2._z ? v1._z : v2._z;
+		return (res);
+	};
+	static Vec3	vec_max(const Vec3& v1, const Vec3& v2)
+	{
+		Vec3	res;
+
+		res._x = v1._x > v2._x ? v1._x : v2._x;
+		res._y = v1._y > v2._y ? v1._y : v2._y;
+		res._z = v1._z > v2._z ? v1._z : v2._z;
+		return (res);
+	};
 };
 
 template <typename T>
@@ -204,6 +233,7 @@ Vec3<T>	operator*(T t, const Vec3<T>& v)
 {
 	return Vec3<T>(v._x * t, v._y * t, v._z * t);
 };
+
 
 template <typename T>
 std::ostream&	operator<<(std::ostream& out, const Vec3<T>& v)

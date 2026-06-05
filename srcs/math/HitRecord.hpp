@@ -6,7 +6,17 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/04 21:27:51 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/05 15:09:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
+#include "Math3D.hpp"
+#include "Ray.hpp"
+
+struct HitRecord
+{
+	float	t;
+	Ray		l_ray;
+	Vec3f	local_normal;	
+};
