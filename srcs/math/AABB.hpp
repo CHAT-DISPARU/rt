@@ -6,12 +6,13 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:48 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 15:39:58 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/05 17:06:23 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include "Math3D.hpp"
+#include "Ray.hpp"
 
 struct AABB
 {
@@ -62,4 +63,30 @@ struct AABB
 		res._max._z = fmaxf(a._max._z, b._max._z);
 		return (res);
 	};
+	
+	float	size()
+	{
+		Vec3f	size;
+
+		size = _max - _min;
+		return (2.0 * ((size._x * size._y) + (size._y * size._z) + (size._z * size._x)));
+	};
+
+	bool	hit(const Ray& ray, float tMin, float tMax) const
+	{
+		for (int a = 0; a < 3; a++)
+		{
+			float	invD = 1.0f / ray.dir[a];
+			float	t0 = (_min[a] - ray.o[a]) * invD;
+			float	t1 = (_max[a] - ray.o[a]) * invD;
+			
+			if (invD < 0.0f)
+				std::swap(t0, t1);
+			tMin = t0 > tMin ? t0 : tMin;
+			tMax = t1 < tMax ? t1 : tMax;
+			if (tMax <= tMin)
+				return (false);
+		}
+		return (true);
+	}
 };

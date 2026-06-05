@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 15:35:20 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/05 16:41:46 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,6 +234,11 @@ Vec3<T>	operator*(T t, const Vec3<T>& v)
 	return Vec3<T>(v._x * t, v._y * t, v._z * t);
 };
 
+template <typename T>
+Vec3<T>	operator/(T t, const Vec3<T>& v)
+{
+	return Vec3<T>(t / v._x, t / v._y, t / v._z);
+};
 
 template <typename T>
 std::ostream&	operator<<(std::ostream& out, const Vec3<T>& v)

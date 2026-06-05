@@ -3,11 +3,11 @@
 ## 1 - Math
 - [x] Vec3      -- surcharge +, -, *, /, dot, cross, length, normalized
 - [x] Mat4		-- surcharge + - * / ~ 
-- [ ] Ray       -- origin + dir, at(t) = origin + t*dir
-- [ ] HitRecord -- point, normale, t, front_face, materiau
-- [ ] AABB      -- min + max, hit(ray, tMin, tMax)
+- [x] Ray       -- origin + dir, at(t) = origin + t*dir
+- [x] HitRecord -- point, normale, t, front_face, materiau
+- [x] AABB      -- min + max, hit(ray, tMin, tMax)
 
-## 2 - Formes & materiaux
+## 2 - Formes materiaux
 - [ ] Hittable   -- abstraite, hit() et bbox() virtuelles pures
 - [ ] Sphere     -- herite Hittable, center + radius + material
 - [ ] Plane      -- herite Hittable, AABB infinie a gerer
