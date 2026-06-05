@@ -1,34 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HitRecord.hpp                                      :+:      :+:    :+:   */
+/*   Plane.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/04 21:27:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 18:13:40 by CHAT-DISPAR      ###   ########.fr       */
+/*   Created: 2026/06/05 18:26:20 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/05 18:26:21 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-#include "Math3D.hpp"
-#include "Ray.hpp"
-#include "Material.hpp"
-
-struct HitRecord
-{
-	float		t;
-	float		u;
-	float		v;
-	Ray			l_ray;
-	Vec3f		local_normal;
-	Vec3f		point;
-	bool		front_face;
-	Material	*material;
-
-	void	set_front_face(const Ray &r, const Vec3f &out_normal)
-	{
-		front_face = Vec3f::dot(r.dir, out_normal) < 0.0f;
-		local_normal = front_face ? out_normal : -out_normal;
-	};
-};

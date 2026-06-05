@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Mat4.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 12:47:34 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 13:12:29 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/05 17:56:12 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,16 @@ struct Mat4
 		return (*this);
 	};
 
+	Mat4	&operator/=(T t)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+				_m[i][j] /= t;
+		}
+		return (*this);
+	};
+
 	Mat4	operator+(const Mat4 &other) const
 	{
 		Mat4	result(*this);
@@ -137,6 +147,13 @@ struct Mat4
 	{
 		Mat4	result(*this);
 		result *= t;
+		return (result);
+	};
+
+	Mat4	operator/(T t) const
+	{
+		Mat4	result(*this);
+		result /= t;
 		return (result);
 	};
 
