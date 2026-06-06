@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 16:41:46 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/06 18:01:58 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -235,6 +235,17 @@ Vec3<T>	operator*(T t, const Vec3<T>& v)
 };
 
 template <typename T>
+Vec3<T>	operator*(const Mat4<T>& m, const Vec3<T>& v)
+{
+	Vec3	res;
+
+	res._x = _x * m._m[0][0] + _y * m._m[0][1] + _z * m._m[0][2];
+	res._y = _x * m._m[1][0] + _y * m._m[1][1] + _z * m._m[1][2];
+	res._z = _x * m._m[2][0] + _y * m._m[2][1] + _z * m._m[2][2];
+	return (res);
+};
+
+template <typename T>
 Vec3<T>	operator/(T t, const Vec3<T>& v)
 {
 	return Vec3<T>(t / v._x, t / v._y, t / v._z);
@@ -247,6 +258,6 @@ std::ostream&	operator<<(std::ostream& out, const Vec3<T>& v)
 	return (out);
 };
 
-typedef	Vec3<float>  Vec3f;
-typedef	Vec3<double> Vec3d;
-typedef	Vec3<int>    Vec3i;
+typedef	Vec3<float>		Vec3f;
+typedef	Vec3<double>	Vec3d;
+typedef	Vec3<int>		Vec3i;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hittable.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:10:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 18:26:29 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/06 18:36:06 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,9 @@
 #include "Ray.hpp"
 #include "HitRecord.hpp"
 #include "AABB.hpp"
+#include "Math3D.hpp"
+#include <vector>
+#include <memory>
 
 class	Hittable
 {

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HitRecord.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 18:13:40 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/06 14:00:50 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,20 +15,19 @@
 #include "Ray.hpp"
 #include "Material.hpp"
 
-struct HitRecord
+struct	HitRecord
 {
 	float		t;
 	float		u;
 	float		v;
-	Ray			l_ray;
-	Vec3f		local_normal;
+	Vec3f		normal;
 	Vec3f		point;
 	bool		front_face;
 	Material	*material;
 
-	void	set_front_face(const Ray &r, const Vec3f &out_normal)
+	void	set_face_normal(const Ray &r, const Vec3f &outward_normal)
 	{
-		front_face = Vec3f::dot(r.dir, out_normal) < 0.0f;
-		local_normal = front_face ? out_normal : -out_normal;
+		front_face = Vec3f::dot(r._dir, outward_normal) < 0.0f;
+		normal = front_face ? outward_normal : -outward_normal;
 	};
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Mat4.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 12:47:34 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 17:56:12 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/06 18:02:06 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -395,5 +395,5 @@ std::ostream	&operator<<(std::ostream &out, const Mat4<T> &m)
 	return out;
 };
 
-typedef	Mat4<float>  Mat4f;
-typedef	Mat4<double> Mat4d;
+typedef	Mat4<float>		Mat4f;
+typedef	Mat4<double>	Mat4d;

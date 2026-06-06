@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:48 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/05 17:06:23 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/06 17:48:52 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,12 @@ struct AABB
 		return (world_box);
 	}
 
+	AABB	&add_point(const Vec3f &p)
+	{
+		_min = Vec3f::vec_min(_min, p);
+		_max = Vec3f::vec_min(_max, p);
+	}
+
 	static AABB	AABB_union(const AABB a, const AABB b)
 	{
 		AABB	res;
@@ -76,9 +82,9 @@ struct AABB
 	{
 		for (int a = 0; a < 3; a++)
 		{
-			float	invD = 1.0f / ray.dir[a];
-			float	t0 = (_min[a] - ray.o[a]) * invD;
-			float	t1 = (_max[a] - ray.o[a]) * invD;
+			float	invD = 1.0f / ray._dir[a];
+			float	t0 = (_min[a] - ray._o[a]) * invD;
+			float	t1 = (_max[a] - ray._o[a]) * invD;
 			
 			if (invD < 0.0f)
 				std::swap(t0, t1);

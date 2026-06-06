@@ -3,10 +3,27 @@
 /*                                                        :::      ::::::::   */
 /*   Plane.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/05 18:26:21 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/06 17:16:21 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
+#include "Hittable.hpp"
+
+class	Plane : public Hittable
+{
+	public:
+		Plane(float point, const Mat4f &m, Material *mat);
+		~Plane(){};
+		bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
+		bool	bbox(AABB& output_box) const;
+
+	private:
+		Vec3f		_point;
+		Mat4f		_inverse;
+		Mat4f		_transform;
+		Material	*_mat;
+};

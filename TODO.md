@@ -8,11 +8,11 @@
 - [x] AABB      -- min + max, hit(ray, tMin, tMax)
 
 ## 2 - Formes materiaux
-- [ ] Hittable   -- abstraite, hit() et bbox() virtuelles pures
-- [ ] Sphere     -- herite Hittable, center + radius + material
-- [ ] Plane      -- herite Hittable, AABB infinie a gerer
-- [ ] Triangle   -- herite Hittable, Moller-Trumbore, base des mesh
-- [ ] Material   -- abstraite, scatter() virtuelle pure, emitted() = 0 par defaut
+- [x] Hittable   -- abstraite, hit() et bbox() virtuelles pures
+- [x] Sphere     -- herite Hittable, center + radius + material
+- [x] Plane      -- herite Hittable, AABB infinie a gerer
+- [x] Triangle   -- herite Hittable, Moller-Trumbore, base des mesh
+- [x] Material   -- abstraite, scatter() virtuelle pure, emitted() = 0 par defaut
 - [ ] Lambertian -- herite Material, rayon aleatoire autour de la normale
 - [ ] Metal      -- herite Material, reflect() + flou selon roughness
 - [ ] Dielectric -- herite Material, verre, Schlick, reflexion ou refraction

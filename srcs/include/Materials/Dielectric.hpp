@@ -1,23 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Math3D.hpp                                         :+:      :+:    :+:   */
+/*   Dielectric.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/04 21:04:52 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 17:56:30 by gajanvie         ###   ########.fr       */
+/*   Created: 2026/06/06 18:34:13 by gajanvie          #+#    #+#             */
+/*   Updated: 2026/06/06 18:34:13 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-
-template <typename T>
-struct Vec3;
-template <typename T>
-struct Mat4;
-
-#include "Vec3.hpp"
-#include "Mat4.hpp"
-#include <float.h>
-#include <limits>
