@@ -13,12 +13,12 @@
 - [x] Plane      -- herite Hittable, AABB infinie a gerer
 - [x] Triangle   -- herite Hittable, Moller-Trumbore, base des mesh
 - [x] Material   -- abstraite, scatter() virtuelle pure, emitted() = 0 par defaut
-- [ ] Lambertian -- herite Material, rayon aleatoire autour de la normale
-- [ ] Metal      -- herite Material, reflect() + flou selon roughness
-- [ ] Dielectric -- herite Material, verre, Schlick, reflexion ou refraction
+- [x] Lambertian -- herite Material, rayon aleatoire autour de la normale
+- [x] Metal      -- herite Material, reflect() + flou selon roughness
+- [x] Dielectric -- herite Material, verre, Schlick, reflexion ou refraction
 
 ## 3 - Scene & rendu CPU
-- [ ] Scene    -- vector<shared_ptr<Hittable>>, hit() retourne le plus proche
+- [x] Scene    -- vector<shared_ptr<Hittable>>, hit() retourne le plus proche
 - [ ] BVHNode  -- herite Hittable, trie par axe, divise recursivement
 - [ ] Camera   -- getRay(u, v), anti-aliasing par perturbation UV
 - [ ] Renderer -- traceRay() recursif, scatter(), std::thread

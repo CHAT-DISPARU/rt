@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Dielectric.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:13 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 18:42:06 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/07 16:17:48 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,15 @@
 
 class Dielectric : public Material
 {
+	private:
+		Vec3f	_color;
+		float	_ni;
+		float	_fuzz;
+
 	public:
 
 		~Dielectric(){};
 
-		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered) const;
-		Vec3f	emitted(float u, float v, const Vec3f& p) const;
+		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
+		float	ior() const;
 };

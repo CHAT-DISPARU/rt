@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Lambertian.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:05 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 18:41:58 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/07 15:31:15 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,11 @@
 
 class Lambertian : public Material
 {
+	private:
+		Vec3f	_color;
 	public:
 
 		~Lambertian(){};
 
-		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered) const;
-		Vec3f	emitted(float u, float v, const Vec3f& p) const;
+		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Vec3.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 18:01:58 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/07 15:59:36 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,13 +187,36 @@ struct Vec3
 	{
 		return (v - T(2) * dot(v, n) * n);
 	};
-	static Vec3	refract(const Vec3& uv, const Vec3& n, T ni)
+	static Vec3	refract(const Vec3& v, const Vec3& n, T ni)
 	{
-		T		cos_theta = std::fmin(dot(-uv, n), T(1));
-		Vec3	r_out_perp = ni * (uv + cos_theta * n);
+		T		cos_theta = std::fmin(dot(-v, n), T(1));
+		Vec3	r_out_perp = ni * (v + cos_theta * n);
 		Vec3	r_out_parallel = -std::sqrt(std::fabs(T(1) - r_out_perp.length_sq())) * n;
+	
 		return (r_out_perp + r_out_parallel);
 	}
+	static float randomFloat(unsigned int *seed)
+	{
+		return rand_r(seed) / (RAND_MAX + 1.0);
+	}
+	static Vec3	randomInUnitSphere(unsigned int *seed)
+	{
+		Vec3	p;
+
+		while (1)
+		{
+			p.x = randomFloat(seed) * 2.0 - 1.0;
+			p.y = randomFloat(seed) * 2.0 - 1.0;
+			p.z = randomFloat(seed) * 2.0 - 1.0;
+			if (dot(p, p) < 1.0)
+				return (p);
+		}
+	};
+	static Vec3	randomUnitVector(unsigned int *seed)
+	{
+		return (normalize(randomInUnitSphere(seed)));
+	};
+
 	static Vec3	Point_Mult_mat4(const Vec3& v, const Mat4<T>& m)
 	{
 		T	w = v._x * m._m[3][0] + v._y * m._m[3][1] + v._z * m._m[3][2] + m._m[3][3];
@@ -226,6 +249,10 @@ struct Vec3
 		res._z = v1._z > v2._z ? v1._z : v2._z;
 		return (res);
 	};
+	bool	nearZero() const
+	{
+		return (fabs(x) < FLT_EPSILON && fabs(y) < FLT_EPSILON && fabs(z) < FLT_EPSILON);
+	}
 };
 
 template <typename T>

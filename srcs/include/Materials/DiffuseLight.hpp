@@ -1,34 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   HitRecord.hpp                                      :+:      :+:    :+:   */
+/*   DiffuseLight.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/04 21:27:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 16:20:23 by CHAT-DISPAR      ###   ########.fr       */
+/*   Created: 2026/06/07 15:31:16 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/07 15:56:05 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
-#include "Math3D.hpp"
-#include "Ray.hpp"
 #include "Material.hpp"
 
-struct	HitRecord
+class DiffuseLight : public Material
 {
-	float		t;
-	float		u;
-	float		v;
-	Vec3f		normal;
-	Vec3f		point;
-	bool		front_face;
-	Material	*material;
-	float		ni_from = 1.0f;
+	private:
+		Vec3f	_color;
+	public:
 
-	void	set_face_normal(const Ray &r, const Vec3f &outward_normal)
-	{
-		front_face = Vec3f::dot(r._dir, outward_normal) < 0.0f;
-		normal = front_face ? outward_normal : -outward_normal;
-	};
+		~DiffuseLight(){};
+
+		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
+		Vec3f	emitted(float u, float v, const Vec3f& p) const;
 };

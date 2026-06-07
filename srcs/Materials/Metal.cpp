@@ -1,27 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Metal.hpp                                          :+:      :+:    :+:   */
+/*   Metal.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/06 18:34:03 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 15:49:30 by CHAT-DISPAR      ###   ########.fr       */
+/*   Created: 2026/06/07 15:39:21 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/07 16:31:52 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-#include "Material.hpp"
+#include "Metal.hpp"
 
-class Metal : public Material
+bool	Metal::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const
 {
-	private:
-		Vec3f	_color;
-		float	_fuzz;
-		
-	public:
-		Metal(const Vec3f& color, float fuzz) : _color(color), _fuzz(fuzz) {};
-		~Metal(){};
+	Vec3f reflected = Vec3f::reflect(Vec3f::normalize(r_in._dir), rec.normal);
 
-		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
-};
+	scattered = Ray(rec.point, reflected + _fuzz * Vec3f::randomInUnitSphere(seed));
+	attenuation = _color;
+	return (Vec3f::dot(scattered._dir, rec.normal) > 0.0f);
+}
