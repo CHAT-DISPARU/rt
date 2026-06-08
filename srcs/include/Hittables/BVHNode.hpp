@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 16:30:47 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 12:20:55 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/08 12:26:03 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,11 +54,11 @@ class	BVHNode : public Hittable
 		// 2 radix sort
 		void	radixSort(std::vector<MortonPrimitive>& prims);
 
-		// 3 : Organise les primitives triées en clusters et génère la topologie globale de l'arbre
+		// 3 organise les primitive avec le sah en cluster
 		void	buildTreeFromMorton(std::vector<MortonPrimitive>& mortonPrims, 
 									 const std::vector<std::shared_ptr<Hittable>>& srcObjects);
 
-		// Étape 4 : Routine ultra-rapide pour construire les sous-arbres (LBVH) par masquage de bits
+		// 4 sous arbre avec les bits
 		int	buildLocalLBVH(std::vector<MortonPrimitive>& mortonPrims, 
 								const std::vector<std::shared_ptr<Hittable>>& srcObjects,
 								size_t start, size_t end, int bitShift);
