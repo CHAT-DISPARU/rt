@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   AABB.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:48 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 17:48:52 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/07 18:52:58 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ struct AABB
 	Vec3f	_min;
 	Vec3f	_max;
 
-	AABB() : _min(Vec3f(FLT_MAX)), _max(Vec3f(FLT_MAX)) {};
+	AABB() : _min(Vec3f(FLT_MAX)), _max(Vec3f(-FLT_MAX)) {};
 	AABB(Vec3f min, Vec3f max) : _min(min), _max(max) {};
 
 	AABB	&operator*=(const Mat4f &m)
@@ -44,9 +44,9 @@ struct AABB
 		
 		for (int i = 0; i < 8; i++)
 		{
-			point *= m;
-			world_box._min = Vec3f::vec_min(world_box._min, point);
-			world_box._max = Vec3f::vec_max(world_box._max, point);
+			Vec3f	transformed_point = corners[i] * m;
+			world_box._min = Vec3f::vec_min(world_box._min, transformed_point);
+			world_box._max = Vec3f::vec_max(world_box._max, transformed_point);
 		}
 		return (world_box);
 	}
@@ -54,7 +54,8 @@ struct AABB
 	AABB	&add_point(const Vec3f &p)
 	{
 		_min = Vec3f::vec_min(_min, p);
-		_max = Vec3f::vec_min(_max, p);
+		_max = Vec3f::vec_max(_max, p);
+		return (*this);
 	}
 
 	static AABB	AABB_union(const AABB a, const AABB b)
@@ -75,7 +76,7 @@ struct AABB
 		Vec3f	size;
 
 		size = _max - _min;
-		return (2.0 * ((size._x * size._y) + (size._y * size._z) + (size._z * size._x)));
+		return (2.0f * ((size._x * size._y) + (size._y * size._z) + (size._z * size._x)));
 	};
 
 	bool	hit(const Ray& ray, float tMin, float tMax) const

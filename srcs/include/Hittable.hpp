@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hittable.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:10:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 18:36:06 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/07 18:46:56 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include "Math3D.hpp"
 #include <vector>
 #include <memory>
+#include <algorithm>
+#include <stdint.h>
 
 class	Hittable
 {

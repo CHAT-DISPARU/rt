@@ -48,3 +48,6 @@
 - [ ] BVH shader -- arbre serialise, traversal avec pile locale dans le shader
 - [ ] Staging -- séparer mémoire CPU-visible et DEVICE_LOCAL j'ai pas compris de ouf mais a voir si je le fais
 - [ ] Push constants -- au lieu d envoye tout
+
+
+https://jacco.ompf2.com/2022/04/18/how-to-build-a-bvh-part-2-faster-rays/
