@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 13:14:43 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 17:15:07 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/08 17:52:54 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ bool	Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 	rec.material = _mat;
 	rec.point = ray(t);
 	rec.set_face_normal(ray, Vec3f::normalize(_transform * Vec3f::normalize(rec.point)));
-	
+	return (true);
 }
 
 bool	Sphere::bbox(AABB& output_box) const

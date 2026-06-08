@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BVHNodes.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 12:24:36 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/08 18:04:35 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,22 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Hittable>>& objects)
 
 	// sort morton
 	radixSort(mortonPrims);
-
+	for (size_t i = 0; i < objects.size(); i++)
+	{
+		AABB	box;
+		objects[i]->bbox(box);
+		//Vec3f	centroid = (box._min + box._max) * 0.5f;
+		//std::cout << "---------------------\nobject coords\n" << centroid << "\n morton :" << mortonPrims[i].mortonCode << "\n---------------------\n";
+		//std::cout << "morton :" << mortonPrims[i].mortonCode << "\n";
+	}
 	//contruction arbre
-	buildTreeFromMorton(mortonPrims, objects);
+	//buildTreeFromMorton(mortonPrims, objects);
 }
 
 // etale sur 63 bit
+
+
+
 inline uint64_t	splitBy3(unsigned int a)
 {
 	uint64_t x = a & 0x1fffff; // we only look at the first 21 bits
@@ -60,6 +70,7 @@ inline uint64_t	splitBy3(unsigned int a)
 	x = (x | x << 2) & 0x1249249249249249;
 	return (x);
 }
+
 //https://www.forceflow.be/2013/10/07/morton-encodingdecoding-through-bit-interleaving-implementations/
 uint64_t	BVHNode::computeMortonCode(const Vec3f& centroid, const AABB& globalBox) const
 {
@@ -81,4 +92,63 @@ uint64_t	BVHNode::computeMortonCode(const Vec3f& centroid, const AABB& globalBox
 	//splitBy3(iy) << 1 → y sur poitions 1, 4, 7, 10, 13 
 	//splitBy3(iz) << 2 → z sur positions 2, 5, 8, 11, 14
 	return (splitBy3(ix) | splitBy3(iy) << 1 | splitBy3(iz) << 2);
+}
+
+void	BVHNode::radixSort(std::vector<MortonPrimitive>& prims)
+{
+	const size_t					size = prims.size();
+	std::vector<MortonPrimitive>	tmp(size);
+	size_t							mIndex[8][256] = { {0} };
+	
+	MortonPrimitive*	in = prims.data();
+	MortonPrimitive*	out = tmp.data();
+	uint64_t			u;
+
+	for (size_t i = 0; i < size; ++i)
+	{
+		u = in[i].mortonCode;
+		mIndex[0][(u) & 0xff]++;
+		mIndex[1][(u >> 8) & 0xff]++;
+		mIndex[2][(u >> 16) & 0xff]++;
+		mIndex[3][(u >> 24) & 0xff]++;
+		mIndex[4][(u >> 32) & 0xff]++;
+		mIndex[5][(u >> 40) & 0xff]++;
+		mIndex[6][(u >> 48) & 0xff]++;
+		mIndex[7][(u >> 56) & 0xff]++;
+	}
+
+	size_t*	sum;
+	size_t	m, n;
+	for (size_t j = 0; j < 8; ++j)
+	{
+		sum = mIndex[j];
+		n = 0;
+		for (int i = 0; i < 256; ++i)
+		{
+			m = sum[i];
+			sum[i] = n;
+			n += m;
+		}
+	}
+
+	for (int pass = 0; pass < 8; ++pass)
+	{
+		const int	shift = pass * 8;
+		sum = mIndex[pass];
+
+		for (size_t i = 0; i < size; ++i)
+			out[sum[(in[i].mortonCode >> shift) & 0xff]++] = in[i];
+		std::swap(in, out);
+	}
+}
+
+
+bool	BVHNode::hit(const Ray&, float, float, HitRecord&) const
+{
+	return false;
+}
+
+bool	BVHNode::bbox(AABB&) const
+{
+	return false;
 }

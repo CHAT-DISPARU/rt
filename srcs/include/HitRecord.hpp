@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HitRecord.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 16:20:23 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/08 17:17:00 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #include "Math3D.hpp"
 #include "Ray.hpp"
 #include "Material.hpp"
+
+class Material;
 
 struct	HitRecord
 {

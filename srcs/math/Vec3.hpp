@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Vec3.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 15:59:36 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/08 17:29:50 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include <iostream>
 #include <cmath>
+#include <cfloat>
 
 template <typename T>
 struct Vec3
@@ -43,6 +44,7 @@ struct Vec3
 		_z += v._z;
 		return (*this);
 	};
+
 	Vec3&	operator-=(const Vec3& v)
 	{
 		_x -= v._x;
@@ -81,6 +83,14 @@ struct Vec3
 		_z /= t;
 		return (*this);
 	};
+	
+	Vec3&	operator/=(const Vec3& v)
+	{
+		_x /= v._x;
+		_y /= v._y;
+		_z /= v._z;
+		return (*this);
+	};
 
 	Vec3	operator-() const
 	{
@@ -108,7 +118,12 @@ struct Vec3
 	{
 		return Vec3(_x / t, _y / t, _z / t);
 	};
-
+	Vec3	operator/(const Vec3& v) const
+	{
+		return Vec3(_x / v._x, _y / v._y, _z / v._z);
+	};
+	
+	
 	Vec3	operator*(const Mat4<T>& m) const
 	{
 		Vec3	res;
@@ -205,9 +220,9 @@ struct Vec3
 
 		while (1)
 		{
-			p.x = randomFloat(seed) * 2.0 - 1.0;
-			p.y = randomFloat(seed) * 2.0 - 1.0;
-			p.z = randomFloat(seed) * 2.0 - 1.0;
+			p._x = randomFloat(seed) * 2.0 - 1.0;
+			p._y = randomFloat(seed) * 2.0 - 1.0;
+			p._z = randomFloat(seed) * 2.0 - 1.0;
 			if (dot(p, p) < 1.0)
 				return (p);
 		}
@@ -251,7 +266,7 @@ struct Vec3
 	};
 	bool	nearZero() const
 	{
-		return (fabs(x) < FLT_EPSILON && fabs(y) < FLT_EPSILON && fabs(z) < FLT_EPSILON);
+		return (fabs(_x) < FLT_EPSILON && fabs(_y) < FLT_EPSILON && fabs(_z) < FLT_EPSILON);
 	}
 };
 
@@ -264,11 +279,11 @@ Vec3<T>	operator*(T t, const Vec3<T>& v)
 template <typename T>
 Vec3<T>	operator*(const Mat4<T>& m, const Vec3<T>& v)
 {
-	Vec3	res;
+	Vec3<T>	res;
 
-	res._x = _x * m._m[0][0] + _y * m._m[0][1] + _z * m._m[0][2];
-	res._y = _x * m._m[1][0] + _y * m._m[1][1] + _z * m._m[1][2];
-	res._z = _x * m._m[2][0] + _y * m._m[2][1] + _z * m._m[2][2];
+	res._x = v._x * m._m[0][0] + v._y * m._m[0][1] + v._z * m._m[0][2];
+	res._y = v._x * m._m[1][0] + v._y * m._m[1][1] + v._z * m._m[1][2];
+	res._z = v._x * m._m[2][0] + v._y * m._m[2][1] + v._z * m._m[2][2];
 	return (res);
 };
 

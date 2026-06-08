@@ -1,25 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Lambertian.cpp                                     :+:      :+:    :+:   */
+/*   Scene.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/07 15:03:46 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 17:08:43 by gajanvie         ###   ########.fr       */
+/*   Created: 2026/06/06 17:41:12 by gajanvie          #+#    #+#             */
+/*   Updated: 2026/06/06 18:36:18 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Lambertian.hpp"
+#pragma once
+#include "Hittable.hpp"
 
-bool	Lambertian::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const
+class	Scene : public Hittable
 {
-	Vec3f	scatterDir = rec.normal + Vec3f::randomUnitVector(seed);
+	public:
+		Scene(){};
+		~Scene(){};
+		bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
+		bool	bbox(AABB& output_box) const;
 
-	(void)r_in;
-	if (scatterDir.nearZero())
-		scatterDir = rec.normal;
-	scattered = Ray(rec.point, scatterDir);
-	attenuation = _color;
-	return (true);
-}
+	private:
+		std::vector<std::shared_ptr<Hittable> > _objs;
+};

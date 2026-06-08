@@ -1,25 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Lambertian.cpp                                     :+:      :+:    :+:   */
+/*   Triangle.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/07 15:03:46 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 17:08:43 by gajanvie         ###   ########.fr       */
+/*   Created: 2026/06/05 18:26:16 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/06 18:15:30 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Lambertian.hpp"
+#pragma once
+#include "Hittable.hpp"
 
-bool	Lambertian::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const
+class	Triangle : public Hittable
 {
-	Vec3f	scatterDir = rec.normal + Vec3f::randomUnitVector(seed);
+	public:
+		Triangle(Vec3f points, Material *mat, Vec3f normal);
+		Triangle(Vec3f points, Material *mat);
+		~Triangle(){};
+		bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
+		bool	bbox(AABB& output_box) const;
 
-	(void)r_in;
-	if (scatterDir.nearZero())
-		scatterDir = rec.normal;
-	scattered = Ray(rec.point, scatterDir);
-	attenuation = _color;
-	return (true);
-}
+	private:
+		Vec3f		_points;
+		Mat4f		_transform;
+		Material	*_mat;
+		AABB		_box;
+		Vec3f		_normal;
+};

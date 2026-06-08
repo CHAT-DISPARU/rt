@@ -1,25 +1,31 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Lambertian.cpp                                     :+:      :+:    :+:   */
+/*   Sphere.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/07 15:03:46 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 17:08:43 by gajanvie         ###   ########.fr       */
+/*   Created: 2026/06/05 18:26:18 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/06 17:12:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Lambertian.hpp"
+#pragma once
+#include "Hittable.hpp"
 
-bool	Lambertian::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const
+class	Sphere : public Hittable
 {
-	Vec3f	scatterDir = rec.normal + Vec3f::randomUnitVector(seed);
+	public:
+		Sphere(float d, Vec3f center, const Mat4f &m, Material *mat);
+		~Sphere(){};
+		bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
+		bool	bbox(AABB& output_box) const;
 
-	(void)r_in;
-	if (scatterDir.nearZero())
-		scatterDir = rec.normal;
-	scattered = Ray(rec.point, scatterDir);
-	attenuation = _color;
-	return (true);
-}
+	private:
+		Vec3f		_center;
+		Mat4f		_inverse;
+		Mat4f		_transform;
+		float		_diameter;
+		Material	*_mat;
+		AABB		_box;
+};

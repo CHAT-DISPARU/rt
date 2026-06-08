@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   AABB.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:48 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 18:52:58 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/08 17:52:32 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,8 @@ struct AABB
 
 	AABB	&operator*=(const Mat4f &m)
 	{
-		*this = *this * m;
+		AABB	tmp(*this);
+		*this = tmp * m;
 		return (*this);
 	}
 	AABB	operator*(const Mat4f &m)
@@ -44,7 +45,7 @@ struct AABB
 		
 		for (int i = 0; i < 8; i++)
 		{
-			Vec3f	transformed_point = corners[i] * m;
+			Vec3f	transformed_point = Vec3f::Point_Mult_mat4(corners[i], m);
 			world_box._min = Vec3f::vec_min(world_box._min, transformed_point);
 			world_box._max = Vec3f::vec_max(world_box._max, transformed_point);
 		}
