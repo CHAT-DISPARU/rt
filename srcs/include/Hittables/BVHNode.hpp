@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 16:30:47 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 14:41:24 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/08 22:06:38 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,25 @@
 #include <cstdint>
 #include "Hittable.hpp"
 #include "AABB.hpp"
+#define MAX_BIN 16
+#define SAH_MIN_OBJS 4
+
 
 class	BVHNode : public Hittable
 {
 	public:
-		struct alignas(16)	Node
+		struct	Cluster
+		{
+			size_t	start;//inde x morton
+			size_t	end;
+			AABB	bbox;   // bbox du cluster
+		};
+
+		struct	Node
 		{
 			AABB		bbox;
-			uint32_t	leftChildOrPrimOffset; // index gauche (droit = gauche + 1) ou si fueille index tableau
+			uint32_t	leftChildOrPrimOffset; // index gauche  ou si fueille index tableau
+			uint32_t	rightChildOffset;
 			uint32_t	primitiveCount; //0 si noeud interne si feuille nb obj
 			uint32_t	axis; // axe de separation choisi
 		};
@@ -57,9 +68,27 @@ class	BVHNode : public Hittable
 		// 3 organise les primitive avec le sah en cluster
 		void	buildTreeFromMorton(std::vector<MortonPrimitive>& mortonPrims, 
 									 const std::vector<std::shared_ptr<Hittable>>& srcObjects);
-
+		//sah haut de l arbre donc pour les cluster
+		int	buildSAHTopLevel(std::vector<Cluster>& clusters, std::vector<MortonPrimitive>& mortonPrims, const std::vector<std::shared_ptr<Hittable>>& srcObjects, size_t start, size_t end);
 		// 4 sous arbre avec les bits
 		int	buildLocalLBVH(std::vector<MortonPrimitive>& mortonPrims, 
 								const std::vector<std::shared_ptr<Hittable>>& srcObjects,
 								size_t start, size_t end, int bitShift);
 };
+
+/*
+	explication construction
+
+
+	1 cumpute morton entrlacement de bit pour cree uint64
+
+	trie radix
+
+
+	cree un mask sur les 12 premier bit donc 111111111111et le reste de 0
+	2puissance 12 = 4096 cluster possible ratio plutot ok ...
+	cree une cluster par mask different faire la bvh en lbvh dans le cluster
+	ensuite sah jusqu a avoir un cluster solo on l envoie dans la lbvh 
+	qui fait des cpoupe selon le dernier bit des mortons trie ....
+ 
+*/

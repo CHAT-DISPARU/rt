@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 18:04:35 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/08 22:00:55 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,21 +44,11 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Hittable>>& objects)
 
 	// sort morton
 	radixSort(mortonPrims);
-	for (size_t i = 0; i < objects.size(); i++)
-	{
-		AABB	box;
-		objects[i]->bbox(box);
-		//Vec3f	centroid = (box._min + box._max) * 0.5f;
-		//std::cout << "---------------------\nobject coords\n" << centroid << "\n morton :" << mortonPrims[i].mortonCode << "\n---------------------\n";
-		//std::cout << "morton :" << mortonPrims[i].mortonCode << "\n";
-	}
 	//contruction arbre
-	//buildTreeFromMorton(mortonPrims, objects);
+	buildTreeFromMorton(mortonPrims, objects);
 }
 
 // etale sur 63 bit
-
-
 
 inline uint64_t	splitBy3(unsigned int a)
 {
@@ -142,13 +132,277 @@ void	BVHNode::radixSort(std::vector<MortonPrimitive>& prims)
 	}
 }
 
-
-bool	BVHNode::hit(const Ray&, float, float, HitRecord&) const
+void	BVHNode::buildTreeFromMorton(std::vector<MortonPrimitive>& mortonPrims,
+	const std::vector<std::shared_ptr<Hittable>>& srcObjects)
 {
-	return false;
+	//12 ser a def les clusters
+	const int		mask_bits = 12;
+	const uint64_t	mask = (uint64_t)((1 << mask_bits) - 1) << (63 - mask_bits);
+
+	// satrt end
+	std::vector<Cluster>	clusters;
+	size_t  clusterStart = 0;
+	for (size_t i = 1; i <= mortonPrims.size(); i++)
+	{
+		bool new_cluster = (i == mortonPrims.size()) ||
+			((mortonPrims[i].mortonCode & mask) != (mortonPrims[i - 1].mortonCode & mask));
+		if (new_cluster)
+		{
+			Cluster	c;
+			c.start = clusterStart;
+			c.end = i;
+	
+			for (size_t j = clusterStart; j < i; j++)
+			{
+				AABB box;
+				srcObjects[mortonPrims[j].primitiveIndex]->bbox(box);
+				c.bbox = AABB::AABB_union(c.bbox, box);
+			}
+			clusters.push_back(c);
+			clusterStart = i;
+		}
+	}
+	if (!clusters.empty())
+		buildSAHTopLevel(clusters, mortonPrims, srcObjects, 0, clusters.size());
 }
 
-bool	BVHNode::bbox(AABB&) const
+int	BVHNode::buildSAHTopLevel(std::vector<Cluster>& clusters, std::vector<MortonPrimitive>& mortonPrims,
+	const std::vector<std::shared_ptr<Hittable>>& srcObjects, size_t start, size_t end)
 {
-	return false;
+	size_t	span = end - start;
+
+	// arret si cluster tout seul -> lbvh
+	if (span == 1)
+		// bitshift 63 - 12 (mask_bits) - 1 = 50
+		return (buildLocalLBVH(mortonPrims, srcObjects, clusters[start].start, clusters[start].end, 50));
+
+	AABB	bounds, centroidBounds;
+	for (size_t i = start; i < end; i++)
+	{
+		bounds = AABB::AABB_union(bounds, clusters[i].bbox);
+		Vec3f centroid = (clusters[i].bbox._min + clusters[i].bbox._max) * 0.5f;
+		centroidBounds = AABB::AABB_union(centroidBounds, AABB(centroid, centroid));
+	}
+
+	const int	BINS = std::min(MAX_BIN, (int)span);
+	float		bestCost = FLT_MAX;
+	int			bestSplit = -1;
+	int			bestAxis = 0;
+
+	for (int axis = 0; axis < 3; axis++)
+	{
+		float	extent = centroidBounds._max[axis] - centroidBounds._min[axis];
+
+		// /0 portection et si axe hyperfin
+		if (extent < 1e-6f)
+			continue; 
+
+		struct	Bin
+		{
+			AABB	bbox;
+			int		count = 0;
+		};
+		Bin	bins[MAX_BIN];
+		float	scale = BINS / extent;
+
+		// rempli bin
+		for (size_t i = start; i < end; i++)
+		{
+			Vec3f	c = (clusters[i].bbox._min + clusters[i].bbox._max) * 0.5f;
+			int		b = std::min(BINS - 1, (int)((c[axis] - centroidBounds._min[axis]) * scale));
+			
+			bins[b].count++;
+			bins[b].bbox = AABB::AABB_union(bins[b].bbox, clusters[i].bbox);
+		}
+
+		// sah sur axe
+		for (int i = 0; i < BINS - 1; i++)
+		{
+			AABB	leftBox, rightBox;
+			int	leftCount = 0;
+			int	rightCount = 0;
+
+			for (int j = 0; j <= i; j++)
+			{
+				leftBox = AABB::AABB_union(leftBox, bins[j].bbox);
+				leftCount += bins[j].count;
+			}
+			for (int j = i + 1; j < BINS; j++) {
+				rightBox = AABB::AABB_union(rightBox, bins[j].bbox);
+				rightCount += bins[j].count;
+			}
+
+			if (leftCount == 0 || rightCount == 0)
+				continue;
+
+			float	cost = leftBox.size() * leftCount + rightBox.size() * rightCount;
+			if (cost < bestCost)
+			{
+				bestCost = cost;
+				bestSplit = i;
+				bestAxis = axis;
+			}
+		}
+	}
+
+	// separ cluster slon split
+	float	bestExtent = centroidBounds._max[bestAxis] - centroidBounds._min[bestAxis];
+	float	bestScale = BINS / bestExtent;
+	
+	
+	auto mid = std::partition(clusters.begin() + start, clusters.begin() + end,
+		[&](const Cluster& cl)
+		{
+			Vec3f	c = (cl.bbox._min + cl.bbox._max) * 0.5f;
+			int		b = std::min(BINS - 1, (int)((c[bestAxis] - centroidBounds._min[bestAxis]) * bestScale));
+			
+			return (b <= bestSplit);
+		});
+
+	// securite si sah marche pa
+	size_t midIdx = std::distance(clusters.begin(), mid);
+	if (midIdx == start || midIdx == end) 
+		midIdx = start + span / 2;
+
+	// creation noed
+	int	nodeIdx = _nodes.size();
+	_nodes.push_back(Node());
+	int	leftChild = buildSAHTopLevel(clusters, mortonPrims, srcObjects, start, midIdx);
+	int	rightChild = buildSAHTopLevel(clusters, mortonPrims, srcObjects, midIdx, end);
+	_nodes[nodeIdx].bbox = bounds;
+	_nodes[nodeIdx].leftChildOrPrimOffset = leftChild;
+	_nodes[nodeIdx].rightChildOffset = rightChild;
+	_nodes[nodeIdx].primitiveCount = 0;
+	_nodes[nodeIdx].axis = bestAxis;
+
+	return (nodeIdx);
+}
+
+int BVHNode::buildLocalLBVH(std::vector<MortonPrimitive>& mortonPrims, 
+							const std::vector<std::shared_ptr<Hittable>>& srcObjects,
+							size_t start, size_t end, int bitShift)
+{
+	//arret si <= 4 objet ou plus de bit a ecamine
+	if (end - start <= SAH_MIN_OBJS || bitShift < 0)
+	{
+		Node	leaf;
+
+		leaf.leftChildOrPrimOffset = _orderedObjects.size();
+		leaf.rightChildOffset = 0; // feuile donc inutils
+		leaf.primitiveCount = end - start;
+		leaf.axis = 0; 
+
+		AABB	box;
+
+		for (size_t i = start; i < end; i++)
+		{
+			AABB	b;
+			size_t	idx = mortonPrims[i].primitiveIndex;
+	
+			srcObjects[idx]->bbox(b);
+			box = AABB::AABB_union(box, b);
+			_orderedObjects.push_back(srcObjects[idx]);
+		}
+		leaf.bbox = box;
+
+		int	nodeIdx = _nodes.size();
+
+		_nodes.push_back(leaf);
+		return (nodeIdx);
+	}
+
+	// trouv separation
+	uint64_t mask = 1ULL << bitShift;
+	
+	// trouver obj avec 1 = premier bit 
+	auto split = std::partition_point(mortonPrims.begin() + start, mortonPrims.begin() + end,
+		[mask](const MortonPrimitive& p)
+		{
+			return ((p.mortonCode & mask) == 0);
+		});
+
+	size_t	splitIndex = std::distance(mortonPrims.begin(), split);
+
+	// obj tous meme bit on descend plus loin
+	if (splitIndex == start || splitIndex == end)
+		return (buildLocalLBVH(mortonPrims, srcObjects, start, end, bitShift - 1));
+
+	// sinon creation neoud
+	int nodeIdx = _nodes.size();
+	_nodes.push_back(Node());
+
+	int leftChild = buildLocalLBVH(mortonPrims, srcObjects, start, splitIndex, bitShift - 1);
+	int rightChild = buildLocalLBVH(mortonPrims, srcObjects, splitIndex, end, bitShift - 1);
+
+	_nodes[nodeIdx].bbox = AABB::AABB_union(_nodes[leftChild].bbox, _nodes[rightChild].bbox);
+	_nodes[nodeIdx].leftChildOrPrimOffset = leftChild;
+	_nodes[nodeIdx].rightChildOffset = rightChild;
+	_nodes[nodeIdx].primitiveCount = 0;
+	_nodes[nodeIdx].axis = bitShift % 3; 
+
+	return (nodeIdx);
+}
+
+bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const
+{
+	Vec3f invDir(1.0f / ray._dir._x, 1.0f / ray._dir._y, 1.0f / ray._dir._z);
+	// ray neg sur ?
+	int dirIsNeg[3] =
+	{
+		ray._dir._x < 0,
+		ray._dir._y < 0,
+		ray._dir._z < 0
+	};
+
+	int	stack[128];
+	int	stackPtr = 0;
+	stack[stackPtr++] = 0;// premier noeu tjr 0
+
+	bool	hitAnything = false;
+	float	closestSoFar = tMax;
+
+	while (stackPtr > 0)
+	{
+		int			nodeIdx = stack[--stackPtr];
+		const Node&	node = _nodes[nodeIdx];
+
+		if (!node.bbox.hit(ray, invDir, tMin, closestSoFar))
+			continue;
+		//feuille
+		if (node.primitiveCount > 0)
+		{
+			for (uint32_t i = 0; i < node.primitiveCount; ++i)
+			{
+				auto&	obj = _orderedObjects[node.leftChildOrPrimOffset + i];
+				if (obj->hit(ray, tMin, closestSoFar, rec))
+				{
+					hitAnything = true;
+					closestSoFar = rec.t;
+				}
+			}
+		}
+		//interne
+		else
+		{
+			int	firstChild = node.leftChildOrPrimOffset;
+			int	secondChild = node.rightChildOffset;
+
+			// si ray neg sur axe de coupe droit plus proche
+			if (dirIsNeg[node.axis])
+				std::swap(firstChild, secondChild);
+
+			// plus loin en premier
+			stack[stackPtr++] = secondChild;
+			stack[stackPtr++] = firstChild;
+		}
+	}
+	return (hitAnything);
+}
+
+bool	BVHNode::bbox(AABB& output_box) const
+{
+	if (_nodes.empty())
+		return false;		
+	output_box = _nodes[0].bbox; 
+	return true;
 }

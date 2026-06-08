@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:48 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/08 17:52:32 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/08 21:47:58 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,15 +80,14 @@ struct AABB
 		return (2.0f * ((size._x * size._y) + (size._y * size._z) + (size._z * size._x)));
 	};
 
-	bool	hit(const Ray& ray, float tMin, float tMax) const
+	bool	hit(const Ray& ray, const Vec3f& invDir, float tMin, float tMax) const
 	{
 		for (int a = 0; a < 3; a++)
 		{
-			float	invD = 1.0f / ray._dir[a];
-			float	t0 = (_min[a] - ray._o[a]) * invD;
-			float	t1 = (_max[a] - ray._o[a]) * invD;
+			float	t0 = (_min[a] - ray._o[a]) * invDir[a];
+			float	t1 = (_max[a] - ray._o[a]) * invDir[a];
 			
-			if (invD < 0.0f)
+			if (invDir[a] < 0.0f)
 				std::swap(t0, t1);
 			tMin = t0 > tMin ? t0 : tMin;
 			tMax = t1 < tMax ? t1 : tMax;
