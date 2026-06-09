@@ -6,42 +6,49 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 14:11:04 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/09 15:08:29 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
 
-
-Vec3f	traceRay(Ray ray, Scene scene, int depth, unsigned int *seed)
+Vec3f	traceRay(Ray ray, Scene scene, int max_depth, unsigned int *seed)
 {
-	if (depth <= 0)
-        return (Vec3f());
-	
-	HitRecord	rec;
-	Vec3f		color;
-	if (scene.hit(ray, FLT_EPSILON, FLT_MAX, rec))
+	Vec3f	accumulated_light(0.0f);
+	Vec3f	throughput(1.0f);
+
+	for (int depth = 0; depth < max_depth; depth++)
 	{
-		Ray		new_ray;
+		HitRecord	rec;
 
-		if (!rec.material->scatter(ray, rec, color, new_ray, seed))
-			return (Vec3f());
+		if (scene.hit(ray, 0.001f, FLT_MAX, rec))
+		{
+			Vec3f	emitted = rec.material->emitted(rec.u, rec.v, rec.point);
+			accumulated_light += throughput * emitted;
+
+			Ray		new_ray;
+			Vec3f	albedo;
+			
+			if (!rec.material->scatter(ray, rec, albedo, new_ray, seed))
+				break;
+
+			throughput *= albedo;
+			ray = new_ray;
+		}
 		else
-			color += traceRay(new_ray, scene, depth - 1, seed);
+		{
+			Vec3f	sky_color = Vec3f(0.05f, 0.05f, 0.05f);
+			
+			accumulated_light += throughput * sky_color;
+			break;
+		}
 	}
-	return (color);
+	return (accumulated_light);
 }
-
 
 
 void	render(Render &render)
 {
-	if (render.start_y == 0 && render.start_x == 0 && render.cam.hasMoved())
-	{
-		render.frame_count = 1;
-		render.cam.resetMovedFlag();
-	}
-
 	for (size_t y = render.start_y; y < render.end_y; y++)
 	{
 		for (size_t x = render.start_x; x < render.end_x; x++)
@@ -61,17 +68,25 @@ void	render(Render &render)
 			Ray		ray = render.cam.getRay(u, v);
 			Vec3f	color = traceRay(ray, render.scene, render.depth_max, render.seed);
 
-			size_t	pixel_index = y * render.width + x;
+			size_t	pixel_idx = y * render.width + x;
 			if (render.frame_count == 1)
-				render.accum_buffer[pixel_index] = color;
+				render.accum_buffer[pixel_idx] = color;
 			else
-				render.accum_buffer[pixel_index] += color;
+				render.accum_buffer[pixel_idx] += color;
 
 			//moyenne
-			Vec3f final_color = render.accum_buffer[pixel_index] / (float)render.frame_count;
-
+			Vec3f final_color = render.accum_buffer[pixel_idx] / (float)render.frame_count;
+			final_color._x = final_color._x > 1.0 ? 1.0f : final_color._x;
+			final_color._y = final_color._y > 1.0 ? 1.0f : final_color._y;
+			final_color._z = final_color._z > 1.0 ? 1.0f : final_color._z;
+			final_color._x = pow(final_color._x, 0.45454545454);
+			final_color._y = pow(final_color._y, 0.45454545454);
+			final_color._z = pow(final_color._z, 0.45454545454);
+			int ir, ig, ib;
+			ir = (int)(255.999 * final_color._x);
+			ig = (int)(255.999 * final_color._y);
+			ib = (int)(255.999 * final_color._z);
+			render.definitive[pixel_idx] = (ir << 24) | (ig << 16) | (ib << 8) | 0xFF;
 		}
 	}
-	if (render.start_y == 0 && render.start_x == 0) 
-		render.frame_count++;
 }
