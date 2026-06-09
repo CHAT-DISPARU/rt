@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:26:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 10:51:25 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/09 11:58:44 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 class	Camera
 {
 	public:
+
 		Camera(Vec3f lookfrom, Vec3f lookat, Vec3f vup, float vfov, float aspect_ratio)
 		{
 			m_lookfrom = lookfrom;
@@ -26,6 +27,7 @@ class	Camera
 			m_vup = vup;
 			m_vfov = vfov;
 			m_aspect_ratio = aspect_ratio;
+			m_has_moved = true;
 			update();
 		}
 
@@ -33,51 +35,65 @@ class	Camera
 		{
 			m_lookfrom = m_lookfrom + offset;
 			m_lookat = m_lookat + offset;
+			m_has_moved = true;
 			update();
 		}
 
 		void	moveLocal(float right, float up, float forward)
 		{
-			Vec3f offset = (u * right) + (v * up) - (w * forward);
+			Vec3f	offset_local(right, up, -forward);
+			Vec3f	offset_world = m_inverseView * offset_local;
 
-			m_lookfrom = m_lookfrom + offset;
-			m_lookat = m_lookat + offset;
+			m_lookfrom = m_lookfrom + offset_world;
+			m_lookat = m_lookat + offset_world;
+			m_has_moved = true;
 			update();
 		}
 
 		void	rotate(const Mat4f& rotationMatrix)
 		{
 			Vec3f	dir = m_lookat - m_lookfrom;
-
 			dir = rotationMatrix * dir;
 			m_lookat = m_lookfrom + dir;
+			m_has_moved = true;
 			update();
+		}
+
+		bool	hasMoved() const
+		{
+			return (m_has_moved);
+		}
+
+		void	resetMovedFlag()
+		{
+			m_has_moved = false;
 		}
 
 		Ray	getRay(float u_coord, float v_coord) const
 		{
-			Vec3f	pixel_pos = lower_left_corner + (u_coord * horizontal) + (v_coord * vertical);
-			Vec3f	direction = pixel_pos - m_lookfrom;
+			float	ndc_x = (2.0f * u_coord) - 1.0f;
+			float	ndc_y = 1.0f - (2.0f * v_coord);
 
-			return (Ray(m_lookfrom, direction));
+			float	cam_x = ndc_x * m_inverseProj[0][0];
+			float	cam_y = ndc_y * m_inverseProj[1][1];
+
+			Vec3f	dir_camera(cam_x, cam_y, -1.0f);
+			Vec3f	direction = m_inverseView * dir_camera;
+
+			return (Ray(m_lookfrom, direction.normalize()));
 		}
 
 	private:
 
 		void	update()
 		{
-			float	theta = m_vfov * 3.14159265f / 180.0f;
-			float	h = std::tan(theta / 2.0f);
-			float	viewport_height = 2.0f * h;
-			float	viewport_width = m_aspect_ratio * viewport_height;
+			float	fov_radians = m_vfov * 3.14159265f / 180.0f;
 
-			w = (m_lookfrom - m_lookat).normalize();
-			u = Vec3f::cross(m_vup, w).normalize();
-			v = Vec3f::cross(w, u);
+			m_view = Mat4f::lookAt(m_lookfrom, m_lookat, m_vup);
+			m_proj = Mat4f::perspective(fov_radians, m_aspect_ratio, 0.1f, 100.0f);
 
-			horizontal = viewport_width * u;
-			vertical = viewport_height * v;
-			lower_left_corner = m_lookfrom - (horizontal / 2.0f) - (vertical / 2.0f) - w;
+			m_inverseView = m_view.inverse();
+			m_inverseProj = m_proj.inverse();
 		}
 
 		Vec3f	m_lookfrom;
@@ -85,10 +101,9 @@ class	Camera
 		Vec3f	m_vup;
 		float	m_vfov;
 		float	m_aspect_ratio;
-		Vec3f	u;
-		Vec3f	v;
-		Vec3f	w;
-		Vec3f	horizontal;
-		Vec3f	vertical;
-		Vec3f	lower_left_corner;
+		bool	m_has_moved;
+		Mat4f	m_view;
+		Mat4f	m_proj;
+		Mat4f	m_inverseView;
+		Mat4f	m_inverseProj;
 };
