@@ -21,7 +21,7 @@
 - [x] BVHNode  -- herite Hittable, trie par axe, divise recursivement
 - [x] Scene    -- vector<shared_ptr<Hittable>>, hit() retourne le plus proche
 - [x] Camera   -- getRay(u, v), anti-aliasing par perturbation UV
-- [ ] Renderer -- traceRay() recursif, scatter(), std::thread
+- [x] Renderer -- traceRay() recursif, scatter(), std::thread
 
 ## 4 - Parser GLB
 - [ ] cgltf.h   -- ou faire soi meme un parser
