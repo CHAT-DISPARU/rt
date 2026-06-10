@@ -29,7 +29,7 @@ type emissive
 color 20.0 2.0 8.0
 
 sp 0 -1000 0 1000 sol
-sp 0 25 -5 20 plafon
+sp 0 25 -5 10 plafon
 sp -2.5 1 0 1 metal_crome
 sp 0 1 0 1 verre_pur
 sp 2.5 1 0 1 bleu
