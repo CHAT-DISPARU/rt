@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SceneLoader.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 16:41:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/10 02:02:12 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 15:41:21 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,6 +219,30 @@ class	SceneLoader
 					std::string	mtl_name;
 
 					if (iss >> x >> y >> z >> radius >> mtl_name)
+					{
+						if (app.materials.find(mtl_name) != app.materials.end())
+						{
+							Vec3f	center(x, y, z);
+							Mat4f	translation = Mat4f::translate(center);
+							Mat4f	scale = Mat4f::scale(Vec3f(radius, radius, radius));
+							Mat4f	transform = translation * scale;
+
+							app.scene.add(std::make_shared<Sphere>(radius, center, transform, app.materials[mtl_name].get()));
+						}
+						else
+							std::cerr << "Erreur: Materiau " << mtl_name << " not known.\n";
+					}
+					else
+					{
+						std::cerr << "error syntax sphere (x y z radius mat_name)" << std::endl;
+					}
+				}
+				else if (token == "plane" || token == "pl")
+				{
+					float		x = 0, y = 0, z = 0, xr = 0, xy = 1, xz = 0;
+					std::string	mtl_name;
+
+					if (iss >> x >> y >> z >> xr >> xy >> xz >> mtl_name)
 					{
 						if (app.materials.find(mtl_name) != app.materials.end())
 						{

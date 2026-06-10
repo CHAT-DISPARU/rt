@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:26:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 12:57:31 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 15:36:03 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,13 +50,23 @@ class	Camera
 			m_has_moved = true;
 			update();
 		}
+		
+		Vec3f	get_dir()
+		{
+			return (m_lookat - m_lookfrom);
+		};
 
-		void	rotate(const Mat4f& rotationMatrix)
+		void	rotate(const Mat4f& rotationMatrix, bool x)
 		{
 			Vec3f	dir = m_lookat - m_lookfrom;
 
-			dir = rotationMatrix * dir;
+			dir *= rotationMatrix;
 			m_lookat = m_lookfrom + dir;
+			if (x == true)
+			{
+				m_vup *= rotationMatrix;
+				m_vup = Vec3f::normalize(m_vup);
+			}
 			m_has_moved = true;
 			update();
 		}

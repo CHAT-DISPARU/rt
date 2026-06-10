@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 12:55:15 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 15:36:37 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,31 +121,29 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total)
 		}
 		const bool*	keys = SDL_GetKeyboardState(nullptr);
 		if (keys[SDL_SCANCODE_W])
-			app.camera.moveLocal(0, 0,  cam_speed);
+			app.camera.moveLocal(0, 0, cam_speed);
 		if (keys[SDL_SCANCODE_S])
 			app.camera.moveLocal(0, 0, -cam_speed);
 		if (keys[SDL_SCANCODE_A])
 			app.camera.moveLocal(-cam_speed, 0, 0);
 		if (keys[SDL_SCANCODE_D])
-			app.camera.moveLocal( cam_speed, 0, 0);
+			app.camera.moveLocal(cam_speed, 0, 0);
 		if (keys[SDL_SCANCODE_Q])
-			app.camera.moveLocal(0,  cam_speed, 0);
+			app.camera.moveLocal(0, cam_speed, 0);
 		if (keys[SDL_SCANCODE_E])
 			app.camera.moveLocal(0, -cam_speed, 0);
 		if (keys[SDL_SCANCODE_LEFT])
-			app.camera.rotate(Mat4f::rotateY( cam_rotate));
+			app.camera.rotate(Mat4f::rotateY(cam_rotate), false);
 		if (keys[SDL_SCANCODE_RIGHT])
-			app.camera.rotate(Mat4f::rotateY(-cam_rotate));
+			app.camera.rotate(Mat4f::rotateY(-cam_rotate), false);
 		if (keys[SDL_SCANCODE_UP])
-			app.camera.rotate(Mat4f::rotateX( cam_rotate));
+			app.camera.rotate(Mat4f::rotate(cam_rotate, app.camera.get_dir()), true);
 		if (keys[SDL_SCANCODE_DOWN])
-			app.camera.rotate(Mat4f::rotateX(-cam_rotate));
+			app.camera.rotate(Mat4f::rotate(-cam_rotate, app.camera.get_dir()), true);
 		if (keys[SDL_SCANCODE_SPACE])
-		{
-			app.camera.rotate(Mat4f::rotateZ(cam_rotate));
-		}
+			app.camera.moveLocal(0, cam_speed, 0);
 		if (keys[SDL_SCANCODE_LSHIFT])
-			app.camera.rotate(Mat4f::rotateZ(-cam_rotate)); 
+			app.camera.moveLocal(0, -cam_speed, 0);
 
 		// render
 		thread_calls(app.camera, render_total);
