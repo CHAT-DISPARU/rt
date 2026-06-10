@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:09:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 16:16:57 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 01:14:17 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "Math3D.hpp"
 #include "Ray.hpp"
 #include "HitRecord.hpp"
+
 struct HitRecord;
 
 class Material
@@ -22,7 +23,14 @@ class Material
 	public:
 
 		virtual ~Material() = default;
-
+		void	setColor(const Vec3f& color)
+		{
+			_color = color;
+		};
+		Vec3f	getColor() const
+		{
+			return _color;
+		};
 		/*
 			- r_in : ray qui arrive (incident)
 			- rec : le HitRecord
@@ -44,10 +52,11 @@ class Material
 			return (1.0f);
 		};
 		protected:
-			bool _hasTexture = false;
-			bool _hasNormal = false;
-			bool _hasRoughness = false;
-			bool _hasMetallic = false;
-			bool _hasOcclusion = false;
-			bool _hasEmissive = false;
+			Vec3f	_color;
+			bool	_hasTexture = false;
+			bool	_hasNormal = false;
+			bool	_hasRoughness = false;
+			bool	_hasMetallic = false;
+			bool	_hasOcclusion = false;
+			bool	_hasEmissive = false;
 };

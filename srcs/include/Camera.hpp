@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Camera.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:26:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 11:58:44 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/09 17:54:57 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ class	Camera
 {
 	public:
 
+		Camera(){};
 		Camera(Vec3f lookfrom, Vec3f lookat, Vec3f vup, float vfov, float aspect_ratio)
 		{
 			m_lookfrom = lookfrom;

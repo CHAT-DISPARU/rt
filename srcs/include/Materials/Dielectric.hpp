@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:13 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 17:30:07 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 00:29:00 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 class Dielectric : public Material
 {
 	private:
-		Vec3f	_color;
 		float	_ni;
 		float	_fuzz;
 
@@ -26,4 +25,12 @@ class Dielectric : public Material
 
 		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
 		float	ior() const;
+		void setFuzz(float f)
+		{
+			_fuzz = (f < 1.0f) ? f : 1.0f;
+		};
+		void setNi(float ni)
+		{
+			_ni = ni;
+		};
 };

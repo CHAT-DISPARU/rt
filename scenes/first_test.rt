@@ -1,0 +1,36 @@
+res 1280 720
+samples inf
+
+camera 0 2 10  0 -0.2 -1  70
+
+mat sol
+color 0.8 0.8 0.8
+
+mat plafon
+type emissive
+color 6.0 6.0 6.0
+
+mat metal_crome
+type metal
+color 0.9 0.9 0.9
+fuzz 0.02
+
+mat verre_pur
+type glass
+color 1.0 1.0 1.0
+ni 1.5
+fuzz 0.0
+
+mat bleu
+color 0.1 0.6 0.9
+
+mat rose
+type emissive
+color 20.0 2.0 8.0
+
+sp 0 -1000 0 1000 sol
+sp 0 25 -5 20 plafon
+sp -2.5 1 0 1 metal_crome
+sp 0 1 0 1 verre_pur
+sp 2.5 1 0 1 bleu
+sp 1.5 0.2 2 0.2 rose

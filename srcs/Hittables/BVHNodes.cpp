@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BVHNodes.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/08 22:00:55 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 02:19:25 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Hittable>>& objects)
 		Vec3f	centroid = (box._min + box._max) * 0.5f;
 		mortonPrims[i].mortonCode = computeMortonCode(centroid, globalBox);
 	}
-
+	_nodes.reserve(mortonPrims.size() * 2);
 	// sort morton
 	radixSort(mortonPrims);
 	//contruction arbre

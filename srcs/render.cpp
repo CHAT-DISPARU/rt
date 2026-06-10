@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 15:08:29 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/09 23:12:35 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
 
-Vec3f	traceRay(Ray ray, Scene scene, int max_depth, unsigned int *seed)
+Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed)
 {
 	Vec3f	accumulated_light(0.0f);
 	Vec3f	throughput(1.0f);
@@ -53,8 +53,8 @@ void	render(Render &render)
 	{
 		for (size_t x = render.start_x; x < render.end_x; x++)
 		{
-			float u, v;
-			if (render.samples)
+			float	u, v;
+			if (render.samples != 1)
 			{
 				u = ((float)x + Vec3f::randomFloat(render.seed)) * render.inv_w;
 				v = ((float)y + Vec3f::randomFloat(render.seed)) * render.inv_h;
@@ -75,14 +75,15 @@ void	render(Render &render)
 				render.accum_buffer[pixel_idx] += color;
 
 			//moyenne
-			Vec3f final_color = render.accum_buffer[pixel_idx] / (float)render.frame_count;
-			final_color._x = final_color._x > 1.0 ? 1.0f : final_color._x;
-			final_color._y = final_color._y > 1.0 ? 1.0f : final_color._y;
-			final_color._z = final_color._z > 1.0 ? 1.0f : final_color._z;
+			Vec3f	final_color = render.accum_buffer[pixel_idx] / (float)render.frame_count;
+
+			final_color._x = final_color._x / (final_color._x + 1.0f);
+			final_color._y = final_color._y / (final_color._y + 1.0f);
+			final_color._z = final_color._z / (final_color._z + 1.0f);
 			final_color._x = pow(final_color._x, 0.45454545454);
 			final_color._y = pow(final_color._y, 0.45454545454);
 			final_color._z = pow(final_color._z, 0.45454545454);
-			int ir, ig, ib;
+			int	ir, ig, ib;
 			ir = (int)(255.999 * final_color._x);
 			ig = (int)(255.999 * final_color._y);
 			ib = (int)(255.999 * final_color._z);

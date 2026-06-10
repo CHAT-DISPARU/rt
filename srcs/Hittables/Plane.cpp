@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Plane.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 17:25:10 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 01:26:15 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,11 @@ bool	Plane::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 	rec.material = _mat;
 	rec.point = l_ray(t);
 	rec.set_face_normal(ray, Vec3f::normalize(_transform * Vec3f::normalize(rec.point)));
+	return (true);
 }
 
 bool	Plane::bbox(AABB& output_box) const
 {
+	(void)output_box;
 	return (false);
 }

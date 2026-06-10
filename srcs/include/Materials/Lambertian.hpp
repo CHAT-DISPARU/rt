@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Lambertian.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:05 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 12:22:53 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/09 17:23:22 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 
 class Lambertian : public Material
 {
-	private:
-		Vec3f	_color;
 	public:
 
 		~Lambertian(){};

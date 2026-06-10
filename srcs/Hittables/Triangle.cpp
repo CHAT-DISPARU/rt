@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Triangle.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 18:37:55 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 01:27:59 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,7 @@ bool	Triangle::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) con
 	rec.t = t;
 	rec.point = ray(t);
 	rec.set_face_normal(ray, _normal);
+	return (true);
 }
 
 bool	Triangle::bbox(AABB& output_box) const

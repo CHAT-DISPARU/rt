@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:31:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/07 17:30:20 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/09 17:23:18 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,6 @@
 
 class DiffuseLight : public Material
 {
-	private:
-		Vec3f	_color;
 	public:
 
 		~DiffuseLight(){};

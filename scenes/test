@@ -1,0 +1,24 @@
+res 800 600
+samples inf
+
+camera 0 1 4  0 -0.2 -1  60
+
+mat sol
+color 0.5 0.5 0.5
+
+mat boule_roug
+color 0.8 0.2 0.2
+
+mat miroir
+type metal
+color 1.0 1.0 1.0
+fuzz 0.0
+
+mat petit_lampe
+type emissive
+color 3.0 3.0 3.0
+
+sp 0 -100.5 -1 100 sol
+sp 0 0 -1 0.5 boule_roug
+sp 1.2 0 -1 0.5 miroir
+sp -1 2 0 0.5 petit_lampe

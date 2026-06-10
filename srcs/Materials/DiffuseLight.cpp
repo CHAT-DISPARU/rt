@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:32:19 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/07 16:31:56 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 01:34:09 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,11 @@
 
 bool	DiffuseLight::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const
 {
+	(void)r_in;
+	(void)rec;
+	(void)attenuation;
+	(void)scattered;
+	(void)seed;
 	return (false);
 }
 
