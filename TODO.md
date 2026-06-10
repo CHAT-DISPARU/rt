@@ -51,3 +51,5 @@
 
 
 https://jacco.ompf2.com/2022/04/18/how-to-build-a-bvh-part-2-faster-rays/
+
+https://medium.com/@techAsthetic/mastering-cmakelists-txt-a-comprehensive-guide-b027595658c3

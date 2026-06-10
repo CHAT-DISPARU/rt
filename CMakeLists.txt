@@ -11,11 +11,6 @@ FetchContent_Declare(
 	GIT_TAG			main
 )
 
-set(SDL_X11_XTEST OFF CACHE BOOL "" FORCE)
-set(SDL_AUDIO OFF CACHE BOOL "" FORCE)
-set(SDL_JOYSTICK OFF CACHE BOOL "" FORCE)
-set(SDL_HAPTIC OFF CACHE BOOL "" FORCE)
-set(SDL_TEST OFF CACHE BOOL "" FORCE)
 set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(SDL3)
@@ -46,9 +41,10 @@ target_compile_options(rt PRIVATE
 	-Wall -Wextra -Werror
 	-O3
 	-march=native
-	-flto
 	-pipe
-	-g -fsanitize=address
+	-ffast-math
+	-funroll-loops
+	-mprefer-vector-width=256
 )
 
 target_include_directories(rt PRIVATE

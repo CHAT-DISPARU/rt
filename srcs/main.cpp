@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 02:14:22 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 12:55:15 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,8 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total)
 {
 	bool		running = true;
 	SDL_Event	event;
-	float		cam_speed  = 0.1f;
-	float		cam_rotate = 0.02f;
+	float		cam_speed  = 0.2f;
+	float		cam_rotate = 0.04f;
 
 	while (running)
 	{
@@ -141,9 +141,11 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total)
 		if (keys[SDL_SCANCODE_DOWN])
 			app.camera.rotate(Mat4f::rotateX(-cam_rotate));
 		if (keys[SDL_SCANCODE_SPACE])
-			app.camera.move(Vec3f(0.0f, cam_speed, 0.0f)); 
+		{
+			app.camera.rotate(Mat4f::rotateZ(cam_rotate));
+		}
 		if (keys[SDL_SCANCODE_LSHIFT])
-			app.camera.move(Vec3f(0.0f, -cam_speed, 0.0f)); 
+			app.camera.rotate(Mat4f::rotateZ(-cam_rotate)); 
 
 		// render
 		thread_calls(app.camera, render_total);
@@ -177,10 +179,10 @@ int	main(int ac, char **av)
 	std::cout << "Resolution: " << app.width << "x" << app.height << "\n";
 	std::cout << "Samples: " << app.samples << "\n";
 	std::cout << "\n[BVH] Building..." << std::endl;
-	auto startbvh = std::chrono::high_resolution_clock::now();
+	auto	startbvh = std::chrono::high_resolution_clock::now();
 	app.scene.build();
-	auto endbvh = std::chrono::high_resolution_clock::now();
-	auto durationbvh = std::chrono::duration_cast<std::chrono::milliseconds>(endbvh - startbvh);
+	auto	endbvh = std::chrono::high_resolution_clock::now();
+	auto	durationbvh = std::chrono::duration_cast<std::chrono::milliseconds>(endbvh - startbvh);
 	std::cout << "[BVH] Construction time: " << durationbvh.count() << " ms" << std::endl;
 	srand(static_cast<unsigned int>(time(NULL)));
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Camera.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:26:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 17:54:57 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 12:57:31 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ class	Camera
 		void	rotate(const Mat4f& rotationMatrix)
 		{
 			Vec3f	dir = m_lookat - m_lookfrom;
+
 			dir = rotationMatrix * dir;
 			m_lookat = m_lookfrom + dir;
 			m_has_moved = true;
