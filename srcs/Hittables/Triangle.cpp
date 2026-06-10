@@ -3,103 +3,83 @@
 /*                                                        :::      ::::::::   */
 /*   Triangle.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 01:27:59 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 18:36:48 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Triangle.hpp"
 
-Triangle::Triangle(Vec3f points, Material *mat, Vec3f normal)
+#include "Triangle.hpp"
+#include <cfloat>
+#include <cmath>
+
+Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Material *mat, Vec3f normal)
 {
-	_points = points;
+	_v0 = v0;
+	_v1 = v1;
+	_v2 = v2;
 	_mat = mat;
-	_box.add_point(_points._x);
-	_box.add_point(_points._y);
-	_box.add_point(_points._z);
-	_box._min = _box._min - Vec3f(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON);
-	_box._max = _box._max + Vec3f(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON);
 	_normal = normal;
+	_box.add_point(_v0);
+	_box.add_point(_v1);
+	_box.add_point(_v2);
+	_box._min = _box._min - Vec3f(0.001f, 0.001f, 0.001f);
+	_box._max = _box._max + Vec3f(0.001f, 0.001f, 0.001f);
 }
 
-Triangle::Triangle(Vec3f points, Material *mat)
+Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Material *mat)
 {
-	_points = points;
+	_v0 = v0;
+	_v1 = v1;
+	_v2 = v2;
 	_mat = mat;
-	_box.add_point(_points._x);
-	_box.add_point(_points._y);
-	_box.add_point(_points._z);
-	_box._min = _box._min - Vec3f(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON);
-	_box._max = _box._max + Vec3f(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON);
+
+	Vec3f	edge1 = _v1 - _v0;
+	Vec3f	edge2 = _v2 - _v0;
+
+	_normal = Vec3f::cross(edge1, edge2);
+	_normal = Vec3f::normalize(_normal);
+	_box.add_point(_v0);
+	_box.add_point(_v1);
+	_box.add_point(_v2);
+	_box._min = _box._min - Vec3f(0.001f, 0.001f, 0.001f);
+	_box._max = _box._max + Vec3f(0.001f, 0.001f, 0.001f);
 }
 
-/*
-	R(t) = O + t * D
-	O: origin of the ray
-	D: direction
-	t: distance along the ray
-
-	E1 = P2 - P1
-	E2 = P3 - P1
-
-	Then we perform some cross products to solve the system:
-		H = D x E2
-		a = E1 . H
-
-	If a is close to 0, the ray is parallel to the triangle → no intersection.
-	Otherwise we continue:
-		f = 1 / a
-		S = O - P1
-		u = f * (S . H)
-		if u < 0 or u > 1 → no intersection
-		Q = S x E1
-		v = f * (D . Q)
-		if v < 0 or u + v > 1 → no intersection
-
-	We finally compute t, the distance along the ray:
-		t = f * (E2 . Q)
-
-	If t > 0, the ray hits the triangle at the point:
-		P = O + t * D
-
-	Recovered barycentric coordinates:
-		u, v already computed
-		w = 1 - u - v
-*/
 bool	Triangle::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 {
-	Vec3f	edge1;
-	Vec3f	edge2;
-	Vec3f	pvec;
-	Vec3f	tvec;
-	Vec3f	qvec;
-	float	det;
-	float	u;
-	float	v;
-	float	t;
+	Vec3f	edge1 = _v1 - _v0;
+	Vec3f	edge2 = _v2 - _v0;
+	Vec3f	pvec = Vec3f::cross(ray._dir, edge2);	
+	float	det = Vec3f::dot(edge1, pvec);
+	
 
-	edge1 = _points._y - _points._x;
-	edge2 = _points._z - _points._x;
-	pvec = Vec3f::cross(ray._dir, edge2);
-	det = Vec3f::dot(edge1, edge2);
-	if (det > -t_min && det < t_min)
+	if (std::abs(det) < 1e-6f)
 		return (false);
-	det = 1.0f / det;
-	tvec = ray._o - _points._x;
-	u = Vec3f::dot(tvec, pvec) * det;
+
+	float	inv_det = 1.0f / det;
+	Vec3f	tvec = ray._o - _v0;
+	float	u = Vec3f::dot(tvec, pvec) * inv_det;
+
 	if (u < 0.0f || u > 1.0f)
 		return (false);
-	qvec = Vec3f::cross(tvec, edge1);
-	v = Vec3f::dot(ray._dir, qvec) * det;
+		
+	Vec3f	qvec = Vec3f::cross(tvec, edge1);
+	float	v = Vec3f::dot(ray._dir, qvec) * inv_det;
+
 	if (v < 0.0f || u + v > 1.0f)
 		return (false);
-	t = Vec3f::dot(edge2, qvec) * det;
+		
+	float	t = Vec3f::dot(edge2, qvec) * inv_det;
+
 	if (t < t_min || t > t_max)
 		return (false);
 	rec.t = t;
 	rec.point = ray(t);
+	rec.material = _mat;
 	rec.set_face_normal(ray, _normal);
 	return (true);
 }

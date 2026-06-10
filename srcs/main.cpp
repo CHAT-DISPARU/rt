@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 15:36:37 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 16:55:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,30 +120,33 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total)
 				running = false;
 		}
 		const bool*	keys = SDL_GetKeyboardState(nullptr);
+
+		// deplace
 		if (keys[SDL_SCANCODE_W])
-			app.camera.moveLocal(0, 0, cam_speed);
-		if (keys[SDL_SCANCODE_S])
-			app.camera.moveLocal(0, 0, -cam_speed);
+			app.camera.move_forward(cam_speed);
+		else if (keys[SDL_SCANCODE_S])
+			app.camera.move_forward(-cam_speed);
 		if (keys[SDL_SCANCODE_A])
-			app.camera.moveLocal(-cam_speed, 0, 0);
-		if (keys[SDL_SCANCODE_D])
-			app.camera.moveLocal(cam_speed, 0, 0);
-		if (keys[SDL_SCANCODE_Q])
-			app.camera.moveLocal(0, cam_speed, 0);
-		if (keys[SDL_SCANCODE_E])
-			app.camera.moveLocal(0, -cam_speed, 0);
-		if (keys[SDL_SCANCODE_LEFT])
-			app.camera.rotate(Mat4f::rotateY(cam_rotate), false);
-		if (keys[SDL_SCANCODE_RIGHT])
-			app.camera.rotate(Mat4f::rotateY(-cam_rotate), false);
-		if (keys[SDL_SCANCODE_UP])
-			app.camera.rotate(Mat4f::rotate(cam_rotate, app.camera.get_dir()), true);
-		if (keys[SDL_SCANCODE_DOWN])
-			app.camera.rotate(Mat4f::rotate(-cam_rotate, app.camera.get_dir()), true);
+			app.camera.move_right(-cam_speed);
+		else if (keys[SDL_SCANCODE_D])
+			app.camera.move_right(cam_speed);
 		if (keys[SDL_SCANCODE_SPACE])
-			app.camera.moveLocal(0, cam_speed, 0);
-		if (keys[SDL_SCANCODE_LSHIFT])
-			app.camera.moveLocal(0, -cam_speed, 0);
+			app.camera.move_up_world(cam_speed);
+		else if (keys[SDL_SCANCODE_LSHIFT])
+			app.camera.move_up_world(-cam_speed);
+		// rotation
+		if (keys[SDL_SCANCODE_UP])
+			app.camera.pitch(cam_rotate);
+		else if (keys[SDL_SCANCODE_DOWN])
+			app.camera.pitch(-cam_rotate);
+		if (keys[SDL_SCANCODE_LEFT])
+			app.camera.yaw(cam_rotate);
+		else if (keys[SDL_SCANCODE_RIGHT])
+			app.camera.yaw(-cam_rotate);
+		if (keys[SDL_SCANCODE_LEFTBRACKET])
+			app.camera.roll(cam_rotate);
+		else if (keys[SDL_SCANCODE_RIGHTBRACKET])
+			app.camera.roll(-cam_rotate);
 
 		// render
 		thread_calls(app.camera, render_total);

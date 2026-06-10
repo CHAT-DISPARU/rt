@@ -1,6 +1,5 @@
 res 1280 720
 samples inf
-
 camera 0 2 10  0 -0.2 -1  70
 
 mat sol
@@ -28,9 +27,10 @@ mat rose
 type emissive
 color 20.0 2.0 8.0
 
-sp 0 -1000 0 1000 sol
-sp 0 25 -5 10 plafon
-sp -2.5 1 0 1 metal_crome
-sp 0 1 0 1 verre_pur
-sp 2.5 1 0 1 bleu
-sp 1.5 0.2 2 0.2 rose
+
+sp 0 -1000 0 1000  0 1 0  sol
+sp 0 25 -5 10  0 1 0  plafon
+sp -2.5 1 0 1  0 1 0  metal_crome
+sp 0 1 0 1  0 1 0  verre_pur
+sp 2.5 1 0 1  0 1 0  bleu
+sp 1.5 0.2 2 0.2  0 1 0  rose

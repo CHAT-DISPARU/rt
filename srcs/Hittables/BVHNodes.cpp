@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BVHNodes.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/10 02:19:25 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 18:22:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,9 @@ BVHNode::BVHNode(std::vector<std::shared_ptr<Hittable>>& objects)
 	radixSort(mortonPrims);
 	//contruction arbre
 	buildTreeFromMorton(mortonPrims, objects);
+
+
+	std::cout << "bvh finit nb node :" <<  _nodes.size() << " nb objs :" << _orderedObjects.size() << std::endl;
 }
 
 // etale sur 63 bit

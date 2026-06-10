@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/08 17:29:50 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 18:10:23 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -268,6 +268,23 @@ struct Vec3
 	{
 		return (fabs(_x) < FLT_EPSILON && fabs(_y) < FLT_EPSILON && fabs(_z) < FLT_EPSILON);
 	}
+
+	Vec3	to_rotation_angles() const
+	{
+		T	length = this->length();
+
+		if (length < 1e-6f)
+			return (Vec3(0.0f, 0.0f, 0.0f));
+
+		float	nx = _x / length;
+		float	ny = _y / length;
+		float	nz = _z / length;
+
+		float	rx = std::acos(ny); //pitch (vertical)
+		float	ry = std::atan2(nx, nz);  // Yaw (orizontal)
+		//pas de roll ...
+		return (Vec3(rx, ry, 0.0f));
+	}
 };
 
 template <typename T>
@@ -299,6 +316,7 @@ std::ostream&	operator<<(std::ostream& out, const Vec3<T>& v)
 	out << "--------\n  Vec3  \n x = " << v._x << "\n y = " << v._y << "\n z = " << v._z << "\n--------\n";
 	return (out);
 };
+
 
 typedef	Vec3<float>		Vec3f;
 typedef	Vec3<double>	Vec3d;

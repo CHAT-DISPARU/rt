@@ -6,13 +6,13 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 13:14:43 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 11:52:47 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/10 18:16:09 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Sphere.hpp"
 
-Sphere::Sphere(float d, Vec3f center, const Mat4f &m, Material *mat)
+Sphere::Sphere(float d, Vec3f center, Vec3f normal, const Mat4f &m, Material *mat)
 {
 	_diameter = d;
 	_transform = m;
@@ -22,6 +22,7 @@ Sphere::Sphere(float d, Vec3f center, const Mat4f &m, Material *mat)
 	_box._max = Vec3f(1, 1, 1);
 	_box *= _transform;
 	_mat = mat;
+	_normal = normal;
 }
 
 /*
@@ -93,8 +94,8 @@ bool	Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 	rec.t = t;
 	rec.material = _mat;
 	rec.point = ray(t);
-	Vec3f	world_normal = Vec3f::normalize(rec.point - _center);
-	rec.set_face_normal(ray, world_normal);
+	Vec3f	out_normal = Vec3f::normalize(rec.point - _center);
+	rec.set_face_normal(ray, out_normal);
 	return (true);
 }
 

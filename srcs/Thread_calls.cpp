@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Thread_calls.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 14:55:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 02:32:14 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 16:18:08 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@ void	thread_calls(Camera &cam, Render &render_total)
 		render_total.frame_count = 1;
 		cam.resetMovedFlag();
 	}
+	if (render_total.frame_count > (size_t)render_total.samples)
+		return ;
 
 	const int	COLS = 4;
 	const int	ROWS = THREAD_MAX / COLS;

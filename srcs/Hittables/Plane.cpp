@@ -3,21 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   Plane.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 02:43:08 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/10 18:26:25 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Plane.hpp"
 
-Plane::Plane(float point, const Mat4f &m, Material *mat)
+Plane::Plane(Vec3f point, Vec3f normal, const Mat4f &m, Material *mat)
 {
 	_point = point;
 	_transform = m;
 	_inverse = _transform.inverse();
 	_mat = mat;
+	_normal = normal;
 }
 
 bool	Plane::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
@@ -36,13 +37,13 @@ bool	Plane::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 		return (false);
 	rec.t = t;
 	rec.material = _mat;
-	rec.point = l_ray(t);
-	rec.set_face_normal(ray, Vec3f::normalize(_transform * Vec3f::normalize(rec.point)));
+	rec.point = ray(t);
+	rec.set_face_normal(ray, _normal);
 	return (true);
 }
 
 bool	Plane::bbox(AABB& output_box) const
 {
-	(void)output_box;
-	return (false);
+	output_box = AABB(Vec3f(-10000, -0.01f, -10000), Vec3f(10000, 0.01f, 10000));
+	return (true);
 }

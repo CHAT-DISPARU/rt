@@ -5,10 +5,12 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/09 10:26:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 15:36:03 by gajanvie         ###   ########.fr       */
+/*   Created: 2026/06/10 16:55:06 by gajanvie          #+#    #+#             */
+/*   Updated: 2026/06/10 18:29:22 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+
 
 #pragma once
 
@@ -25,48 +27,86 @@ class	Camera
 		{
 			m_lookfrom = lookfrom;
 			m_lookat = lookat;
-			m_vup = vup;
+			m_vup = Vec3f::normalize(vup);
 			m_vfov = vfov;
-			m_aspect_ratio = aspect_ratio;
+			m_aspect = aspect_ratio;
 			m_has_moved = true;
 			update();
 		}
 
-		void	move(const Vec3f& offset)
+		Vec3f	get_forward() const
 		{
-			m_lookfrom = m_lookfrom + offset;
-			m_lookat = m_lookat + offset;
+			return (Vec3f::normalize(m_lookat - m_lookfrom));
+		}
+
+		Vec3f	get_right() const
+		{
+			return (Vec3f::normalize(Vec3f::cross(get_forward(), m_vup)));
+		}
+
+		Vec3f	get_up() const
+		{
+			return (m_vup);
+		}
+
+		void	move_forward(float d)
+		{
+			Vec3f	step = get_forward() * d;
+
+			m_lookfrom = m_lookfrom + step;
+			m_lookat = m_lookat + step;
 			m_has_moved = true;
 			update();
 		}
 
-		void	moveLocal(float right, float up, float forward)
+		void	move_right(float d)
 		{
-			Vec3f	offset_local(right, up, -forward);
-			Vec3f	offset_world = m_inverseView * offset_local;
+			Vec3f	step = get_right() * d;
 
-			m_lookfrom = m_lookfrom + offset_world;
-			m_lookat = m_lookat + offset_world;
+			m_lookfrom = m_lookfrom + step;
+			m_lookat = m_lookat + step;
 			m_has_moved = true;
 			update();
 		}
-		
-		Vec3f	get_dir()
-		{
-			return (m_lookat - m_lookfrom);
-		};
 
-		void	rotate(const Mat4f& rotationMatrix, bool x)
+		void	move_up_world(float d)
 		{
+			m_lookfrom._y += d;
+			m_lookat._y += d;
+			m_has_moved = true;
+			update();
+		}
+
+		void	pitch(float angle)
+		{
+			Vec3f	axis = get_right();
+			Mat4f	rot = Mat4f::rotate(angle, axis);
+
 			Vec3f	dir = m_lookat - m_lookfrom;
 
-			dir *= rotationMatrix;
+			dir = rot * dir;
 			m_lookat = m_lookfrom + dir;
-			if (x == true)
-			{
-				m_vup *= rotationMatrix;
-				m_vup = Vec3f::normalize(m_vup);
-			}
+			m_has_moved = true;
+			update();
+		}
+
+		void	yaw(float angle)
+		{
+			Mat4f	rot = Mat4f::rotateY(angle);
+
+			Vec3f	dir = m_lookat - m_lookfrom;
+
+			dir = rot * dir;
+			m_lookat = m_lookfrom + dir;
+			m_has_moved = true;
+			update();
+		}
+
+		void	roll(float angle)
+		{
+			Mat4f	rot = Mat4f::rotate(angle, get_forward());
+
+			m_vup = Vec3f::normalize(rot * m_vup);
 			m_has_moved = true;
 			update();
 		}
@@ -75,7 +115,6 @@ class	Camera
 		{
 			return (m_has_moved);
 		}
-
 		void	resetMovedFlag()
 		{
 			m_has_moved = false;
@@ -99,11 +138,9 @@ class	Camera
 
 		void	update()
 		{
-			float	fov_radians = m_vfov * 3.14159265f / 180.0f;
-
+			float	fov_rad = m_vfov * 3.14159265f / 180.0f;
 			m_view = Mat4f::lookAt(m_lookfrom, m_lookat, m_vup);
-			m_proj = Mat4f::perspective(fov_radians, m_aspect_ratio, 0.1f, 100.0f);
-
+			m_proj = Mat4f::perspective(fov_rad, m_aspect, 0.1f, 100.0f);
 			m_inverseView = m_view.inverse();
 			m_inverseProj = m_proj.inverse();
 		}
@@ -112,7 +149,7 @@ class	Camera
 		Vec3f	m_lookat;
 		Vec3f	m_vup;
 		float	m_vfov;
-		float	m_aspect_ratio;
+		float	m_aspect;
 		bool	m_has_moved;
 		Mat4f	m_view;
 		Mat4f	m_proj;
