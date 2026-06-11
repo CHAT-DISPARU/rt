@@ -22,8 +22,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES
 	srcs/main.cpp
-	srcs/render.cpp
-	srcs/Thread_calls.cpp
+	srcs/runtime/render.cpp
+	srcs/runtime/Thread_calls.cpp
+	srcs/runtime/main_loop.cpp
+	srcs/setup/setup_base_render.cpp
+	srcs/setup/setup_gui.cpp
+	srcs/setup/setup_sdl.cpp
 	srcs/Hittables/BVHNodes.cpp
 	srcs/Hittables/Plane.cpp
 	srcs/Hittables/Sphere.cpp
@@ -32,6 +36,13 @@ set(SOURCES
 	srcs/Materials/DiffuseLight.cpp
 	srcs/Materials/Lambertian.cpp
 	srcs/Materials/Metal.cpp
+	imgui/imgui.cpp
+	imgui/imgui_draw.cpp
+	imgui/imgui_tables.cpp
+	imgui/imgui_widgets.cpp
+	imgui/backends/imgui_impl_sdl3.cpp
+	imgui/backends/imgui_impl_sdlrenderer3.cpp
+	imgui/imgui_demo.cpp
 )
 
 
@@ -52,6 +63,9 @@ target_include_directories(rt PRIVATE
 	srcs/include/Hittables
 	srcs/include/Materials
 	srcs/math
+	imgui
+	imgui/backends
+	PROPERTIES COMPILE_OPTIONS "-Wno-error"
 )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)

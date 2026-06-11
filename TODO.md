@@ -23,16 +23,17 @@
 - [x] Camera   -- getRay(u, v), anti-aliasing par perturbation UV
 - [x] Renderer -- traceRay() recursif, scatter(), std::thread
 
+
+//lucas
 ## 4 - Parser GLB
 - [ ] cgltf.h   -- ou faire soi meme un parser
 - [ ] Geometrie -- triangles, UV, normales. Materiaux ignores pour l'instant.
 - [ ] Materiaux -- albedo d'abord, metallic + roughness ensuite
 - [ ] Textures  -- images embarquees dans le GLB, mapper sur UV
-- [ ] Normales  -- normal maps, meme principe que les bump maps
+- [ ] Normales  -- normal maps
 - [ ] Lumieres  -- KHR_lights_punctual : point, spot, directional
 
 ## 5 - Vulkan compute
-> Pas avant d'avoir un rendu sur CPU.
  
 - [ ] Structs GPU -- GPUSphere, GPUMaterial, GPUBVHNode. POD, 16 bytes.
 - [ ] VulkanContext -- instance, physical device, logical device, compute queue

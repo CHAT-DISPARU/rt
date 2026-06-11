@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Render.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 23:12:51 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/11 15:09:38 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ struct Render
 	Camera				&cam;
 	Scene				&scene;
 	int					samples;
-	size_t				depth_max;
+	int					depth_max;
 	float				inv_w;
 	float				inv_h;
 	unsigned int		*seed;

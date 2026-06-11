@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/10 16:55:06 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 18:29:22 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/11 15:43:39 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,22 @@ class	Camera
 			m_has_moved = true;
 			update();
 		}
+		
+		float	get_fov() const
+		{
+			return (m_vfov);
+		}
 
+		void	set_fov(float fov)
+		{
+			m_vfov = fov;
+			update();
+		}
+
+		Vec3f	get_pos() const
+		{
+			return (m_lookfrom);
+		}
 		Vec3f	get_forward() const
 		{
 			return (Vec3f::normalize(m_lookat - m_lookfrom));
@@ -124,12 +139,12 @@ class	Camera
 		{
 			float	ndc_x = (2.0f * u_coord) - 1.0f;
 			float	ndc_y = 1.0f - (2.0f * v_coord);
-
-			float	cam_x = ndc_x * m_inverseProj[0][0];
-			float	cam_y = ndc_y * m_inverseProj[1][1];
-
-			Vec3f	dir_camera(cam_x, cam_y, -1.0f);
-			Vec3f	direction = m_inverseView * dir_camera;
+			float half_h = std::tan((m_vfov * M_PI / 180.0f) * 0.5f);
+			float half_w = half_h * m_aspect;
+			Vec3f	forward = Vec3f::normalize(m_lookat - m_lookfrom);
+			Vec3f	right = Vec3f::normalize(Vec3f::cross(forward, m_vup));
+			Vec3f	up = Vec3f::cross(right, forward);
+			Vec3f	direction = forward + right * (ndc_x * half_w) + up    * (ndc_y * half_h);
 
 			return (Ray(m_lookfrom, direction.normalize()));
 		}

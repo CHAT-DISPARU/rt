@@ -1,7 +1,7 @@
 res 1200 675
 samples inf
 
-camera 0 2 3 0 -0.3 -1 60
+camera 0 2 3 0 -0.3 -1 50
 
 mat ground
 color 0.5 0.5 0.5
