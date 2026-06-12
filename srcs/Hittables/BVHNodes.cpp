@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/10 18:22:24 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 16:01:04 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -348,6 +348,8 @@ int BVHNode::buildLocalLBVH(std::vector<MortonPrimitive>& mortonPrims,
 
 bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const
 {
+	if (_orderedObjects.empty() || _nodes.empty())
+		return (false);
 	Vec3f invDir(1.0f / ray._dir._x, 1.0f / ray._dir._y, 1.0f / ray._dir._z);
 	// ray neg sur ?
 	int dirIsNeg[3] =
@@ -381,6 +383,67 @@ bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const
 				{
 					hitAnything = true;
 					closestSoFar = rec.t;
+				}
+			}
+		}
+		//interne
+		else
+		{
+			int	firstChild = node.leftChildOrPrimOffset;
+			int	secondChild = node.rightChildOffset;
+
+			// si ray neg sur axe de coupe droit plus proche
+			if (dirIsNeg[node.axis])
+				std::swap(firstChild, secondChild);
+
+			// plus loin en premier
+			stack[stackPtr++] = secondChild;
+			stack[stackPtr++] = firstChild;
+		}
+	}
+	return (hitAnything);
+}
+
+bool BVHNode::hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord& rec) const
+{
+	if (_orderedObjects.empty() || _nodes.empty())
+		return (false);
+	Vec3f invDir(1.0f / ray._dir._x, 1.0f / ray._dir._y, 1.0f / ray._dir._z);
+	// ray neg sur ?
+	int dirIsNeg[3] =
+	{
+		ray._dir._x < 0,
+		ray._dir._y < 0,
+		ray._dir._z < 0
+	};
+
+	int	stack[128];
+	int	stackPtr = 0;
+	stack[stackPtr++] = 0;// premier noeu tjr 0
+
+	bool	hitAnything = false;
+	float	closestSoFar = light_dist;
+
+	while (stackPtr > 0)
+	{
+		int			nodeIdx = stack[--stackPtr];
+		const Node&	node = _nodes[nodeIdx];
+
+		if (!node.bbox.hit(ray, invDir, tMin, closestSoFar))
+			continue;
+		//feuille
+		if (node.primitiveCount > 0)
+		{
+			for (uint32_t i = 0; i < node.primitiveCount; ++i)
+			{
+				auto&	obj = _orderedObjects[node.leftChildOrPrimOffset + i];
+				if (obj->hit(ray, tMin, closestSoFar, rec))
+				{
+					if (rec.material->isOpaq() == true)
+					{
+						hitAnything = true;
+						closestSoFar = rec.t;
+					}
 				}
 			}
 		}

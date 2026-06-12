@@ -28,6 +28,7 @@ set(SOURCES
 	srcs/setup/setup_base_render.cpp
 	srcs/setup/setup_gui.cpp
 	srcs/setup/setup_sdl.cpp
+	srcs/setup/SceneLoader.cpp
 	srcs/Hittables/BVHNodes.cpp
 	srcs/Hittables/Plane.cpp
 	srcs/Hittables/Sphere.cpp

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Scene.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:41:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 03:22:16 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 16:08:14 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,13 @@ class	Scene : public Hittable
 			_objects.push_back(object);
 		};
 		
+		void	add_light(std::shared_ptr<Hittable> object)
+		{
+			_objects.push_back(object);
+			_light.push_back(object);
+		};
+		
+		
 		void build()
 		{
 			_bvh = std::make_shared<BVHNode>(_objects);
@@ -32,6 +39,11 @@ class	Scene : public Hittable
 		{
 			return (_bvh->hit(r, t_min, t_max, rec));
 		};
+
+		bool hit_shadow(const Ray& r, float t_min, float t_max, HitRecord& rec) const
+		{
+			return (_bvh->hit_shadow(r, t_min, t_max, rec));
+		};
 		
 		bool bbox(AABB& output_box) const
 		{
@@ -40,5 +52,6 @@ class	Scene : public Hittable
 
 	private:
 		std::vector<std::shared_ptr<Hittable>> _objects;
+		std::vector<std::shared_ptr<Hittable>> _light;
 		std::shared_ptr<BVHNode> _bvh;
 };

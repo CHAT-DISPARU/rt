@@ -3,14 +3,28 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 11:06:28 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 16:14:21 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
+
+Vec3f	shadow_ray(const Scene &scene, HitRecord &rec, Vec3f target_pos)
+{
+	Ray		shadow_ray;
+	Vec3f	light_dir;
+	float	light_dist;
+
+	light_dir = target_pos + rec.point;
+	light_dist = std::sqrt(Vec3f::dot(light_dir, light_dir));
+	shadow_ray._dir = Vec3f::normalize(light_dir);
+	shadow_ray._o = rec.point + (rec.normal * FLT_EPSILON);
+	return (scene.hit_shadow(shadow_ray, 0.001f, light_dist, rec)); 
+	
+}
 
 Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, const SunLight sun)
 {
@@ -20,6 +34,7 @@ Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, c
 	for (int depth = 0; depth < max_depth; depth++)
 	{
 		HitRecord	rec;
+		HitRecord	shadow_rec;
 
 		if (scene.hit(ray, 0.001f, FLT_MAX, rec))
 		{
@@ -29,8 +44,10 @@ Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, c
 	
 			accumulated_light += throughput * emitted;
 			if (!rec.material->scatter(ray, rec, albedo, new_ray, seed))
-				break;
+				break ;
+			
 			throughput *= albedo;
+			
 			ray = new_ray;
 		}
 		else if (sun.enabled)
@@ -44,7 +61,7 @@ Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, c
 				float	t = y;
 				float	t_sq = t * t;
 				float	h = std::exp(-t * 8.0f);
-				Vec3f	horizon_color(0.60f, 0.75f, 0.95f);
+				Vec3f	horizon_color(0.52f, 0.83f, 1.0f);
 				Vec3f	low_color(0.40f, 0.65f, 0.98f);
 				Vec3f	zenith_color(0.05f, 0.25f, 0.85f);
 	
@@ -54,8 +71,8 @@ Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, c
 			else
 			{
 				float	t = -y;
-				Vec3f	horizon_color(0.70f, 0.80f, 0.90f);
-				Vec3f	ground_color(0.05f, 0.05f, 0.05f);
+				Vec3f	horizon_color(0.52f, 0.83f, 1.0f);
+				Vec3f	ground_color(0.05f, 0.25f, 0.85f);
 
 				sky_color = horizon_color * (1.0f - t) + ground_color * t;
 			}

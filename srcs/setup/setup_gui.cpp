@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_gui.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 22:49:56 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 14:43:33 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,6 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 	char	overlay[32];
 	snprintf(overlay, sizeof(overlay), "%zu sample", render_total.frame_count);
 	ImGui::PlotLines("##fps", fps_history, 100, fps_offset, overlay, 0.0f, 240.0f, ImVec2(-1, 60));
-	
 	ImGui::SeparatorText("Res");
 	if (ImGui::BeginCombo("##res", res_labels[res_current]))
 	{

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Dielectric.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:13 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 09:20:38 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 15:58:35 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,5 +36,9 @@ class Dielectric : public Material
 		bool	isSpecular() const
 		{
 			return true;
+		};
+		bool	isOpaq() const
+		{
+			return false;
 		};
 };

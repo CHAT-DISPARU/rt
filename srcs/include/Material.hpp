@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Material.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:09:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 09:20:02 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 15:57:45 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,11 @@ class Material
 		virtual bool	isSpecular() const
 		{
 			return false;
+		};
+
+		virtual bool	isOpaq() const
+		{
+			return true;
 		};
 
 		protected:
