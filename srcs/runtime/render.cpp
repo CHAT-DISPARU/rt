@@ -6,17 +6,17 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 23:12:35 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 11:06:28 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
 
-Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed)
+Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, const SunLight sun)
 {
 	Vec3f	accumulated_light(0.0f);
 	Vec3f	throughput(1.0f);
-
+	(void)sun;
 	for (int depth = 0; depth < max_depth; depth++)
 	{
 		HitRecord	rec;
@@ -24,21 +24,57 @@ Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed)
 		if (scene.hit(ray, 0.001f, FLT_MAX, rec))
 		{
 			Vec3f	emitted = rec.material->emitted(rec.u, rec.v, rec.point);
-			accumulated_light += throughput * emitted;
-
 			Ray		new_ray;
 			Vec3f	albedo;
-			
+	
+			accumulated_light += throughput * emitted;
 			if (!rec.material->scatter(ray, rec, albedo, new_ray, seed))
 				break;
-
 			throughput *= albedo;
 			ray = new_ray;
 		}
+		else if (sun.enabled)
+		{
+			//sky
+			Vec3f	unit_dir = Vec3f::normalize(ray._dir);
+			float	y = unit_dir._y;
+			Vec3f	sky_color;
+			if (y >= 0.0f)
+			{
+				float	t = y;
+				float	t_sq = t * t;
+				float	h = std::exp(-t * 8.0f);
+				Vec3f	horizon_color(0.60f, 0.75f, 0.95f);
+				Vec3f	low_color(0.40f, 0.65f, 0.98f);
+				Vec3f	zenith_color(0.05f, 0.25f, 0.85f);
+	
+				sky_color = horizon_color * h + low_color * (1.0f - h)
+							* (1.0f - t_sq) + zenith_color * t_sq;
+			}
+			else
+			{
+				float	t = -y;
+				Vec3f	horizon_color(0.70f, 0.80f, 0.90f);
+				Vec3f	ground_color(0.05f, 0.05f, 0.05f);
+
+				sky_color = horizon_color * (1.0f - t) + ground_color * t;
+			}
+
+			float	sky_intensity = 0.5f; 
+			sky_color = sky_color * sky_intensity;
+			//sun
+			float	alignment = std::fmax(0.0f, std::fmin(Vec3f::dot(unit_dir, sun.direction), 1.0f));
+			float	disk = std::pow(alignment, sun.size) * sun.intensity;
+			float	glow = std::pow(alignment, sun.glow_size) * sun.glow_intensity;
+			Vec3f	sun_final_color = (sun.color * disk) + (sun.glow_color * glow);
+
+			sky_color += sun_final_color;
+			accumulated_light += throughput * sky_color;
+			break ;
+		}
 		else
 		{
-			Vec3f	sky_color = Vec3f(0.05f, 0.05f, 0.05f);
-			
+			Vec3f sky_color(0.0f);
 			accumulated_light += throughput * sky_color;
 			break;
 		}
@@ -66,7 +102,7 @@ void	render(Render &render)
 			}
 
 			Ray		ray = render.cam.getRay(u, v);
-			Vec3f	color = traceRay(ray, render.scene, render.depth_max, render.seed);
+			Vec3f	color = traceRay(ray, render.scene, render.depth_max, render.seed, render.sun_light);
 
 			size_t	pixel_idx = y * render.width + x;
 			if (render.frame_count == 1)

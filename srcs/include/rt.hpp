@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   rt.hpp                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:25:03 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 15:36:19 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/11 20:52:00 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include <ctime>
 #include "SceneLoader.hpp"
 #include "Render.hpp"
+#include "ThreadPool.hpp"
 
 struct	SDLContext
 {
@@ -36,8 +37,8 @@ struct	SDLContext
 	int				height = 0;
 };
 
-void	thread_calls(Camera &cam, Render &render_total);
-void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total);
+void	thread_calls(Camera &cam, Render &render_total, ThreadPool &threads);
+void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, ThreadPool &threads);
 void	set_gui_frame(SDLContext &sdl, Render &render_total);
 void	setup_base_render(AppContext &app, Render &render_total);
 void	sdl_cleanup(SDLContext &sdl);

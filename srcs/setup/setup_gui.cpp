@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_gui.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 15:36:13 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/11 22:49:56 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,13 +61,22 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 		ImGui::EndCombo();
 	}
 	ImGui::Text("Current: %d x %d", sdl.width, sdl.height);
-
+	
 	ImGui::SeparatorText("Cam");
 	Vec3f	pos(app.camera.get_pos());
 	ImGui::Text("Pos  %.1f  %.1f  %.1f", pos._x, pos._y, pos._z);
+	ImGui::SliderFloat("speed cam", &render_total.cam_speed, 0.1f, 1.0f);
+	ImGui::SliderFloat("speed rot", &render_total.cam_rotate, 0.01f, 0.5f);
+
+	float	fov = app.camera.get_fov();
+	if (ImGui::SliderFloat("fov", &fov, 1.0f, 180.0f))
+		app.camera.set_fov(fov);
+
 	ImGui::SeparatorText("Param");
+	if (ImGui::Checkbox("add sun", &render_total.sun_light.enabled))
+		render_total.frame_count = 1;
 	ImGui::SliderInt("depth max", &render_total.depth_max, 1.0f, 100.0f);
-	const char*	sample_labels[] = {"1", "2", "4", "8", "16", "32", "64", "128", "∞"};
+	const char*	sample_labels[] = {"1", "2", "4", "8", "16", "32", "64", "128", "inf"};
 	const int	sample_values[] = {1, 2, 4, 8, 16, 32, 64, 128, -1};
 	const int	sample_count = 9;
 	int sample_idx = 0;
@@ -80,7 +89,6 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 			break;
 		}
 	}
-
 	if (ImGui::BeginCombo("samples", sample_labels[sample_idx]))
 	{
 		for (int i = 0; i < sample_count; i++)
@@ -93,9 +101,6 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 		}
 		ImGui::EndCombo();
 	}
-	float	fov = app.camera.get_fov();
-	if (ImGui::SliderFloat("fov", &fov, 1.0f, 180.0f))
-		app.camera.set_fov(fov);
 	ImGui::End();
 }
 

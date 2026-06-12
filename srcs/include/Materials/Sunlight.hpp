@@ -1,33 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Metal.hpp                                          :+:      :+:    :+:   */
+/*   Sunlight.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/06 18:34:03 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 09:20:30 by CHAT-DISPAR      ###   ########.fr       */
+/*   Created: 2026/06/11 22:44:27 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/12 10:23:52 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+// SunLight.hpp
 #pragma once
-#include "Material.hpp"
+#include "Math3D.hpp"
 
-class Metal : public Material
+struct	SunLight
 {
-	private:
-		float	_fuzz;
-		
-	public:
-		~Metal(){};
-
-		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
-		void	setFuzz(float f)
-		{
-			_fuzz = (f < 1.0f) ? f : 1.0f;
-		};
-		bool	isSpecular() const
-		{
-			return true;
-		};
+	Vec3f	direction;
+	Vec3f	color;
+	Vec3f	glow_color;
+	float	intensity;
+	bool	enabled;
+	float	glow_intensity;
+	float	size;
+	float	glow_size;
 };

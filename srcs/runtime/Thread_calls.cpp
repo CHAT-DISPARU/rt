@@ -3,17 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   Thread_calls.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 14:55:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 16:18:08 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/11 21:17:35 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
 #include <thread>
+#include <future>
 
-void	thread_calls(Camera &cam, Render &render_total)
+void	thread_calls(Camera &cam, Render &render_total, ThreadPool &threads)
 {
 	if (cam.hasMoved())
 	{
@@ -35,10 +36,8 @@ void	thread_calls(Camera &cam, Render &render_total)
 		seeds[i] = (unsigned int)rand() ^ (unsigned int)(i * 2654435761u);
 
 	std::vector<Render>			jobs;
-	std::vector<std::thread>	threads;
 
 	jobs.reserve(THREAD_MAX);
-	threads.reserve(THREAD_MAX);
 	for (int i = 0; i < THREAD_MAX; i++)
 	{
 		int	col = i % COLS;
@@ -54,9 +53,23 @@ void	thread_calls(Camera &cam, Render &render_total)
 
 		jobs.push_back(job);
 	}
+	std::atomic<int>		tasks_left(THREAD_MAX);
+	std::mutex				wait_mutex;
+	std::condition_variable	wait_cv;
+
 	for (int i = 0; i < THREAD_MAX; i++)
-		threads.push_back(std::thread(render, std::ref(jobs[i])));
-	for (auto& t : threads)
-		t.join();
+	{
+		threads.enqueue([&ljob = jobs[i], &tasks_left, &wait_mutex, &wait_cv]()
+		{
+			render(ljob); 
+			if (--tasks_left == 0) 
+			{
+				std::unique_lock<std::mutex> lock(wait_mutex);
+				wait_cv.notify_one();
+			}
+		});
+	}
+	std::unique_lock<std::mutex> lock(wait_mutex);
+	wait_cv.wait(lock, [&tasks_left](){ return tasks_left == 0; });
 	render_total.frame_count++;
 }

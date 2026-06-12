@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main_loop.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:24:32 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 15:36:38 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/11 21:37:29 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void	sdl_to_screen(SDLContext &sdl, uint32_t *pixels)
 	SDL_RenderPresent(sdl.renderer);
 }
 
-void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total)
+void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, ThreadPool &threads)
 {
 	bool		running = true;
 	bool		show_settings = false;
@@ -61,8 +61,6 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total)
 	Uint64		last_tick = SDL_GetPerformanceCounter();
 	float		ms_per_frame = 0.0f;
 	float		fps = 0.0f;
-	float		cam_speed  = 0.2f;
-	float		cam_rotate = 0.04f;
 
 	while (running)
 	{
@@ -96,34 +94,34 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total)
 
 			// deplace
 			if (keys[SDL_SCANCODE_W])
-				app.camera.move_forward(cam_speed);
+				app.camera.move_forward(render_total.cam_speed);
 			else if (keys[SDL_SCANCODE_S])
-				app.camera.move_forward(-cam_speed);
+				app.camera.move_forward(-render_total.cam_speed);
 			if (keys[SDL_SCANCODE_A])
-				app.camera.move_right(-cam_speed);
+				app.camera.move_right(-render_total.cam_speed);
 			else if (keys[SDL_SCANCODE_D])
-				app.camera.move_right(cam_speed);
+				app.camera.move_right(render_total.cam_speed);
 			if (keys[SDL_SCANCODE_SPACE])
-				app.camera.move_up_world(cam_speed);
+				app.camera.move_up_world(render_total.cam_speed);
 			else if (keys[SDL_SCANCODE_LSHIFT])
-				app.camera.move_up_world(-cam_speed);
+				app.camera.move_up_world(-render_total.cam_speed);
 			// rotation
 			if (keys[SDL_SCANCODE_UP])
-				app.camera.pitch(cam_rotate);
+				app.camera.pitch(render_total.cam_rotate);
 			else if (keys[SDL_SCANCODE_DOWN])
-				app.camera.pitch(-cam_rotate);
+				app.camera.pitch(-render_total.cam_rotate);
 			if (keys[SDL_SCANCODE_LEFT])
-				app.camera.yaw(cam_rotate);
+				app.camera.yaw(render_total.cam_rotate);
 			else if (keys[SDL_SCANCODE_RIGHT])
-				app.camera.yaw(-cam_rotate);
+				app.camera.yaw(-render_total.cam_rotate);
 			if (keys[SDL_SCANCODE_LEFTBRACKET])
-				app.camera.roll(cam_rotate);
+				app.camera.roll(render_total.cam_rotate);
 			else if (keys[SDL_SCANCODE_RIGHTBRACKET])
-				app.camera.roll(-cam_rotate);
+				app.camera.roll(-render_total.cam_rotate);
 		}
 
 		// render
-		thread_calls(app.camera, render_total);
+		thread_calls(app.camera, render_total, threads);
 		sdl_to_screen(sdl, render_total.definitive);
 	}
 }

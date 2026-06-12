@@ -62,6 +62,7 @@ target_include_directories(rt PRIVATE
 	srcs/include
 	srcs/include/Hittables
 	srcs/include/Materials
+	srcs/include/setup
 	srcs/math
 	imgui
 	imgui/backends

@@ -3,7 +3,7 @@ samples inf
 camera 0 2 10  0 -0.2 -1  70
 
 mat sol
-color 0.8 0.8 0.8
+color 0 0 0.8
 
 mat plafon
 type emissive

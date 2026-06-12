@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Render.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 15:09:38 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/11 22:45:51 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include "HitRecord.hpp"
 #include "Hittable.hpp"
 #include "Scene.hpp"
+#include "ThreadPool.hpp"
+#include "Sunlight.hpp"
 #define THREAD_MAX 16
 
 struct Render
@@ -38,6 +40,9 @@ struct Render
 	size_t				frame_count;
 	Vec3f				*accum_buffer;
 	uint32_t			*definitive;
+	float				cam_speed  = 0.2f;
+	float				cam_rotate = 0.04f;
+	SunLight			sun_light;
 };
 
 void	render(Render &render);

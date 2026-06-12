@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:13 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 00:29:00 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 09:20:38 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,5 +32,9 @@ class Dielectric : public Material
 		void setNi(float ni)
 		{
 			_ni = ni;
+		};
+		bool	isSpecular() const
+		{
+			return true;
 		};
 };

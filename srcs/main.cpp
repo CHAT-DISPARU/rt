@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 11:35:23 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/11 20:53:02 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ int	main(int ac, char **av)
 
 	SDLContext	sdl;
 	Render		render_total(app.camera, app.scene);
+	ThreadPool	threads(THREAD_MAX);
 
 	setup_base_render(app, render_total);
 	if (!sdl_init(sdl, app.width, app.height))
@@ -55,7 +56,7 @@ int	main(int ac, char **av)
 		return (1);
 	}
 	//boucle exec
-	main_loop(sdl, app, render_total);
+	main_loop(sdl, app, render_total, threads);
 	cleanup_render(render_total);
 	clean_gui();
 	sdl_cleanup(sdl);

@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:09:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 01:14:17 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 09:20:02 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,11 @@ class Material
 		{
 			return (1.0f);
 		};
+		virtual bool	isSpecular() const
+		{
+			return false;
+		};
+
 		protected:
 			Vec3f	_color;
 			bool	_hasTexture = false;
