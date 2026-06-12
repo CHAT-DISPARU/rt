@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Triangle.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/10 17:51:47 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 23:59:20 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ class	Triangle : public Hittable
 		Vec3f		_v1;
 		Vec3f		_v2;
 		Mat4f		_transform;
-		Material	*_mat;
 		AABB		_box;
 		Vec3f		_normal;
 };

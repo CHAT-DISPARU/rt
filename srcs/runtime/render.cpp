@@ -3,18 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 18:18:19 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/13 00:24:17 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
 
 
-// true ->shadow  false -> light
-bool	shadow_ray(const Scene &scene, HitRecord &rec, const Vec3f &target_pos)
+// true -> ombre 
+// false -> light 
+bool	shadow_ray(const Scene &scene, const HitRecord &rec, const Vec3f &target_pos)
 {
 	Vec3f	light_dir = target_pos - rec.point;
 	float	light_dist = light_dir.length();
@@ -24,12 +25,35 @@ bool	shadow_ray(const Scene &scene, HitRecord &rec, const Vec3f &target_pos)
 		return (true);
 
 	Ray	shadow;
-	
-	shadow._o = rec.point + rec.normal * 0.001f;
+	shadow._o   = rec.point + rec.normal * 0.001f;
 	shadow._dir = dir_norm;
 
-	if (scene.hit_shadow(shadow, 0.001f, light_dist, rec))
-		return (true);
+	HitRecord	dummy;
+
+	while (scene.hit(shadow, 0.001f, light_dist, dummy))
+	{
+		if (!dummy.material)
+			return (true);
+		if (dummy.material->emitted(dummy.u, dummy.v, dummy.point).length() > 0.0f)
+			return (false);
+		if (dummy.material->isOpaq()) 
+			return (true);
+		float	refraction_index = dummy.material->ior(); 
+
+		float	etai_over_etat = (Vec3f::dot(shadow._dir, dummy.normal) < 0.0f) ? (1.0f / refraction_index) : refraction_index;
+
+		Vec3f n = (Vec3f::dot(shadow._dir, dummy.normal) < 0.0f) 
+					? dummy.normal 
+					: -dummy.normal;
+
+		shadow._dir = Vec3f::refract(shadow._dir, n, etai_over_etat);
+
+		if (shadow._dir.length_sq() < 0.9f)
+			return (true); 
+		shadow._o = dummy.point + shadow._dir * 0.001f;
+		light_dist = (target_pos - shadow._o).length();
+		continue;
+	}
 	return (false);
 }
 
@@ -40,7 +64,6 @@ Vec3f	traceRay(Ray ray, const Render &render)
 	for (int depth = 0; depth < render.depth_max; depth++)
 	{
 		HitRecord	rec;
-		HitRecord	shadow_rec;
 
 		if (render.scene.hit(ray, 0.001f, FLT_MAX, rec))
 		{
@@ -61,16 +84,18 @@ Vec3f	traceRay(Ray ray, const Render &render)
 										box._min._y + Vec3f::randomFloat(render.seed) * (box._max._y - box._min._y),
 										box._min._z + Vec3f::randomFloat(render.seed) * (box._max._z - box._min._z));
 					Vec3f	toLight = lightPos - rec.point;
-					float	cosTheta = Vec3f::dot(Vec3f::normalize(toLight), rec.normal);
+					float	dist2 = toLight._x * toLight._x + toLight._y * toLight._y + toLight._z * toLight._z;
+					float	dist = std::sqrt(dist2);
+					Vec3f	toLightNorm = toLight / dist;
+					float	cosTheta = Vec3f::dot(toLightNorm, rec.normal);
 
 					if (cosTheta <= 0.0f)
 						continue;
-					HitRecord	shadow_rec;
-					if (shadow_ray(render.scene, shadow_rec, lightPos))
+					if (shadow_ray(render.scene, rec, lightPos))
 						continue ;
-					Vec3f	lightColor = light->getMat()->emitted(0, 0, lightPos);
-					std::cout << lightColor << std::endl;
-					accumulated_light += throughput * albedo  * lightColor * cosTheta;
+					Vec3f	lightColor = light->getMat()->getColor();
+					float	attenuation = 1.0f / (dist2 + 1.0f);
+					accumulated_light += throughput * albedo  * lightColor * cosTheta * attenuation;
 				}
 			}
 			throughput *= albedo;

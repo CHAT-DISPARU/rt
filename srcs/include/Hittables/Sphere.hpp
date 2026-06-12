@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Sphere.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:18 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/10 17:47:17 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 23:59:16 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ class	Sphere : public Hittable
 		Mat4f		_inverse;
 		Mat4f		_transform;
 		float		_diameter;
-		Material	*_mat;
 		Vec3f		_normal;
 		//AABB		_box;
 };
