@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 14:43:33 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 17:07:39 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,8 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 
 	ImGui::SeparatorText("Param");
 	if (ImGui::Checkbox("add sun", &render_total.sun_light.enabled))
+		render_total.frame_count = 1;
+	if (ImGui::Checkbox("add shadow rays", &render_total.shadow_ray))
 		render_total.frame_count = 1;
 	ImGui::SliderInt("depth max", &render_total.depth_max, 1.0f, 100.0f);
 	const char*	sample_labels[] = {"1", "2", "4", "8", "16", "32", "64", "128", "inf"};

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/12 16:01:04 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 16:48:51 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -404,7 +404,7 @@ bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const
 	return (hitAnything);
 }
 
-bool BVHNode::hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord& rec) const
+bool	BVHNode::hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord& rec) const
 {
 	if (_orderedObjects.empty() || _nodes.empty())
 		return (false);
@@ -440,10 +440,8 @@ bool BVHNode::hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord
 				if (obj->hit(ray, tMin, closestSoFar, rec))
 				{
 					if (rec.material->isOpaq() == true)
-					{
-						hitAnything = true;
-						closestSoFar = rec.t;
-					}
+						return (false);
+					return (true);
 				}
 			}
 		}

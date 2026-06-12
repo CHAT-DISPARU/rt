@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 16:30:47 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/12 15:56:39 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 16:48:26 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ class	BVHNode : public Hittable
 		BVHNode(std::vector<std::shared_ptr<Hittable>>& objects);
 
 		bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
-		bool	hit_shadow(const Ray& ray, float t_min, float light_dist, HitRecord& rec) const;
+		bool	hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord& rec) const;
 		bool	bbox(AABB& output_box) const;
 
 		const std::vector<Node>& getLinearNodes() const

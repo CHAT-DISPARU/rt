@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:41:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 16:08:14 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 16:56:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,11 @@ class	Scene : public Hittable
 		{
 			return (_bvh->bbox(output_box));
 		};
+		std::vector<std::shared_ptr<Hittable>>	getLights() const
+		{
+			return (_light);
+		};
+		
 
 	private:
 		std::vector<std::shared_ptr<Hittable>> _objects;

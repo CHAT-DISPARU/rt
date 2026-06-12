@@ -6,51 +6,76 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 16:14:21 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 17:08:32 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
 
-Vec3f	shadow_ray(const Scene &scene, HitRecord &rec, Vec3f target_pos)
-{
-	Ray		shadow_ray;
-	Vec3f	light_dir;
-	float	light_dist;
 
-	light_dir = target_pos + rec.point;
-	light_dist = std::sqrt(Vec3f::dot(light_dir, light_dir));
-	shadow_ray._dir = Vec3f::normalize(light_dir);
-	shadow_ray._o = rec.point + (rec.normal * FLT_EPSILON);
-	return (scene.hit_shadow(shadow_ray, 0.001f, light_dist, rec)); 
+
+bool	shadow_ray(const Scene &scene, HitRecord &rec, const Vec3f &target_pos)
+{
+	Vec3f	light_dir = target_pos - rec.point;
+	float	light_dist = light_dir.length();
+	Vec3f	dir_norm = Vec3f::normalize(light_dir);
+
+	if (Vec3f::dot(dir_norm, rec.normal) <= 0.0f)
+		return (false);
+
+	Ray	shadow;
 	
+	shadow._o = rec.point + rec.normal * 0.001f;
+	shadow._dir = dir_norm;
+
+	if (!scene.hit_shadow(shadow, 0.001f, light_dist, rec))
+		return (false);
+	return (true);
 }
 
-Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, const SunLight sun)
+Vec3f	traceRay(Ray ray, const Render &render)
 {
 	Vec3f	accumulated_light(0.0f);
 	Vec3f	throughput(1.0f);
-	(void)sun;
-	for (int depth = 0; depth < max_depth; depth++)
+	for (int depth = 0; depth < render.depth_max; depth++)
 	{
 		HitRecord	rec;
 		HitRecord	shadow_rec;
 
-		if (scene.hit(ray, 0.001f, FLT_MAX, rec))
+		if (render.scene.hit(ray, 0.001f, FLT_MAX, rec))
 		{
 			Vec3f	emitted = rec.material->emitted(rec.u, rec.v, rec.point);
 			Ray		new_ray;
 			Vec3f	albedo;
 	
 			accumulated_light += throughput * emitted;
-			if (!rec.material->scatter(ray, rec, albedo, new_ray, seed))
+			if (!rec.material->scatter(ray, rec, albedo, new_ray, render.seed))
 				break ;
-			
+			if (render.shadow_ray)
+			{
+				for (auto& light : render.scene.getLights())
+				{
+					AABB	box;
+					light->bbox(box);
+					Vec3f	lightPos = box._min + Vec3f::randomFloat(render.seed) * (box._max - box._min);
+					Vec3f	toLight = lightPos - rec.point;
+					float	cosTheta = Vec3f::dot(Vec3f::normalize(toLight), rec.normal);
+
+					if (cosTheta <= 0.0f)
+						continue;
+					HitRecord	shadow_rec;
+					if (!shadow_ray(render.scene, shadow_rec, lightPos))
+						continue ;
+					Vec3f lightColor = shadow_rec.material->emitted(shadow_rec.u, shadow_rec.v, shadow_rec.point);
+
+					accumulated_light += throughput * albedo  * lightColor * cosTheta;
+				}
+			}
 			throughput *= albedo;
 			
 			ray = new_ray;
 		}
-		else if (sun.enabled)
+		else if (render.sun_light.enabled)
 		{
 			//sky
 			Vec3f	unit_dir = Vec3f::normalize(ray._dir);
@@ -80,10 +105,10 @@ Vec3f	traceRay(Ray ray, const Scene &scene, int max_depth, unsigned int *seed, c
 			float	sky_intensity = 0.5f; 
 			sky_color = sky_color * sky_intensity;
 			//sun
-			float	alignment = std::fmax(0.0f, std::fmin(Vec3f::dot(unit_dir, sun.direction), 1.0f));
-			float	disk = std::pow(alignment, sun.size) * sun.intensity;
-			float	glow = std::pow(alignment, sun.glow_size) * sun.glow_intensity;
-			Vec3f	sun_final_color = (sun.color * disk) + (sun.glow_color * glow);
+			float	alignment = std::fmax(0.0f, std::fmin(Vec3f::dot(unit_dir, render.sun_light.direction), 1.0f));
+			float	disk = std::pow(alignment, render.sun_light.size) * render.sun_light.intensity;
+			float	glow = std::pow(alignment, render.sun_light.glow_size) * render.sun_light.glow_intensity;
+			Vec3f	sun_final_color = (render.sun_light.color * disk) + (render.sun_light.glow_color * glow);
 
 			sky_color += sun_final_color;
 			accumulated_light += throughput * sky_color;
@@ -119,7 +144,7 @@ void	render(Render &render)
 			}
 
 			Ray		ray = render.cam.getRay(u, v);
-			Vec3f	color = traceRay(ray, render.scene, render.depth_max, render.seed, render.sun_light);
+			Vec3f	color = traceRay(ray, render);
 
 			size_t	pixel_idx = y * render.width + x;
 			if (render.frame_count == 1)

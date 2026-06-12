@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hittable.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:10:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/07 18:46:56 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 17:01:38 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ class	Hittable
 
 			return true si hit sinon false
 		*/
-		virtual bool hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const = 0;
+		virtual bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const = 0;
 
 		/*
 			function bounding box
@@ -42,5 +42,5 @@ class	Hittable
 			return true if ok
 			false (plane)
 		*/
-		virtual bool bbox(AABB& output_box) const = 0;
+		virtual bool	bbox(AABB& output_box) const = 0;
 };
