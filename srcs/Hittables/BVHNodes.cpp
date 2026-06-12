@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/12 16:48:51 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 18:18:47 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -407,10 +407,10 @@ bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const
 bool	BVHNode::hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord& rec) const
 {
 	if (_orderedObjects.empty() || _nodes.empty())
-		return (false);
-	Vec3f invDir(1.0f / ray._dir._x, 1.0f / ray._dir._y, 1.0f / ray._dir._z);
+		return (true);
+	Vec3f	invDir(1.0f / ray._dir._x, 1.0f / ray._dir._y, 1.0f / ray._dir._z);
 	// ray neg sur ?
-	int dirIsNeg[3] =
+	int	dirIsNeg[3] =
 	{
 		ray._dir._x < 0,
 		ray._dir._y < 0,
@@ -439,9 +439,11 @@ bool	BVHNode::hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord
 				auto&	obj = _orderedObjects[node.leftChildOrPrimOffset + i];
 				if (obj->hit(ray, tMin, closestSoFar, rec))
 				{
-					if (rec.material->isOpaq() == true)
+					closestSoFar = rec.t;
+					if (rec.material->emitted(rec.u, rec.v, rec.point) != Vec3f(0))
 						return (false);
-					return (true);
+					if (rec.material->isOpaq() == true)
+						return (true);
 				}
 			}
 		}

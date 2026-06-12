@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/10 17:55:37 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 18:00:52 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,5 @@ class	Plane : public Hittable
 		Vec3f		_point;
 		Mat4f		_inverse;
 		Mat4f		_transform;
-		Material	*_mat;
 		Vec3f		_normal;
 };

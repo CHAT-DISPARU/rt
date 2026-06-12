@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   DiffuseLight.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:31:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/09 17:23:18 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 18:00:18 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,4 +21,5 @@ class DiffuseLight : public Material
 
 		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
 		Vec3f	emitted(float u, float v, const Vec3f& p) const;
+		
 };

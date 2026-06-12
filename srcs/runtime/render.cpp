@@ -6,14 +6,14 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 17:08:32 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 18:18:19 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
 
 
-
+// true ->shadow  false -> light
 bool	shadow_ray(const Scene &scene, HitRecord &rec, const Vec3f &target_pos)
 {
 	Vec3f	light_dir = target_pos - rec.point;
@@ -21,16 +21,16 @@ bool	shadow_ray(const Scene &scene, HitRecord &rec, const Vec3f &target_pos)
 	Vec3f	dir_norm = Vec3f::normalize(light_dir);
 
 	if (Vec3f::dot(dir_norm, rec.normal) <= 0.0f)
-		return (false);
+		return (true);
 
 	Ray	shadow;
 	
 	shadow._o = rec.point + rec.normal * 0.001f;
 	shadow._dir = dir_norm;
 
-	if (!scene.hit_shadow(shadow, 0.001f, light_dist, rec))
-		return (false);
-	return (true);
+	if (scene.hit_shadow(shadow, 0.001f, light_dist, rec))
+		return (true);
+	return (false);
 }
 
 Vec3f	traceRay(Ray ray, const Render &render)
@@ -57,17 +57,19 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				{
 					AABB	box;
 					light->bbox(box);
-					Vec3f	lightPos = box._min + Vec3f::randomFloat(render.seed) * (box._max - box._min);
+					Vec3f	lightPos(box._min._x + Vec3f::randomFloat(render.seed) * (box._max._x - box._min._x),
+										box._min._y + Vec3f::randomFloat(render.seed) * (box._max._y - box._min._y),
+										box._min._z + Vec3f::randomFloat(render.seed) * (box._max._z - box._min._z));
 					Vec3f	toLight = lightPos - rec.point;
 					float	cosTheta = Vec3f::dot(Vec3f::normalize(toLight), rec.normal);
 
 					if (cosTheta <= 0.0f)
 						continue;
 					HitRecord	shadow_rec;
-					if (!shadow_ray(render.scene, shadow_rec, lightPos))
+					if (shadow_ray(render.scene, shadow_rec, lightPos))
 						continue ;
-					Vec3f lightColor = shadow_rec.material->emitted(shadow_rec.u, shadow_rec.v, shadow_rec.point);
-
+					Vec3f	lightColor = light->getMat()->emitted(0, 0, lightPos);
+					std::cout << lightColor << std::endl;
 					accumulated_light += throughput * albedo  * lightColor * cosTheta;
 				}
 			}

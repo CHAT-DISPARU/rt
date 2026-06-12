@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:10:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 17:01:38 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/12 18:01:41 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,4 +43,11 @@ class	Hittable
 			false (plane)
 		*/
 		virtual bool	bbox(AABB& output_box) const = 0;
+		Material	*getMat() const
+		{
+			return (_mat);
+		}
+
+	protected :
+		Material	*_mat;
 };

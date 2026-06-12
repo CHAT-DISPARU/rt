@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Vec3.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 21:23:42 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/12 18:20:06 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,21 @@ struct Vec3
 		_z = other._z;
 		return (*this);
 	};
+
+	bool	operator==(const Vec3 &other) const
+	{
+		if (other._x == _x && other._y == _y && other._z == _z)
+			return (true);
+		return (false);
+	}
+
+	bool	operator!=(const Vec3 &other) const
+	{
+		if (other._x == _x && other._y == _y && other._z == _z)
+			return (false);
+		return (true);
+	}
+
 	Vec3&	operator+=(const Vec3& v)
 	{
 		_x += v._x;
