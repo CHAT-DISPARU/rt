@@ -3,34 +3,71 @@ samples inf
 camera 0 2 10  0 -0.2 -1  70
 
 mat sol
-color 0.05 0.05 0.05
+color 0.08 0.08 0.09
 
-mat plafon
+mat mur
+color 0.18 0.18 0.22
+
+mat plafond_light
 type emissive
-color 6.0 6.0 6.0
+color 1.0 0.92 0.78
+intensity 12.0
 
-mat metal_crome
+mat neon_rose
+type emissive
+color 8.0 0.4 2.5
+intensity 5.0
+
+mat neon_bleu
+type emissive
+color 0.2 1.2 6.0
+intensity 5.0
+
+mat chrome
 type metal
-color 0.9 0.9 0.9
-fuzz 0
+color 0.95 0.95 0.95
+fuzz 0.0
 
-mat verre_pur
+mat or_brosse
+type metal
+color 0.90 0.72 0.18
+fuzz 0.08
+
+mat verre
 type glass
 color 1.0 1.0 1.0
 ni 1.5
 fuzz 0.0
 
-mat bleu
-color 0.1 0.6 0.9
+mat verre_bleu
+type glass
+color 0.55 0.80 1.0
+ni 1.52
+fuzz 0.0
 
-mat rose
-type emissive
-color 20.0 2.0 8.0
+mat blanc_casse
+color 0.82 0.80 0.75
 
+mat rouge_brique
+color 0.72 0.18 0.12
+
+mat vert_mousse
+color 0.22 0.52 0.22
 
 sp 0 -1000 0 1000  0 1 0  sol
-sp 0 25 -5 10  0 1 0  plafon
-sp -2.5 1 0 1  0 1 0  metal_crome
-sp 0 1 0 1  0 1 0  verre_pur
-sp 2.5 1 0 1  0 1 0  bleu
-//sp 1.5 0.2 2 0.2  0 1 0  rose
+sp 0 28 0 10  0 1 0  plafond_light
+pl 0 0 -6  0 0 1  mur
+pl -7 0 0  1 0 0  mur
+pl 7 0 0  -1 0 0  mur
+
+sp -4.5 1.0 0.0 1.0  0 1 0  chrome
+sp -1.5 1.0 0.0 1.0  0 1 0  or_brosse
+sp  1.5 1.0 0.0 1.0  0 1 0  verre
+sp  4.5 1.0 0.0 1.0  0 1 0  verre_bleu
+
+sp -3.0 0.5 2.5 0.5  0 1 0  rouge_brique
+sp  0.0 0.5 2.5 0.5  0 1 0  blanc_casse
+sp  3.0 0.5 2.5 0.5  0 1 0  vert_mousse
+
+sp -2.5 3.2 1.0 0.2  0 1 0  neon_rose
+sp  2.5 3.2 1.0 0.2  0 1 0  neon_bleu

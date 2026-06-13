@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SceneLoader.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/12 14:48:47 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 15:37:32 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/13 11:34:32 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,13 +63,12 @@ void	SceneLoader::set_cam(AppContext& app, std::istringstream &iss, std::string 
 	}
 }
 
-void	SceneLoader::set_mat(AppContext& app, std::istringstream &iss, std::string token, std::string &current_mtl_name, std::shared_ptr<Material> &current_mtl, bool &current_emit)
+void	SceneLoader::set_mat(AppContext& app, std::istringstream &iss, std::string token, std::string &current_mtl_name, std::shared_ptr<Material> &current_mtl)
 {
 	if (token == "newmat" || token == "mat")
 	{
 		if (iss >> current_mtl_name)
 		{
-			current_emit = false;
 			current_mtl = std::make_shared<Lambertian>(); 
 			app.materials[current_mtl_name] = current_mtl;
 		}
@@ -86,7 +85,6 @@ void	SceneLoader::set_mat(AppContext& app, std::istringstream &iss, std::string 
 		std::string	type;
 		if (iss >> type)
 		{
-			current_emit = false;
 			if (type == "metal")
 			{
 				app.materials[current_mtl_name] = std::make_shared<Metal>();
@@ -94,7 +92,6 @@ void	SceneLoader::set_mat(AppContext& app, std::istringstream &iss, std::string 
 			}
 			else if (type == "emissive")
 			{
-				current_emit = true;
 				app.materials[current_mtl_name] = std::make_shared<DiffuseLight>(); 
 				current_mtl = app.materials[current_mtl_name];
 			}
@@ -158,5 +155,18 @@ void	SceneLoader::set_mat(AppContext& app, std::istringstream &iss, std::string 
 		}
 		else
 			std::cerr << "Error syntax fuzz" << std::endl;
+	}
+	else if (token == "intensity" || token == "power")
+	{
+		if (current_mtl == nullptr)
+		{
+			std::cerr << "error intensity not in mat" << std::endl;
+			return ;
+		}
+		float	intensity_val = 1.0f;
+		if (iss >> intensity_val)
+			current_mtl->setIntensity(intensity_val);
+		else
+			std::cerr << "Error syntax intensity" << std::endl;
 	}
 }

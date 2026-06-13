@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Material.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:09:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 18:08:34 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/13 11:13:31 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,9 +60,19 @@ class Material
 		{
 			return true;
 		};
+		void	setIntensity(float intensity)
+		{
+			_intensity = intensity;
+		};
+
+		float	getIntensity() const
+		{
+			return (_intensity);
+		};
 
 		protected:
 			Vec3f	_color;
+			float	_intensity = 1.0f;
 			bool	_hasTexture = false;
 			bool	_hasNormal = false;
 			bool	_hasRoughness = false;

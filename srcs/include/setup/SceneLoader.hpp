@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SceneLoader.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 16:41:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/12 15:38:33 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/13 11:40:45 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ class	SceneLoader
 	private :
 		static void	set_res(AppContext& app, std::istringstream &iss, std::string token);
 		static void	set_cam(AppContext& app, std::istringstream &iss, std::string token);
-		static void	set_mat(AppContext& app, std::istringstream &iss, std::string token, std::string &current_mtl_name, std::shared_ptr<Material> &current_mtl, bool &current_emit);
+		static void	set_mat(AppContext& app, std::istringstream &iss, std::string token, std::string &current_mtl_name, std::shared_ptr<Material> &current_mtl);
 
 	public:
 
@@ -65,7 +65,6 @@ class	SceneLoader
 			std::string					line;
 			std::string					current_mtl_name = "";
 			std::shared_ptr<Material>	current_mtl = nullptr;
-			bool						current_emit = false;
 
 			while (std::getline(file, line))
 			{
@@ -83,7 +82,7 @@ class	SceneLoader
 				set_res(app, iss, token);
 				set_cam(app, iss, token);
 				
-				set_mat(app, iss, token, current_mtl_name, current_mtl, current_emit);
+				set_mat(app, iss, token, current_mtl_name, current_mtl);
 
 				if (token == "sphere" || token == "sp")
 				{
@@ -95,18 +94,21 @@ class	SceneLoader
 					{
 						if (app.materials.find(mtl_name) != app.materials.end())
 						{
-							Vec3f	center(x, y, z);
-							Vec3f	normal(nx, ny, nz);
-							Vec3f	rot = normal.to_rotation_angles();
-							Mat4f	translation = Mat4f::translate(center);
-							Mat4f	rotX = Mat4f::rotateX(rot._x);
-							Mat4f	rotY = Mat4f::rotateY(rot._y);
-							Mat4f	scale = Mat4f::scale(Vec3f(radius, radius, radius));
-							Mat4f	transform = translation * rotY * rotX * scale;
-							if (!current_emit)
-								app.scene.add(std::make_shared<Sphere>(radius, center, normal, transform, app.materials[mtl_name].get()));
-							if (current_emit)
-								app.scene.add_light(std::make_shared<Sphere>(radius, center, normal, transform, app.materials[mtl_name].get()));
+							Vec3f		center(x, y, z);
+							Vec3f		normal(nx, ny, nz);
+							Vec3f		rot = normal.to_rotation_angles();
+							Mat4f		translation = Mat4f::translate(center);
+							Mat4f		rotX = Mat4f::rotateX(rot._x);
+							Mat4f		rotY = Mat4f::rotateY(rot._y);
+							Mat4f		scale = Mat4f::scale(Vec3f(radius, radius, radius));
+							Mat4f		transform = translation * rotY * rotX * scale;
+							Material*	mat_ptr = app.materials[mtl_name].get();
+
+							auto	new_sphere = std::make_shared<Sphere>(radius, center, normal, transform, mat_ptr);
+							if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)
+								app.scene.add_light(new_sphere);
+							else
+								app.scene.add(new_sphere);
 						}
 						else
 							std::cerr << "Erreur: Materiau " << mtl_name << " not known.\n";
@@ -126,15 +128,19 @@ class	SceneLoader
 					{
 						if (app.materials.find(mtl_name) != app.materials.end())
 						{
-							Vec3f	point(x, y, z);
-							Vec3f	normal(nx, ny, nz);
-							Vec3f	rot = normal.to_rotation_angles();
-							Mat4f	translation = Mat4f::translate(point);
-							Mat4f	rotX = Mat4f::rotateX(rot._x);
-							Mat4f	rotY = Mat4f::rotateY(rot._y);
-							Mat4f	transform = translation * rotY * rotX;
-
-							app.scene.add(std::make_shared<Plane>(point, normal, transform, app.materials[mtl_name].get()));
+							Vec3f		point(x, y, z);
+							Vec3f		normal(nx, ny, nz);
+							Vec3f		rot = normal.to_rotation_angles();
+							Mat4f		translation = Mat4f::translate(point);
+							Mat4f		rotX = Mat4f::rotateX(rot._x);
+							Mat4f		rotY = Mat4f::rotateY(rot._y);
+							Mat4f		transform = translation * rotY * rotX;
+							Material*	mat_ptr = app.materials[mtl_name].get();
+							auto		new_pl = std::make_shared<Plane>(point, normal, transform, mat_ptr);
+							if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)
+								app.scene.add_light(new_pl);
+							else
+								app.scene.add(new_pl);
 						}
 						else
 							std::cerr << "error: Materiau " << mtl_name << " not known\n";
@@ -159,8 +165,12 @@ class	SceneLoader
 							Vec3f	v0(x1, y1, z1);
 							Vec3f	v1(x2, y2, z2);
 							Vec3f	v2(x3, y3, z3);
-
-							app.scene.add(std::make_shared<Triangle>(v0, v1, v2, app.materials[mtl_name].get()));
+							Material*	mat_ptr = app.materials[mtl_name].get();
+							auto		new_tr = std::make_shared<Triangle>(v0, v1, v2, mat_ptr);
+							if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)
+								app.scene.add_light(new_tr);
+							else
+								app.scene.add(new_tr);
 						}
 						else
 							std::cerr << "Erreur: Materiau " << mtl_name << " not known.\n";

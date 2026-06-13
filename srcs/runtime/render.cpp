@@ -5,194 +5,231 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/09 10:53:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/13 00:24:17 by CHAT-DISPAR      ###   ########.fr       */
+/*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/13 11:50:30 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+
 #include "Render.hpp"
+static constexpr int	MAX_SHADOW_BOUNCES = 80;
 
 
-// true -> ombre 
-// false -> light 
-bool	shadow_ray(const Scene &scene, const HitRecord &rec, const Vec3f &target_pos)
+Vec3f	shadow_transmittance(const Scene &scene, const Vec3f &origin, const Vec3f &surface_normal,
+							const Vec3f &target_pos)
 {
-	Vec3f	light_dir = target_pos - rec.point;
+	Vec3f	light_dir = target_pos - origin;
 	float	light_dist = light_dir.length();
-	Vec3f	dir_norm = Vec3f::normalize(light_dir);
 
-	if (Vec3f::dot(dir_norm, rec.normal) <= 0.0f)
-		return (true);
+	if (light_dist < 1e-6f)
+		return (Vec3f(1.0f));
+	Vec3f	dir_norm = light_dir / light_dist;
+	//oppose a la light
+	if (Vec3f::dot(dir_norm, surface_normal) <= 0.0f)
+		return (Vec3f(0.0f));
+	//monte un peut l origine sur la normal pour pas touche soi meme
+	Ray		shadow(origin + surface_normal * 1e-3f, dir_norm);
+	Vec3f	transmittance(1.0f);
 
-	Ray	shadow;
-	shadow._o   = rec.point + rec.normal * 0.001f;
-	shadow._dir = dir_norm;
-
-	HitRecord	dummy;
-
-	while (scene.hit(shadow, 0.001f, light_dist, dummy))
+	for (int bounce = 0; bounce < MAX_SHADOW_BOUNCES; ++bounce)
 	{
-		if (!dummy.material)
-			return (true);
-		if (dummy.material->emitted(dummy.u, dummy.v, dummy.point).length() > 0.0f)
-			return (false);
-		if (dummy.material->isOpaq()) 
-			return (true);
-		float	refraction_index = dummy.material->ior(); 
+		HitRecord	hit;
 
-		float	etai_over_etat = (Vec3f::dot(shadow._dir, dummy.normal) < 0.0f) ? (1.0f / refraction_index) : refraction_index;
+		if (!scene.hit(shadow, 1e-4f, light_dist, hit))
+			break ;
 
-		Vec3f n = (Vec3f::dot(shadow._dir, dummy.normal) < 0.0f) 
-					? dummy.normal 
-					: -dummy.normal;
+		if (!hit.material)
+			return (Vec3f(0.0f));
+		//source
+		if (hit.material->emitted(hit.u, hit.v, hit.point).length_sq() > 0.0f)
+			break ;
+		// opaq zero
+		if (hit.material->isOpaq())
+			return (Vec3f(0.0f));
+		// beer lambert apllique la tinte....
+		Vec3f	mat_color = hit.material->getColor();
+		transmittance *= mat_color;
 
-		shadow._dir = Vec3f::refract(shadow._dir, n, etai_over_etat);
+		if (transmittance.length_sq() < 1e-6f)
+			return (Vec3f(0.0f));
 
-		if (shadow._dir.length_sq() < 0.9f)
-			return (true); 
-		shadow._o = dummy.point + shadow._dir * 0.001f;
+		/*float	ior = hit.material->ior();
+		bool	enter = (Vec3f::dot(shadow._dir, hit.normal) < 0.0f);
+		float	ratio = enter ? (1.0f / ior) : ior;
+		Vec3f	n = enter ? hit.normal : -hit.normal;
+		Vec3f	refracted = Vec3f::refract(Vec3f::normalize(shadow._dir), n, ratio);
+
+		//refract echoue
+		if (refracted.length_sq() < 0.5f)
+			return (Vec3f(0.0f));
+
+		Vec3f	offset_normal = enter ? -hit.normal : hit.normal;
+		*/
+		shadow._o = hit.point + shadow._dir * 1e-3f;
+		//shadow._dir = Vec3f::normalize(refracted);
 		light_dist = (target_pos - shadow._o).length();
-		continue;
 	}
-	return (false);
+	return (transmittance);
 }
 
 Vec3f	traceRay(Ray ray, const Render &render)
 {
 	Vec3f	accumulated_light(0.0f);
 	Vec3f	throughput(1.0f);
-	for (int depth = 0; depth < render.depth_max; depth++)
+
+	for (int depth = 0; depth < render.depth_max; ++depth)
 	{
 		HitRecord	rec;
 
-		if (render.scene.hit(ray, 0.001f, FLT_MAX, rec))
+		if (!render.scene.hit(ray, 1e-3f, FLT_MAX, rec))
 		{
-			Vec3f	emitted = rec.material->emitted(rec.u, rec.v, rec.point);
-			Ray		new_ray;
-			Vec3f	albedo;
-	
-			accumulated_light += throughput * emitted;
-			if (!rec.material->scatter(ray, rec, albedo, new_ray, render.seed))
-				break ;
-			if (render.shadow_ray)
+			// ciel / soleil
+			if (render.sun_light.enabled)
 			{
-				for (auto& light : render.scene.getLights())
+				Vec3f	unit_dir = Vec3f::normalize(ray._dir);
+				float	y = unit_dir._y;
+				Vec3f	sky_color;
+
+				if (y >= 0.0f)
 				{
-					AABB	box;
-					light->bbox(box);
-					Vec3f	lightPos(box._min._x + Vec3f::randomFloat(render.seed) * (box._max._x - box._min._x),
-										box._min._y + Vec3f::randomFloat(render.seed) * (box._max._y - box._min._y),
-										box._min._z + Vec3f::randomFloat(render.seed) * (box._max._z - box._min._z));
-					Vec3f	toLight = lightPos - rec.point;
-					float	dist2 = toLight._x * toLight._x + toLight._y * toLight._y + toLight._z * toLight._z;
-					float	dist = std::sqrt(dist2);
-					Vec3f	toLightNorm = toLight / dist;
-					float	cosTheta = Vec3f::dot(toLightNorm, rec.normal);
+					float	t = y;
+					float	t_sq = t * t;
+					float	h = std::exp(-t * 8.0f);
+					Vec3f	horizon(0.52f, 0.83f, 1.0f);
+					Vec3f	low(0.40f, 0.65f, 0.98f);
+					Vec3f	zenith(0.05f, 0.25f, 0.85f);
 
-					if (cosTheta <= 0.0f)
-						continue;
-					if (shadow_ray(render.scene, rec, lightPos))
-						continue ;
-					Vec3f	lightColor = light->getMat()->getColor();
-					float	attenuation = 1.0f / (dist2 + 1.0f);
-					accumulated_light += throughput * albedo  * lightColor * cosTheta * attenuation;
+					sky_color = horizon * h + low * ((1.0f - h) * (1.0f - t_sq))
+								+ zenith * t_sq;
 				}
-			}
-			throughput *= albedo;
-			
-			ray = new_ray;
-		}
-		else if (render.sun_light.enabled)
-		{
-			//sky
-			Vec3f	unit_dir = Vec3f::normalize(ray._dir);
-			float	y = unit_dir._y;
-			Vec3f	sky_color;
-			if (y >= 0.0f)
-			{
-				float	t = y;
-				float	t_sq = t * t;
-				float	h = std::exp(-t * 8.0f);
-				Vec3f	horizon_color(0.52f, 0.83f, 1.0f);
-				Vec3f	low_color(0.40f, 0.65f, 0.98f);
-				Vec3f	zenith_color(0.05f, 0.25f, 0.85f);
-	
-				sky_color = horizon_color * h + low_color * (1.0f - h)
-							* (1.0f - t_sq) + zenith_color * t_sq;
-			}
-			else
-			{
-				float	t = -y;
-				Vec3f	horizon_color(0.52f, 0.83f, 1.0f);
-				Vec3f	ground_color(0.05f, 0.25f, 0.85f);
+				else
+				{
+					float	t = -y;
+					Vec3f	horizon(0.52f, 0.83f, 1.0f);
+					Vec3f	ground(0.05f, 0.15f, 0.35f);
 
-				sky_color = horizon_color * (1.0f - t) + ground_color * t;
+					sky_color = horizon * (1.0f - t) + ground * t;
+				}
+				sky_color *= 0.5f;
+
+				float	alignment = std::fmax(0.0f, Vec3f::dot(unit_dir, render.sun_light.direction));
+				float	disk = std::pow(alignment, render.sun_light.size) * render.sun_light.intensity;
+				float	glow = std::pow(alignment, render.sun_light.glow_size) * render.sun_light.glow_intensity;
+				Vec3f	sun_color = render.sun_light.color * disk
+									+ render.sun_light.glow_color * glow;
+
+				accumulated_light += throughput * (sky_color + sun_color);
 			}
-
-			float	sky_intensity = 0.5f; 
-			sky_color = sky_color * sky_intensity;
-			//sun
-			float	alignment = std::fmax(0.0f, std::fmin(Vec3f::dot(unit_dir, render.sun_light.direction), 1.0f));
-			float	disk = std::pow(alignment, render.sun_light.size) * render.sun_light.intensity;
-			float	glow = std::pow(alignment, render.sun_light.glow_size) * render.sun_light.glow_intensity;
-			Vec3f	sun_final_color = (render.sun_light.color * disk) + (render.sun_light.glow_color * glow);
-
-			sky_color += sun_final_color;
-			accumulated_light += throughput * sky_color;
 			break ;
 		}
-		else
+
+		// hit valide
+		Vec3f	emitted = rec.material->emitted(rec.u, rec.v, rec.point);
+		Ray		new_ray;
+		Vec3f	albedo;
+
+		accumulated_light += throughput * emitted;
+		if (!rec.material->scatter(ray, rec, albedo, new_ray, render.seed))
+			break ;
+
+		if (render.shadow_ray && rec.material->isOpaq())
 		{
-			Vec3f sky_color(0.0f);
-			accumulated_light += throughput * sky_color;
-			break;
+			for (auto &light : render.scene.getLights())
+			{
+				AABB	box;
+				light->bbox(box);
+				Vec3f	light_pos(
+					box._min._x + Vec3f::randomFloat(render.seed) * (box._max._x - box._min._x),
+					box._min._y + Vec3f::randomFloat(render.seed) * (box._max._y - box._min._y),
+					box._min._z + Vec3f::randomFloat(render.seed) * (box._max._z - box._min._z)
+				);
+
+				Vec3f	to_light = light_pos - rec.point;
+				float	dist = to_light.length();
+				if (dist < 1e-6f)
+					continue ;
+				Vec3f	to_light_n = to_light / dist;
+				float	cos_theta = Vec3f::dot(to_light_n, rec.normal);
+
+				if (cos_theta <= 0.0f)
+					continue ;
+
+				Vec3f	transmit = shadow_transmittance(render.scene, rec.point, rec.normal, light_pos);
+
+				if (transmit.length_sq() < 1e-6f)
+					continue ;
+				Vec3f	light_color = light->getMat()->getColor();
+				// attenuation distance -> loi du carre
+				float	dist2 = dist * dist;
+				float	falloff = 1.0f / (dist2 + 0.01f);
+
+				//throughput -> rebond d avant 
+				//albedo
+				//light_color
+				//transmit filtre verre si ya
+				//cos_theta  beer lambert
+				//falloff dist attenuation
+				accumulated_light += throughput * albedo * light_color * transmit * cos_theta * falloff;
+			}
 		}
+		//attenuation se fait solo pas besoin de loi carre
+		throughput *= albedo;
+
+		// roulette russe
+		if (depth > 3)
+		{
+			float	max_comp = std::fmax(throughput._x, std::fmax(throughput._y, throughput._z));
+			if (max_comp < 0.01f)
+				break ;
+			float	rr = Vec3f::randomFloat(render.seed);
+			if (rr > max_comp)
+				break ;
+			throughput /= max_comp;
+		}
+
+		ray = new_ray;
 	}
+
 	return (accumulated_light);
 }
 
-
-void	render(Render &render)
+void	render(Render &render_job)
 {
-	for (size_t y = render.start_y; y < render.end_y; y++)
+	for (size_t y = render_job.start_y; y < render_job.end_y; ++y)
 	{
-		for (size_t x = render.start_x; x < render.end_x; x++)
+		for (size_t x = render_job.start_x; x < render_job.end_x; ++x)
 		{
 			float	u, v;
-			if (render.samples != 1)
+
+			if (render_job.samples != 1)
 			{
-				u = ((float)x + Vec3f::randomFloat(render.seed)) * render.inv_w;
-				v = ((float)y + Vec3f::randomFloat(render.seed)) * render.inv_h;
+				u = ((float)x + Vec3f::randomFloat(render_job.seed)) * render_job.inv_w;
+				v = ((float)y + Vec3f::randomFloat(render_job.seed)) * render_job.inv_h;
 			}
 			else
 			{
-				u = ((float)x + 0.5f) * render.inv_w;
-				v = ((float)y + 0.5f) * render.inv_h;
+				u = ((float)x + 0.5f) * render_job.inv_w;
+				v = ((float)y + 0.5f) * render_job.inv_h;
 			}
+			Ray		ray = render_job.cam.getRay(u, v);
+			Vec3f	color = traceRay(ray, render_job);
+			size_t	idx = y * render_job.width + x;
 
-			Ray		ray = render.cam.getRay(u, v);
-			Vec3f	color = traceRay(ray, render);
-
-			size_t	pixel_idx = y * render.width + x;
-			if (render.frame_count == 1)
-				render.accum_buffer[pixel_idx] = color;
+			if (render_job.frame_count == 1)
+				render_job.accum_buffer[idx] = color;
 			else
-				render.accum_buffer[pixel_idx] += color;
-
+				render_job.accum_buffer[idx] += color;
 			//moyenne
-			Vec3f	final_color = render.accum_buffer[pixel_idx] / (float)render.frame_count;
-
-			final_color._x = final_color._x / (final_color._x + 1.0f);
-			final_color._y = final_color._y / (final_color._y + 1.0f);
-			final_color._z = final_color._z / (final_color._z + 1.0f);
-			final_color._x = pow(final_color._x, 0.45454545454);
-			final_color._y = pow(final_color._y, 0.45454545454);
-			final_color._z = pow(final_color._z, 0.45454545454);
-			int	ir, ig, ib;
-			ir = (int)(255.999 * final_color._x);
-			ig = (int)(255.999 * final_color._y);
-			ib = (int)(255.999 * final_color._z);
-			render.definitive[pixel_idx] = (ir << 24) | (ig << 16) | (ib << 8) | 0xFF;
+			Vec3f	fc = render_job.accum_buffer[idx] / (float)render_job.frame_count;
+			//reinnhard loi tone mapping
+			fc._x = std::pow(fc._x / (fc._x + 1.0f), 1.0f / 2.2f);
+			fc._y = std::pow(fc._y / (fc._y + 1.0f), 1.0f / 2.2f);
+			fc._z = std::pow(fc._z / (fc._z + 1.0f), 1.0f / 2.2f);
+			//gamma correction 
+			int	ir = (int)(255.999f * fc._x);
+			int	ig = (int)(255.999f * fc._y);
+			int	ib = (int)(255.999f * fc._z);
+			render_job.definitive[idx] = (ir << 24) | (ig << 16) | (ib << 8) | 0xFF;
 		}
 	}
 }

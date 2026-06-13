@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:32:19 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/10 01:34:09 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/13 11:13:56 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,5 +27,5 @@ Vec3f	DiffuseLight::emitted(float u, float v, const Vec3f& p) const
 	(void)u;
 	(void)v;
 	(void)p;
-	return (_color);
+	return (_color * _intensity);
 }
