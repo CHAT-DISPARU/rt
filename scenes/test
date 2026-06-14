@@ -1,24 +1,46 @@
-res 800 600
-samples inf
+res 1280 720
+camera 0 3 8  0 0 -1  60
 
-camera 0 1 4  0 -0.2 -1  60
+mat sol_beton
+color 0.15 0.15 0.15
 
-mat sol
-color 0.5 0.5 0.5
+mat mur_gris
+color 0.45 0.45 0.45
 
-mat boule_roug
-color 0.8 0.2 0.2
+mat neon_chaud
+type emissive
+color 1.0 0.7 0.4
+intensity 15.0
 
-mat miroir
+mat chrome
 type metal
-color 1.0 1.0 1.0
+color 0.95 0.95 0.95
 fuzz 0.0
 
-mat petit_lampe
-type emissive
-color 3.0 3.0 3.0
+mat verre_bleu
+type glass
+color 0.55 0.80 1.0
+ni 1.52
+fuzz 0.0
 
-sp 0 -100.5 -1 100 sol
-sp 0 0 -1 0.5 boule_roug
-sp 1.2 0 -1 0.5 miroir
-sp -1 2 0 0.5 petit_lampe
+mat or_brosse
+type metal
+color 0.90 0.72 0.18
+fuzz 0.08
+
+mat rouge_mat
+color 0.8 0.1 0.1
+
+sp 0 -1000 0 1000  0 1 0  sol_beton
+
+pl 0 0 -8  0 0 1  mur_gris
+pl -8 0 0  1 0 0  mur_gris
+pl 8 0 0  -1 0 0  mur_gris
+
+sp -2 5 2 0.8  0 1 0  neon_chaud
+sp 2 5 2 0.8  0 1 0  neon_chaud
+
+sp -3.0 1.0 0.0 1.0  0 1 0  chrome
+sp -1.0 1.0 0.0 1.0  0 1 0  verre_bleu
+sp 1.0 1.0 0.0 1.0  0 1 0  or_brosse
+sp 3.0 1.0 0.0 1.0  0 1 0  rouge_mat

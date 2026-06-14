@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Dielectric.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:13 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 15:58:35 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/14 22:28:54 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ class Dielectric : public Material
 
 		~Dielectric(){};
 
-		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
+		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const;
 		float	ior() const;
 		void setFuzz(float f)
 		{

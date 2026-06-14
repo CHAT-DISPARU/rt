@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/13 11:50:30 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/14 23:12:03 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,16 @@
 #include "Render.hpp"
 static constexpr int	MAX_SHADOW_BOUNCES = 80;
 
+
+inline float	power_heuristic(float pdf_a, float pdf_b)
+{
+	float	a2 = pdf_a * pdf_a;
+	float	b2 = pdf_b * pdf_b;
+	//secu 1/10000000000000000000000000000 skibidi
+	if (a2 + b2 == 0.0f)
+		return (0.0f); 
+	return (a2 / (a2 + b2));
+}
 
 Vec3f	shadow_transmittance(const Scene &scene, const Vec3f &origin, const Vec3f &surface_normal,
 							const Vec3f &target_pos)
@@ -128,21 +138,20 @@ Vec3f	traceRay(Ray ray, const Render &render)
 		Ray		new_ray;
 		Vec3f	albedo;
 
-		accumulated_light += throughput * emitted;
-		if (!rec.material->scatter(ray, rec, albedo, new_ray, render.seed))
+		if (depth == 0 || !render.shadow_ray)
+			accumulated_light += throughput * emitted;
+		float	pdf_mat_scatter = 1.0f;
+		if (!rec.material->scatter(ray, rec, albedo, new_ray, pdf_mat_scatter, render.seed))
 			break ;
-
+		if (pdf_mat_scatter <= 1e-6f)
+			break ;
 		if (render.shadow_ray && rec.material->isOpaq())
 		{
 			for (auto &light : render.scene.getLights())
 			{
 				AABB	box;
 				light->bbox(box);
-				Vec3f	light_pos(
-					box._min._x + Vec3f::randomFloat(render.seed) * (box._max._x - box._min._x),
-					box._min._y + Vec3f::randomFloat(render.seed) * (box._max._y - box._min._y),
-					box._min._z + Vec3f::randomFloat(render.seed) * (box._max._z - box._min._z)
-				);
+				Vec3f	light_pos = light->sample(render.seed);
 
 				Vec3f	to_light = light_pos - rec.point;
 				float	dist = to_light.length();
@@ -158,22 +167,52 @@ Vec3f	traceRay(Ray ray, const Render &render)
 
 				if (transmit.length_sq() < 1e-6f)
 					continue ;
-				Vec3f	light_color = light->getMat()->getColor();
-				// attenuation distance -> loi du carre
-				float	dist2 = dist * dist;
-				float	falloff = 1.0f / (dist2 + 0.01f);
-
+				//mis
+				float	pdf_light = light->pdf_value(rec.point, to_light_n);
+				if (pdf_light <= 0.0f)
+					continue;
+				//proba lum
+				float pdf_mat_eval = rec.material->scattering_pdf(ray, rec, Ray(rec.point, to_light_n));
+				//poid Veach
+				float weight_light = power_heuristic(pdf_light, pdf_mat_eval);
+				
+				Vec3f light_color = light->getMat()->getColor();
 				//throughput -> rebond d avant 
 				//albedo
 				//light_color
 				//transmit filtre verre si ya
 				//cos_theta  beer lambert
-				//falloff dist attenuation
-				accumulated_light += throughput * albedo * light_color * transmit * cos_theta * falloff;
+				accumulated_light += throughput * albedo * light_color * transmit * cos_theta * weight_light / pdf_light;
+			}
+			if (render.sun_light.enabled)
+			{
+				Vec3f	sun_dir = -render.sun_light.direction; 
+				float	cos_theta = Vec3f::dot(sun_dir, rec.normal);
+
+				if (cos_theta > 0.0f)
+				{
+					Vec3f	sun_target = rec.point + sun_dir * 1e5f;
+					Vec3f	transmit = shadow_transmittance(render.scene, rec.point, rec.normal, sun_target);
+
+					if (transmit.length_sq() > 0.0f)
+					{
+						Vec3f	sun_contribution = render.sun_light.color * render.sun_light.intensity;
+						accumulated_light += throughput * albedo * sun_contribution * transmit * cos_theta;
+					}
+				}
 			}
 		}
-		//attenuation se fait solo pas besoin de loi carre
-		throughput *= albedo;
+		if (rec.material->isSpecular()) 
+			throughput *= albedo; 
+		else 
+		{
+			float	cos_theta_indirect = Vec3f::dot(rec.normal, Vec3f::normalize(new_ray._dir));
+			if (cos_theta_indirect < 0.0f) 
+				cos_theta_indirect = 0.0f;
+				
+			Vec3f	brdf = albedo / (float)M_PI;
+			throughput *= (brdf * cos_theta_indirect) / pdf_mat_scatter;
+		}
 
 		// roulette russe
 		if (depth > 3)

@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/12 23:59:20 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/14 21:50:19 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ class	Triangle : public Hittable
 		~Triangle(){};
 		bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
 		bool	bbox(AABB& output_box) const;
+		Vec3f	sample(uint32_t* seed) const;
+		float	pdf_value(const Vec3f& origin, const Vec3f& dir) const;
 
 	private:
 		Vec3f		_v0;

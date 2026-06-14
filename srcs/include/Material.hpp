@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:09:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/13 11:13:31 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/14 22:15:55 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,14 @@ class Material
 			- scattered : nouveau rebond
 			true si rebond false si absorbe
 		*/
-		virtual bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const = 0;
-
+		virtual bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const = 0;
+		virtual float	scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const
+		{
+			(void)r_in;
+			(void)rec;
+			(void)scattered;
+			return (0.0f);
+		}
 		virtual Vec3f	emitted(float u, float v, const Vec3f& p) const
 		{
 			(void)u;

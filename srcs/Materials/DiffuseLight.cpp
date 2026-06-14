@@ -6,18 +6,19 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:32:19 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/13 11:13:56 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/14 22:28:27 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "DiffuseLight.hpp"
 
-bool	DiffuseLight::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const
+bool	DiffuseLight::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const
 {
 	(void)r_in;
 	(void)rec;
 	(void)attenuation;
 	(void)scattered;
+	(void)pdf;
 	(void)seed;
 	return (false);
 }

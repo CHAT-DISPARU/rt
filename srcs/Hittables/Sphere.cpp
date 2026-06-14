@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Sphere.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 13:14:43 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 18:16:09 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/14 21:56:11 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ Sphere::Sphere(float d, Vec3f center, Vec3f normal, const Mat4f &m, Material *ma
 	_box *= _transform;
 	_mat = mat;
 	_normal = normal;
+	_radius = _diameter / 2.0f;
 }
 
 /*
@@ -103,4 +104,23 @@ bool	Sphere::bbox(AABB& output_box) const
 {
 	output_box = _box;
 	return (true);
+}
+
+Vec3f Sphere::sample(uint32_t *seed) const
+{
+	return (_center + Vec3f::randomUnitVector(seed) * _radius);
+}
+
+float	Sphere::pdf_value(const Vec3f& origin, const Vec3f& dir) const
+{
+	HitRecord	rec;
+
+	if (!this->hit(Ray(origin, dir), 1e-4f, FLT_MAX, rec))
+		return (0.0f);
+	// aire => solid angle
+	float	area = 4.0f * M_PI * _radius * _radius;
+	float	distance_squared = rec.t * rec.t;
+	float	cosine = std::fabs(Vec3f::dot(dir, rec.normal));
+	// PDF = (Distance au carre) / (Cosinus * Aire)
+	return (distance_squared / (cosine * area));
 }

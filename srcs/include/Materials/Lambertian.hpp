@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:05 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/09 17:23:22 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/14 22:18:31 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,5 +19,6 @@ class Lambertian : public Material
 
 		~Lambertian(){};
 
-		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const;
+		bool	scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const;
+		float	scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const;
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_base_render.cpp                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:29:02 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 17:07:07 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/14 22:42:44 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ void	set_sun(SunLight &sun)
 	sun.glow_intensity = 0.08f;
 	sun.size = 500.0f;
 	sun.glow_size = 12.0f;
-	sun.enabled = true;
+	sun.enabled = false;
 }
 
 void	setup_base_render(AppContext &app, Render &render_total)

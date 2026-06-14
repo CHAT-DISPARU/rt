@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Triangle.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/10 18:36:48 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/14 21:56:03 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,4 +88,36 @@ bool	Triangle::bbox(AABB& output_box) const
 {
 	output_box = _box;
 	return (true);
+}
+
+Vec3f Triangle::sample(uint32_t *seed) const
+{
+	float	r1 = Vec3f::randomFloat(seed);
+	float	r2 = Vec3f::randomFloat(seed);
+
+	if (r1 + r2 > 1.0f)
+	{
+		r1 = 1.0f - r1;
+		r2 = 1.0f - r2;
+	}
+	Vec3f	edge1 = _v1 - _v0;
+	Vec3f	edge2 = _v2 - _v0;
+	return (_v0 + edge1 * r1 + edge2 * r2);
+}
+
+float	Triangle::pdf_value(const Vec3f& origin, const Vec3f& dir) const
+{
+	HitRecord	rec;
+
+	if (!this->hit(Ray(origin, dir), 1e-4f, FLT_MAX, rec))
+		return (0.0f);
+
+	// Aire = moitie norme produit vectoriel des arretes
+	Vec3f	edge1 = _v1 - _v0;
+	Vec3f	edge2 = _v2 - _v0;
+	float	area = 0.5f * Vec3f::cross(edge1, edge2).length();
+	float	distance_squared = rec.t * rec.t;
+	float	cosine = std::fabs(Vec3f::dot(dir, rec.normal));
+	// PDF = (Distance au carre) / (Cosinus * Aire)
+	return (distance_squared / (cosine * area));
 }

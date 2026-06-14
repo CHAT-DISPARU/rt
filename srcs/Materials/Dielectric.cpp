@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:38:58 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/11 21:24:54 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/14 22:19:21 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ static float	schlick(float cosine, float ior_in, float ior_out)
 	return (r0 + (1.0f - r0) * pow(1.0f - cosine, 5.0f));
 }
 
-bool	Dielectric::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, unsigned int* seed) const
+bool	Dielectric::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const
 {
 	attenuation = _color;
 
@@ -38,6 +38,7 @@ bool	Dielectric::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuati
 	
 	Vec3f finalDir = Vec3f::normalize(direction + _fuzz * Vec3f::randomInUnitSphere(seed));
 	scattered = Ray(rec.point, finalDir);
+	pdf = 1.0f;
 	return (true);
 }
 

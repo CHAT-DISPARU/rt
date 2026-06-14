@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hittable.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:10:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 18:01:41 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/14 22:25:49 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,17 @@ class	Hittable
 			false (plane)
 		*/
 		virtual bool	bbox(AABB& output_box) const = 0;
+		virtual Vec3f	sample(uint32_t* seed) const 
+		{
+			(void)seed;
+			return Vec3f(0.0f, 0.0f, 0.0f);
+		}
+		virtual float	pdf_value(const Vec3f& origin, const Vec3f& dir) const 
+		{
+			(void)origin;
+			(void)dir;
+			return (0.0f);
+		}
 		Material	*getMat() const
 		{
 			return (_mat);
