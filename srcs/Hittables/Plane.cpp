@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Plane.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 21:56:46 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/15 10:44:21 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ bool	Plane::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 
 	l_ray *= _inverse;
 	denom = l_ray._dir._y;
-	if (fabs(denom) < 1e-6f)
+	if (fabs(denom) < t_min)
 		return (false);
 	t = -l_ray._o._y / denom;
 	if (t < t_min || t > t_max)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SceneLoader.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 16:41:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/13 11:40:45 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/15 10:41:53 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,15 +128,30 @@ class	SceneLoader
 					{
 						if (app.materials.find(mtl_name) != app.materials.end())
 						{
-							Vec3f		point(x, y, z);
-							Vec3f		normal(nx, ny, nz);
-							Vec3f		rot = normal.to_rotation_angles();
-							Mat4f		translation = Mat4f::translate(point);
-							Mat4f		rotX = Mat4f::rotateX(rot._x);
-							Mat4f		rotY = Mat4f::rotateY(rot._y);
-							Mat4f		transform = translation * rotY * rotX;
-							Material*	mat_ptr = app.materials[mtl_name].get();
-							auto		new_pl = std::make_shared<Plane>(point, normal, transform, mat_ptr);
+							Vec3f	point(x, y, z);
+							Vec3f	normal(nx, ny, nz);
+							normal = Vec3f::normalize(normal);
+
+							Vec3f	up(0, 1, 0);
+							Vec3f	axis = Vec3f::cross(up, normal);
+							float	sinA = axis.length();
+							float	cosA = Vec3f::dot(up, normal);
+							Mat4f	rotation;
+
+							if (sinA < 1e-6f)
+							{
+								if (cosA < 0.0f)
+									rotation = Mat4f::rotateX(M_PI);
+							}
+							else
+							{
+								axis = Vec3f::normalize(axis);
+								rotation = Mat4f::rotate((float)std::atan2(sinA, cosA), axis);
+							}
+							Mat4f translation = Mat4f::translate(point);
+							Mat4f transform = translation * rotation;
+							Material* mat_ptr = app.materials[mtl_name].get();
+							auto new_pl = std::make_shared<Plane>(point, normal, transform, mat_ptr);
 							if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)
 								app.scene.add_light(new_pl);
 							else

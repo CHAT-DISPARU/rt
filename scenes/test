@@ -1,10 +1,11 @@
 res 1280 720
+samples inf
 camera 0 3 8  0 0 -1  60
 
 mat sol_beton
 color 0.15 0.15 0.15
 
-mat mur_gris
+mat mur
 color 0.45 0.45 0.45
 
 mat neon_chaud
@@ -32,10 +33,10 @@ mat rouge_mat
 color 0.8 0.1 0.1
 
 sp 0 -1000 0 1000  0 1 0  sol_beton
-
-pl 0 0 -8  0 0 1  mur_gris
-pl -8 0 0  1 0 0  mur_gris
-pl 8 0 0  -1 0 0  mur_gris
+sp 0 1010 0 1000  0 1 0  sol_beton
+pl 0 0 -6  0 0 1  mur
+pl -7 0 0  1 0 0  mur
+pl 7 0 0  -1 0 0  mur
 
 sp -2 5 2 0.8  0 1 0  neon_chaud
 sp 2 5 2 0.8  0 1 0  neon_chaud

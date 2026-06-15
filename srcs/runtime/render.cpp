@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/14 23:12:03 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/15 10:56:12 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,14 +138,14 @@ Vec3f	traceRay(Ray ray, const Render &render)
 		Ray		new_ray;
 		Vec3f	albedo;
 
-		if (depth == 0 || !render.shadow_ray)
+		if (depth == 0 || !render.shadow_ray || emitted.length_sq() > 0.0f)
 			accumulated_light += throughput * emitted;
 		float	pdf_mat_scatter = 1.0f;
 		if (!rec.material->scatter(ray, rec, albedo, new_ray, pdf_mat_scatter, render.seed))
 			break ;
 		if (pdf_mat_scatter <= 1e-6f)
 			break ;
-		if (render.shadow_ray && rec.material->isOpaq())
+		if (render.shadow_ray && rec.material->isOpaq() && !rec.material->isSpecular())
 		{
 			for (auto &light : render.scene.getLights())
 			{
