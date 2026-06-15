@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/15 10:44:21 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/15 11:00:56 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,6 @@ bool	Plane::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 
 bool	Plane::bbox(AABB& output_box) const
 {
-	output_box = AABB(Vec3f(-10000, -0.01f, -10000), Vec3f(10000, 0.01f, 10000));
+	output_box = AABB(Vec3f(-10000, -10000, -10000), Vec3f(10000, 10000, 10000));
 	return (true);
 }

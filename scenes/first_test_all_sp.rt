@@ -56,6 +56,7 @@ color 0.22 0.52 0.22
 
 sp 0 -1000 0 1000  0 1 0  sol
 sp 0 28 0 10  0 1 0  plafond_light
+pl 0 0 20  0 0 -1  mur
 pl 0 0 -6  0 0 1  mur
 pl -7 0 0  1 0 0  mur
 pl 7 0 0  -1 0 0  mur
