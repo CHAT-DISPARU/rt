@@ -24,7 +24,6 @@
 - [x] Renderer -- traceRay() recursif, scatter(), std::thread
 
 
-//lucas
 ## 4 - Parser GLB
 - [ ] cgltf.h   -- ou faire soi meme un parser
 - [ ] Geometrie -- triangles, UV, normales. Materiaux ignores pour l'instant.

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 17:06:38 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/16 15:16:08 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,15 +19,31 @@
 #include "Sunlight.hpp"
 #define THREAD_MAX 16
 
+enum class	BvhDebugMode
+{
+	OFF,
+	HEATMAP,
+	DEPTH_SLICE
+};
+
+struct BvhDebugConfig
+{
+	BvhDebugMode mode = BvhDebugMode::OFF;
+	int	min_depth = 0;
+	int	max_depth = 5;
+	int	max_tests_heatmap = 35;
+};
+
 struct Render
 {
-	Render(Camera &c, Scene &s) : cam(c), scene(s) {};
+	Render(Camera &c, Scene &s, BvhDebugConfig &bvh) : cam(c), scene(s), bvh_config(bvh) {};
 	~Render(){};
 	size_t				start_y;
 	size_t				end_y;
 	size_t				start_x;
 	size_t				end_x;
 
+	BvhDebugConfig		&bvh_config;
 	size_t				width;
 	size_t				height;
 	Camera				&cam;
