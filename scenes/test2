@@ -1,0 +1,59 @@
+resolution 1280 720
+samples inf
+camera 0 20 35 0 -0.3 -1 65
+
+mat mat_light_ceiling
+type emissive
+color 1.0 0.95 0.9
+intensity 12.0
+
+mat mat_floor
+type metal
+color 0.02 0.02 0.03
+fuzz 0.02
+
+mat mat_walls
+color 0.05 0.05 0.05
+
+mat mat_crystal
+type glass
+color 0.9 0.95 1.0
+ni 1.8
+fuzz 0.0
+
+mat mat_glow_cyan
+type emissive
+color 0.1 0.8 1.0
+intensity 20.0
+
+mat mat_glow_magenta
+type emissive
+color 1.0 0.1 0.8
+intensity 20.0
+
+mat mat_gold
+type metal
+color 1.0 0.8 0.2
+fuzz 0.05
+
+quad 0 0 0 0 1 0 120 120 mat_floor
+quad 0 80 0 0 -1 0 120 120 mat_walls
+quad 0 40 -60 0 0 1 120 80 mat_walls
+quad 0 40 60 0 0 -1 120 80 mat_walls
+quad -60 40 0 1 0 0 80 120 mat_walls
+quad 60 40 0 -1 0 0 80 120 mat_walls
+
+quad 0 79.9 0 0 -1 0 35 35 mat_light_ceiling
+
+triangle 0 25 0 8 15 0 0 15 8 mat_crystal
+triangle 0 25 0 0 15 8 -8 15 0 mat_crystal
+triangle 0 25 0 -8 15 0 0 15 -8 mat_crystal
+triangle 0 25 0 0 15 -8 8 15 0 mat_crystal
+triangle 0 5 0 0 15 8 8 15 0 mat_crystal
+triangle 0 5 0 -8 15 0 0 15 8 mat_crystal
+triangle 0 5 0 0 15 -8 -8 15 0 mat_crystal
+triangle 0 5 0 8 15 0 0 15 -8 mat_crystal
+
+sp 14 18 8 2.5 0 1 0 mat_glow_cyan
+sp -12 10 -10 3 0 1 0 mat_glow_magenta
+sp 8 6 -6 4 0 1 0 mat_gold

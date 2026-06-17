@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Quad.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/17 16:33:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 17:07:34 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 19:12:39 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,16 +70,17 @@ Vec3f Quad::sample(const Vec3f& origin, uint32_t* seed) const
 
 	return (_transform * local_p);
 }
+
 float	Quad::pdf_value(const Vec3f& origin, const Vec3f& dir) const
 {
 	HitRecord	rec;
-
 	if (!this->hit(Ray(origin, dir), 1e-4f, FLT_MAX, rec))
 		return (0.0f);
-
 	float	area = _w * _h;
 	float	distance_squared = rec.t * rec.t;
-	float	cosine = std::fabs(Vec3f::dot(dir, rec.normal));
-	// PDF = (Distance au carre) / (Cosinus * Aire)
+	float	cosine = std::fmax(std::fabs(Vec3f::dot(dir, rec.normal)), 1e-3f);
+
+	if (cosine < 1e-6f || area < 1e-6f)
+		return (0.0f);
 	return (distance_squared / (cosine * area));
 }

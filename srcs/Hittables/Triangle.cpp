@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 12:46:33 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 19:12:36 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,10 @@ float	Triangle::pdf_value(const Vec3f& origin, const Vec3f& dir) const
 	Vec3f	edge2 = _v2 - _v0;
 	float	area = 0.5f * Vec3f::cross(edge1, edge2).length();
 	float	distance_squared = rec.t * rec.t;
-	float	cosine = std::fabs(Vec3f::dot(dir, rec.normal));
+	float	cosine = std::fmax(std::fabs(Vec3f::dot(dir, rec.normal)), 1e-3f);
+
+	if (cosine < 1e-6f || area < 1e-6f)
+		return (0.0f);
 	// PDF = (Distance au carre) / (Cosinus * Aire)
 	return (distance_squared / (cosine * area));
 }

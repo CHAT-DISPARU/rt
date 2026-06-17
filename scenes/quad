@@ -1,4 +1,4 @@
-res 1280 720
+resolution 1280 720
 samples inf
 camera 0 4 12  0 -0.2 -1  75
 
@@ -74,9 +74,9 @@ quad -14 5 -5 1 -0.2 0.5 6 6 mat_light_blue
 mat mat_box_wall
 color 0.45 0.45 0.45
 
-quad 0 -0.01 5 0 1 0 150 150 mat_box_wall
-quad 0 125 5 0 -1 0 150 150 mat_box_wall
-quad 0 62.5 -6 0 0 1 150 125 mat_box_wall
-quad 0 62.5 16 0 0 -1 150 125 mat_box_wall
-quad -7 62.5 5 1 0 0 150 125 mat_box_wall
-quad 7 62.5 5 -1 0 0 150 125 mat_box_wall
+quad 0 -5 0 0 1 0 150 150 mat_box_wall
+quad 0 100 0 0 -1 0 150 150 mat_box_wall
+quad 0 47.5 -75 0 0 1 150 105 mat_box_wall
+quad 0 47.5 75 0 0 -1 150 105 mat_box_wall
+quad -75 47.5 0 1 0 0 105 150 mat_box_wall
+quad 75 47.5 0 -1 0 0 105 150 mat_box_wall

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 14:57:43 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 19:29:49 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,22 +171,15 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				if (render.shadow_ray && depth > 0 && !prev_was_specular)
 				{
 					float	pdf_light = 0.0f;
+					Vec3f	norm_dir = Vec3f::normalize(ray._dir);
+					
 					for (auto& light : render.scene.getLights())
-					{
-						AABB	box;
-						light->bbox(box);
-						Vec3f	center = (box._min + box._max) * 0.5f;
-						Vec3f	half = (box._max - box._min) * 0.5f;
-						float	radius = half.length();
-						if ((center - rec.point).length_sq() < radius * radius * 1.1f)
-						{
-							pdf_light = light->pdf_value(ray._o, Vec3f::normalize(ray._dir));
-							break ;
-						}
-					}
-					weight = (pdf_light > 0.0f)
-						? power_heuristic(prev_pdf_scatter, pdf_light)
-						: 1.0f;
+						pdf_light += light->pdf_value(ray._o, norm_dir);
+
+					if (pdf_light > 0.0f)
+						weight = power_heuristic(prev_pdf_scatter, pdf_light);
+					else
+						weight = 0.0f;
 				}
 				accumulated_light += throughput * emitted * weight;
 			}
@@ -257,10 +250,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				}
 			}
 		}
-		if (rec.material->isSpecular()) 
-			throughput *= albedo; 
-		else 
-			throughput *= albedo;
+		throughput *= albedo;
 
 		// roulette russe
 		if (depth > 3)
