@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 16:41:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 17:00:42 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 17:21:37 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,10 +229,10 @@ class	SceneLoader
 							}
 							Mat4f	mat_scale;
 							Vec3f	scale(w / 2.0f, 1.0, h / 2.0f);
-							mat_scale.scale(scale);
-							Mat4f	trans = trans.translate(center);
-							Mat4f final = rotation * mat_scale;
-							final *= trans;
+							mat_scale = mat_scale.scale(scale);
+							Mat4f	trans;
+							trans = trans.translate(center);
+							Mat4f final = trans * rotation * mat_scale;
 							Material*	mat_ptr = app.materials[mtl_name].get();
 							auto		new_tr = std::make_shared<Quad>(center, normal, final, mat_ptr, w, h);
 							if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)

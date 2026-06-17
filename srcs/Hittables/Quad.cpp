@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/17 16:33:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 16:49:14 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 17:07:34 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ bool	Quad::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node
 
 	l_ray *= _inverse;
 	denom = l_ray._dir._y;
-	if (fabs(denom) < tMin)
+	if (fabs(denom) < 1e-6f)
 		return (false);
 	t = -l_ray._o._y / denom;
 	if (t < tMin || t > tMax)
@@ -60,17 +60,16 @@ bool	Quad::bbox(AABB& output_box) const
 
 Vec3f Quad::sample(const Vec3f& origin, uint32_t* seed) const
 {
-    (void)origin;
-    float	r1 = Vec3f::randomFloat(seed);
-    float	r2 = Vec3f::randomFloat(seed);
-    float	local_x = (r1 - 0.5f) * _w;
-    float	local_y = 0.0f;
-    float	local_z = (r2 - 0.5f) * _h;
-    Vec3f	local_p(local_x, local_y, local_z);
+	(void)origin;
+	float	r1 = Vec3f::randomFloat(seed);
+	float	r2 = Vec3f::randomFloat(seed);
+	float	local_x = r1 * 2.0f - 1.0f;
+	float	local_y = 0.0f;
+	float	local_z = r2 * 2.0f - 1.0f;
+	Vec3f	local_p(local_x, local_y, local_z);
 
-    return (_transform * local_p);
+	return (_transform * local_p);
 }
-
 float	Quad::pdf_value(const Vec3f& origin, const Vec3f& dir) const
 {
 	HitRecord	rec;

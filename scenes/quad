@@ -1,0 +1,82 @@
+res 1280 720
+samples inf
+camera 0 4 12  0 -0.2 -1  75
+
+mat mat_light_white
+type emissive
+color 1.0 1.0 1.0
+intensity 20.0
+
+mat mat_floor_darkred
+color 0.4 0.05 0.05
+
+mat mat_floor_cyan
+color 0.05 0.3 0.4
+
+mat mat_wall_matte
+color 0.5 0.5 0.5
+
+mat mat_pure_glass
+type glass
+color 1.0 1.0 1.0
+ni 1.5
+fuzz 0.0
+
+mat mat_gold_metal
+type metal
+color 1.0 0.8 0.3
+fuzz 0.05
+
+mat mat_perfect_mirror
+type metal
+color 0.98 0.98 0.98
+fuzz 0.0
+
+mat mat_dark_glass
+type glass
+color 0.2 0.05 0.2
+ni 1.6
+fuzz 0.0
+
+mat mat_light_red
+type emissive
+color 1.0 0.06 0.06
+intensity 150.0
+
+mat mat_blue_metal
+type metal
+color 0.1 0.3 0.9
+fuzz 0.1
+
+mat mat_light_blue
+type emissive
+color 0.13 0.33 1.0
+intensity 25.0
+
+quad 0 15 0 0 -1 0 40 40 mat_light_white
+
+quad 10 0 0 0 1 0 20 20 mat_floor_darkred
+quad -10 0 0 0 1 0 20 20 mat_floor_cyan
+quad 0 5 -10 0 0 1 40 10 mat_wall_matte
+
+quad 0 5 0 1 0 0 10 20 mat_pure_glass
+
+sp 8 3 2 3 0 1 0 mat_gold_metal
+quad 12 4 -4 -0.5 0.5 1 8 8 mat_perfect_mirror
+sp 4 1.5 -2 1.5 0 1 0 mat_dark_glass
+quad 6 2 -9.9 0 0 1 4 4 mat_light_red
+
+sp -6 4 -1 4 0 1 0 mat_pure_glass
+quad -3 6 4 0.7 0.7 0.2 4 4 mat_perfect_mirror
+sp -10 2 3 2 0 1 0 mat_blue_metal
+quad -14 5 -5 1 -0.2 0.5 6 6 mat_light_blue
+
+mat mat_box_wall
+color 0.45 0.45 0.45
+
+quad 0 -0.01 5 0 1 0 150 150 mat_box_wall
+quad 0 125 5 0 -1 0 150 150 mat_box_wall
+quad 0 62.5 -6 0 0 1 150 125 mat_box_wall
+quad 0 62.5 16 0 0 -1 150 125 mat_box_wall
+quad -7 62.5 5 1 0 0 150 125 mat_box_wall
+quad 7 62.5 5 -1 0 0 150 125 mat_box_wall

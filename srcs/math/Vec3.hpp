@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 16:50:41 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 17:12:45 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,7 +227,7 @@ struct Vec3
 	}
 	static float randomFloat(unsigned int *seed)
 	{
-		return rand_r(seed) / (RAND_MAX + 1.0f);
+		return rand_r(seed) / (RAND_MAX + 1.0);
 	}
 	static Vec3	randomInUnitSphere(unsigned int *seed)
 	{
