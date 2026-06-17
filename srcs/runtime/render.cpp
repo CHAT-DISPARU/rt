@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 13:12:39 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 14:57:43 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,7 +170,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				float weight = 1.0f;
 				if (render.shadow_ray && depth > 0 && !prev_was_specular)
 				{
-					float pdf_light = 0.0f;
+					float	pdf_light = 0.0f;
 					for (auto& light : render.scene.getLights())
 					{
 						AABB	box;
@@ -181,7 +181,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 						if ((center - rec.point).length_sq() < radius * radius * 1.1f)
 						{
 							pdf_light = light->pdf_value(ray._o, Vec3f::normalize(ray._dir));
-							break;
+							break ;
 						}
 					}
 					weight = (pdf_light > 0.0f)
@@ -224,7 +224,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 					continue ;
 				//mis
 				float	pdf_light = light->pdf_value(rec.point, to_light_n);
-				if (pdf_light <= 0.0f)
+				if (pdf_light <= 1e-6f)
 					continue;
 				//proba lum
 				float pdf_mat_eval = rec.material->scattering_pdf(ray, rec, Ray(rec.point, to_light_n));
@@ -319,11 +319,10 @@ void	render(Render &render_job)
 			fc._x = std::fmax(0.0f, fc._x);
 			fc._y = std::fmax(0.0f, fc._y);
 			fc._z = std::fmax(0.0f, fc._z);
-			//reinnhard loi tone mapping
+			//reinnhard loi tone mapping	gamma correction 
 			fc._x = std::pow(fc._x / (fc._x + 1.0f), 1.0f / 2.2f);
 			fc._y = std::pow(fc._y / (fc._y + 1.0f), 1.0f / 2.2f);
 			fc._z = std::pow(fc._z / (fc._z + 1.0f), 1.0f / 2.2f);
-			//gamma correction 
 			int	ir = (int)(255.999f * fc._x);
 			int	ig = (int)(255.999f * fc._y);
 			int	ib = (int)(255.999f * fc._z);

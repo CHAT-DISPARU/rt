@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Render.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 12:39:31 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 14:37:34 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ struct Render
 	size_t				frame_count;
 	Vec3f				*accum_buffer;
 	uint32_t			*definitive;
-	float				cam_speed  = 0.2f;
+	float				cam_speed = 0.2f;
 	float				cam_rotate = 0.04f;
 	SunLight			sun_light;
 	bool				shadow_ray;

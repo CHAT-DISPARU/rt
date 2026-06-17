@@ -31,6 +31,7 @@ set(SOURCES
 	srcs/setup/SceneLoader.cpp
 	srcs/Hittables/BVHNodes.cpp
 	srcs/Hittables/Plane.cpp
+	srcs/Hittables/Quad.cpp
 	srcs/Hittables/Sphere.cpp
 	srcs/Hittables/Triangle.cpp
 	srcs/Materials/Dielectric.cpp

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_gui.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 13:02:42 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 14:29:43 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,7 +137,7 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 	{
 		if (ImGui::SliderInt("max tests", &render_total.bvh_debug.max_tests, 10, 1000))
 			render_total.frame_count = 1;
-		ImGui::TextDisabled("bleu = rapide  rouge = lent");
+		ImGui::TextDisabled("bleu = ok  rouge = skibidi");
 	}
 	if (render_total.bvh_debug.mode == BvhDebugMode::DEPTH_SLICE)
 	{

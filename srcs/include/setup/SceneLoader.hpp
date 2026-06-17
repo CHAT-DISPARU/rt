@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 16:41:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/15 10:41:53 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 17:00:42 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "Material.hpp"
 #include "Sphere.hpp"
 #include "Plane.hpp"
+#include "Quad.hpp"
 #include "Triangle.hpp"
 #include "Camera.hpp"
 #include "Scene.hpp"
@@ -193,6 +194,58 @@ class	SceneLoader
 					else
 					{
 						std::cerr << "error syntax triangle (x1 y1 z1 x2 y2 z2 x3 y3 z3 mat_name)" << std::endl;
+					}
+				}
+				else if (token == "quad" || token == "qu")
+				{
+					float		x = 0, y = 0, z = 0;
+					float		nx = 0, ny = 1, nz = 0;
+					float		w, h;
+					std::string	mtl_name;
+
+					if (iss >> x >> y >> z >> nx >> ny >> nz >> w >> h >> mtl_name)
+					{
+						if (app.materials.find(mtl_name) != app.materials.end())
+						{
+							Vec3f	center(x, y, z);
+							Vec3f	normal(nx, ny, nz);
+							normal = Vec3f::normalize(normal);
+
+							Vec3f	up(0, 1, 0);
+							Vec3f	axis = Vec3f::cross(up, normal);
+							float	sinA = axis.length();
+							float	cosA = Vec3f::dot(up, normal);
+							Mat4f	rotation;
+
+							if (sinA < 1e-6f)
+							{
+								if (cosA < 0.0f)
+									rotation = Mat4f::rotateX(M_PI);
+							}
+							else
+							{
+								axis = Vec3f::normalize(axis);
+								rotation = Mat4f::rotate((float)std::atan2(sinA, cosA), axis);
+							}
+							Mat4f	mat_scale;
+							Vec3f	scale(w / 2.0f, 1.0, h / 2.0f);
+							mat_scale.scale(scale);
+							Mat4f	trans = trans.translate(center);
+							Mat4f final = rotation * mat_scale;
+							final *= trans;
+							Material*	mat_ptr = app.materials[mtl_name].get();
+							auto		new_tr = std::make_shared<Quad>(center, normal, final, mat_ptr, w, h);
+							if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)
+								app.scene.add_light(new_tr);
+							else
+								app.scene.add(new_tr);
+						}
+						else
+							std::cerr << "Erreur: Materiau " << mtl_name << " not known.\n";
+					}
+					else
+					{
+						std::cerr << "error syntax triangle (x y z nx ny nz mat_name width height)" << std::endl;
 					}
 				}
 			}

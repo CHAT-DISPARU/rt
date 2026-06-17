@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Sphere.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 13:14:43 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 12:46:31 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 16:31:37 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,5 +150,7 @@ float Sphere::pdf_value(const Vec3f& origin, const Vec3f& dir) const
 
 	float	cos_max = std::sqrt(1.0f - (_radius * _radius) / dist2);
 	float	solid_angle = 2.0f * (float)M_PI * (1.0f - cos_max);
+	if (solid_angle < 1e-6f)
+		return (0.0f);
 	return (1.0f / solid_angle);
 }

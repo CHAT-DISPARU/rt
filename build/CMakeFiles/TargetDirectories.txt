@@ -1,0 +1,8 @@
+/home/gajanvie/cursus/post_cc/rt/build/CMakeFiles/rt.dir
+/home/gajanvie/cursus/post_cc/rt/build/CMakeFiles/edit_cache.dir
+/home/gajanvie/cursus/post_cc/rt/build/CMakeFiles/rebuild_cache.dir
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-build/CMakeFiles/SDL3-shared.dir
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-build/CMakeFiles/SDL3_test.dir
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-build/CMakeFiles/SDL_uclibc.dir
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-build/CMakeFiles/edit_cache.dir
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-build/CMakeFiles/rebuild_cache.dir

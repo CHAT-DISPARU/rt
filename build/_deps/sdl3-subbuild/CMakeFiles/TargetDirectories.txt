@@ -1,0 +1,3 @@
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-subbuild/CMakeFiles/sdl3-populate.dir
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-subbuild/CMakeFiles/edit_cache.dir
+/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-subbuild/CMakeFiles/rebuild_cache.dir

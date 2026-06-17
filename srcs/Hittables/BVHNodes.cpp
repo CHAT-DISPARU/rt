@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BVHNodes.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 12:46:23 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 14:29:08 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -420,7 +420,7 @@ struct StackEntry
 };
 
 void	BVHNode::hit_box_depth(const Ray& ray, int depth_min, int depth_max,
-							 float t_geom, Vec3f& color_out, float& alpha_out) const
+								float t_geom, Vec3f& color_out, float& alpha_out) const
 {
 	if (_nodes.empty())
 		return;
