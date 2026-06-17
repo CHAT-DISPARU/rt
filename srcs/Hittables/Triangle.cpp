@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 21:56:03 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 12:46:33 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,9 @@ Triangle::Triangle(Vec3f v0, Vec3f v1, Vec3f v2, Material *mat)
 	_box._max = _box._max + Vec3f(0.001f, 0.001f, 0.001f);
 }
 
-bool	Triangle::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
+bool	Triangle::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests) const
 {
+	(void)node_tests;
 	Vec3f	edge1 = _v1 - _v0;
 	Vec3f	edge2 = _v2 - _v0;
 	Vec3f	pvec = Vec3f::cross(ray._dir, edge2);	
@@ -75,7 +76,7 @@ bool	Triangle::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) con
 		
 	float	t = Vec3f::dot(edge2, qvec) * inv_det;
 
-	if (t < t_min || t > t_max)
+	if (t < tMin || t > tMax)
 		return (false);
 	rec.t = t;
 	rec.point = ray(t);
@@ -90,8 +91,9 @@ bool	Triangle::bbox(AABB& output_box) const
 	return (true);
 }
 
-Vec3f Triangle::sample(uint32_t *seed) const
+Vec3f Triangle::sample(const Vec3f& origin, uint32_t *seed) const
 {
+	(void)origin;
 	float	r1 = Vec3f::randomFloat(seed);
 	float	r2 = Vec3f::randomFloat(seed);
 

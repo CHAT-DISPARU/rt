@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/15 14:55:25 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 12:55:32 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,13 @@ int	main(int ac, char **av)
 
 
 
+	SDLContext		sdl;
+	BvhDebugConfig  bvh_debug; 
+	Render			render_total(app.camera, app.scene, bvh_debug);
+	ThreadPool		threads(THREAD_MAX);
 
-	SDLContext	sdl;
-	Render		render_total(app.camera, app.scene);
-	ThreadPool	threads(THREAD_MAX);
-
+	bvh_debug.tree_depth = app.scene.getMaxDepth();
+	std::cout << "[BVH] Max depth: " << bvh_debug.tree_depth << "\n";
 	setup_base_render(app, render_total);
 	if (!sdl_init(sdl, app.width, app.height))
 	{

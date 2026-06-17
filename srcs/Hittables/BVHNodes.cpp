@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/12 23:30:34 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 12:46:23 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,7 +346,7 @@ int BVHNode::buildLocalLBVH(std::vector<MortonPrimitive>& mortonPrims,
 	return (nodeIdx);
 }
 
-bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const
+bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests) const
 {
 	if (_orderedObjects.empty() || _nodes.empty())
 		return (false);
@@ -370,7 +370,8 @@ bool BVHNode::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec) const
 	{
 		int			nodeIdx = stack[--stackPtr];
 		const Node&	node = _nodes[nodeIdx];
-
+		if (node_tests)
+			(*node_tests)++;
 		if (!node.bbox.hit(ray, invDir, tMin, closestSoFar))
 			continue;
 		//feuille
@@ -410,4 +411,110 @@ bool	BVHNode::bbox(AABB& output_box) const
 		return false;		
 	output_box = _nodes[0].bbox; 
 	return true;
+}
+
+struct StackEntry
+{
+	int nodeIdx;
+	int depth;
+};
+
+void	BVHNode::hit_box_depth(const Ray& ray, int depth_min, int depth_max,
+							 float t_geom, Vec3f& color_out, float& alpha_out) const
+{
+	if (_nodes.empty())
+		return;
+	Vec3f	invDir(1.0f / ray._dir._x, 1.0f / ray._dir._y, 1.0f / ray._dir._z);
+	StackEntry	stack[128];
+	int			stackPtr = 0;
+
+	stack[stackPtr++] = {0, 0};
+	color_out = Vec3f(0.0f);
+	alpha_out = 0.0f;
+
+	static const Vec3f depth_colors[] = {
+		Vec3f(1.0f, 0.2f, 0.2f), // profonder 0 rouge
+		Vec3f(1.0f, 0.6f, 0.1f), // 1 orange
+		Vec3f(0.9f, 0.9f, 0.1f), // 2 jaune
+		Vec3f(0.1f, 0.9f, 0.2f), // 3 vert
+		Vec3f(0.1f, 0.7f, 1.0f), // 4 cyan
+		Vec3f(0.3f, 0.2f, 1.0f), // 5 bleu
+		Vec3f(0.8f, 0.1f, 0.9f), // 6 violet
+		Vec3f(1.0f, 0.1f, 0.5f), // 7 rose
+	};
+	static const int	NUM_COLORS = 8;
+
+	while (stackPtr > 0)
+	{
+		auto		[nodeIdx, depth] = stack[--stackPtr];
+		const Node&	node = _nodes[nodeIdx];
+		float	tEnter = 0.0f, tExit = FLT_MAX;
+		bool	miss = false;
+		for (int a = 0; a < 3; a++)
+		{
+			float	t0 = (node.bbox._min[a] - ray._o[a]) * invDir[a];
+			float	t1 = (node.bbox._max[a] - ray._o[a]) * invDir[a];
+			if (invDir[a] < 0.0f)
+				std::swap(t0, t1);
+			tEnter = std::fmax(tEnter, t0);
+			tExit = std::fmin(tExit, t1);
+			if (tExit <= tEnter)
+			{
+				miss = true;
+				break;
+			}
+		}
+		if (miss)
+			continue;
+
+		// derriere goem
+		if (tEnter > t_geom + 1e-3f)
+			continue;
+		if (depth >= depth_min && depth <= depth_max)
+		{
+			Vec3f	col = depth_colors[depth % NUM_COLORS];
+			float	slab_len = tExit - tEnter;
+			//2% len slab -> eppaisserur
+			float	edge_width = std::fmax(slab_len * 0.04f, 0.02f);
+			bool	is_edge = false;
+			for (int a = 0; a < 3 && !is_edge; a++)
+			{
+				float	t0 = (node.bbox._min[a] - ray._o[a]) * invDir[a];
+				float	t1 = (node.bbox._max[a] - ray._o[a]) * invDir[a];
+				if (invDir[a] < 0.0f)
+					std::swap(t0, t1);
+				if (std::fabs(t0 - tEnter) < edge_width || std::fabs(t1 - tExit) < edge_width)
+					is_edge = true;
+			}
+			// boite partierl devant geom transparent
+			float	visibility = std::fmin(1.0f, (t_geom - tEnter) / (slab_len + 1e-4f));
+			float	a = is_edge ? 0.85f * visibility : 0.08f * visibility;
+			//					bord opaqu                   interieru transparen
+			// Porter-Duff front-to-back
+			color_out += col * (a * (1.0f - alpha_out));
+			alpha_out += a * (1.0f - alpha_out);
+			//sature
+			if (alpha_out > 0.98f)
+				break;
+		}
+		if (depth < depth_max && node.primitiveCount == 0)
+		{
+			Vec3f	centerL = (_nodes[node.leftChildOrPrimOffset].bbox._min
+							+ _nodes[node.leftChildOrPrimOffset].bbox._max) * 0.5f;
+			Vec3f	centerR = (_nodes[node.rightChildOffset].bbox._min
+							+ _nodes[node.rightChildOffset].bbox._max) * 0.5f;
+			float	dL = Vec3f::dot(centerL - ray._o, ray._dir);
+			float	dR = Vec3f::dot(centerR - ray._o, ray._dir);
+			if (dL < dR)
+			{
+				stack[stackPtr++] = {(int)node.rightChildOffset, depth + 1};
+				stack[stackPtr++] = {(int)node.leftChildOrPrimOffset, depth + 1};
+			}
+			else
+			{
+				stack[stackPtr++] = {(int)node.leftChildOrPrimOffset, depth + 1};
+				stack[stackPtr++] = {(int)node.rightChildOffset, depth + 1};
+			}
+		}
+	}
 }

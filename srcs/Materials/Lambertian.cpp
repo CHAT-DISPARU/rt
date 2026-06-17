@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:03:46 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/14 23:03:06 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 12:27:59 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ bool	Lambertian::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuati
 	return (true);
 }
 
-float Lambertian::scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const
+float	Lambertian::scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const
 {
 	(void)r_in;
 	float cosine = Vec3f::dot(rec.normal, Vec3f::normalize(scattered._dir));

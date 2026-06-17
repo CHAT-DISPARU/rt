@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Render.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/16 15:16:08 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 12:39:31 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,37 +17,23 @@
 #include "Scene.hpp"
 #include "ThreadPool.hpp"
 #include "Sunlight.hpp"
+#include "BVHdebug.hpp"
 #define THREAD_MAX 16
-
-enum class	BvhDebugMode
-{
-	OFF,
-	HEATMAP,
-	DEPTH_SLICE
-};
-
-struct BvhDebugConfig
-{
-	BvhDebugMode mode = BvhDebugMode::OFF;
-	int	min_depth = 0;
-	int	max_depth = 5;
-	int	max_tests_heatmap = 35;
-};
 
 struct Render
 {
-	Render(Camera &c, Scene &s, BvhDebugConfig &bvh) : cam(c), scene(s), bvh_config(bvh) {};
+	Render(Camera &c, Scene &s, BvhDebugConfig &dbg) : cam(c), scene(s), bvh_debug(dbg) {};
 	~Render(){};
 	size_t				start_y;
 	size_t				end_y;
 	size_t				start_x;
 	size_t				end_x;
 
-	BvhDebugConfig		&bvh_config;
 	size_t				width;
 	size_t				height;
 	Camera				&cam;
 	Scene				&scene;
+	BvhDebugConfig		&bvh_debug;
 	int					samples;
 	int					depth_max;
 	float				inv_w;

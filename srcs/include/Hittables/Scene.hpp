@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:41:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 23:59:39 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 12:54:36 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,22 +30,21 @@ class	Scene : public Hittable
 		};
 		
 		
-		void build()
+		void	build()
 		{
 			_bvh = std::make_shared<BVHNode>(_objects);
 		};
 
-		bool hit(const Ray& r, float t_min, float t_max, HitRecord& rec) const
+		bool	hit(const Ray& r, float t_min, float t_max, HitRecord& rec, int* node_tests = nullptr) const
 		{
-			return (_bvh->hit(r, t_min, t_max, rec));
+			return (_bvh->hit(r, t_min, t_max, rec, node_tests));
 		};
-
-		bool hit_shadow(const Ray& r, float t_min, float t_max, HitRecord& rec) const
+		void	hit_box_depth(const Ray& r, int depth_min, int depth_max,
+			float t_geom, Vec3f& color_out, float& alpha_out) const
 		{
-			return (_bvh->hit_shadow(r, t_min, t_max, rec));
+			_bvh->hit_box_depth(r, depth_min, depth_max, t_geom, color_out, alpha_out);
 		};
-		
-		bool bbox(AABB& output_box) const
+		bool	bbox(AABB& output_box) const
 		{
 			return (_bvh->bbox(output_box));
 		};
@@ -53,6 +52,12 @@ class	Scene : public Hittable
 		{
 			return (_light);
 		};
+		int getMaxDepth() const
+		{
+			if (!_bvh)
+				return 0;
+			return (_bvh->getMaxDepth());
+		}
 		
 
 	private:

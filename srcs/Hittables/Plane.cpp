@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Plane.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/15 11:00:56 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 12:46:26 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,9 @@ Plane::Plane(Vec3f point, Vec3f normal, const Mat4f &m, Material *mat)
 	_normal = normal;
 }
 
-bool	Plane::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
+bool	Plane::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests) const
 {
+	(void)node_tests;
 	Ray		l_ray = ray;
 	Vec3f	local_p;
 	float	denom;
@@ -30,10 +31,10 @@ bool	Plane::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 
 	l_ray *= _inverse;
 	denom = l_ray._dir._y;
-	if (fabs(denom) < t_min)
+	if (fabs(denom) < tMin)
 		return (false);
 	t = -l_ray._o._y / denom;
-	if (t < t_min || t > t_max)
+	if (t < tMin || t > tMax)
 		return (false);
 	rec.t = t;
 	rec.material = _mat;

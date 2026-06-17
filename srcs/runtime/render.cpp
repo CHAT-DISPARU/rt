@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/15 10:56:12 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 13:12:39 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ inline float	power_heuristic(float pdf_a, float pdf_b)
 }
 
 Vec3f	shadow_transmittance(const Scene &scene, const Vec3f &origin, const Vec3f &surface_normal,
-							const Vec3f &target_pos)
+							const Vec3f &target_pos, int* counter)
 {
 	Vec3f	light_dir = target_pos - origin;
 	float	light_dist = light_dir.length();
@@ -45,7 +45,7 @@ Vec3f	shadow_transmittance(const Scene &scene, const Vec3f &origin, const Vec3f 
 	{
 		HitRecord	hit;
 
-		if (!scene.hit(shadow, 1e-4f, light_dist, hit))
+		if (!scene.hit(shadow, 1e-4f, light_dist, hit, counter))
 			break ;
 
 		if (!hit.material)
@@ -86,12 +86,37 @@ Vec3f	traceRay(Ray ray, const Render &render)
 {
 	Vec3f	accumulated_light(0.0f);
 	Vec3f	throughput(1.0f);
+	int		node_tests = 0;
+	int*	counter = (render.bvh_debug.mode == BvhDebugMode::HEATMAP) ? &node_tests : nullptr;
+	float	prev_pdf_scatter = 1.0f;
+	bool	prev_was_specular = false;
 
+	if (render.bvh_debug.mode == BvhDebugMode::DEPTH_SLICE)
+	{
+		HitRecord	rec;
+		float		t_geom = FLT_MAX;
+		Vec3f		base(0.02f, 0.02f, 0.025f);
+
+		if (render.scene.hit(ray, 1e-3f, FLT_MAX, rec))
+		{
+			t_geom = rec.t;
+			Vec3f	albedo;
+			Ray		dummy;
+			float	pdf = 1.0f;
+			rec.material->scatter(ray, rec, albedo, dummy, pdf, render.seed);
+			base = albedo * 0.18f;
+		}
+		Vec3f	box_color(0.0f);
+		float	box_alpha = 0.0f;
+		render.scene.hit_box_depth(ray, render.bvh_debug.min_depth,
+			render.bvh_debug.max_depth, t_geom, box_color, box_alpha);
+		return ((base * (1.0f - box_alpha) + box_color * box_alpha));
+	}
 	for (int depth = 0; depth < render.depth_max; ++depth)
 	{
 		HitRecord	rec;
-
-		if (!render.scene.hit(ray, 1e-3f, FLT_MAX, rec))
+		
+		if (!render.scene.hit(ray, 1e-3f, FLT_MAX, rec, counter))
 		{
 			// ciel / soleil
 			if (render.sun_light.enabled)
@@ -135,12 +160,42 @@ Vec3f	traceRay(Ray ray, const Render &render)
 
 		// hit valide
 		Vec3f	emitted = rec.material->emitted(rec.u, rec.v, rec.point);
+
+		if (emitted.length_sq() > 0.0f)
+		{
+			if (!render.shadow_ray || depth == 0)
+				accumulated_light += throughput * emitted;
+			else
+			{
+				float weight = 1.0f;
+				if (render.shadow_ray && depth > 0 && !prev_was_specular)
+				{
+					float pdf_light = 0.0f;
+					for (auto& light : render.scene.getLights())
+					{
+						AABB	box;
+						light->bbox(box);
+						Vec3f	center = (box._min + box._max) * 0.5f;
+						Vec3f	half = (box._max - box._min) * 0.5f;
+						float	radius = half.length();
+						if ((center - rec.point).length_sq() < radius * radius * 1.1f)
+						{
+							pdf_light = light->pdf_value(ray._o, Vec3f::normalize(ray._dir));
+							break;
+						}
+					}
+					weight = (pdf_light > 0.0f)
+						? power_heuristic(prev_pdf_scatter, pdf_light)
+						: 1.0f;
+				}
+				accumulated_light += throughput * emitted * weight;
+			}
+			break; // émissif = fin du chemin
+		}
+		float	pdf_mat_scatter = 1.0f;
 		Ray		new_ray;
 		Vec3f	albedo;
 
-		if (depth == 0 || !render.shadow_ray || emitted.length_sq() > 0.0f)
-			accumulated_light += throughput * emitted;
-		float	pdf_mat_scatter = 1.0f;
 		if (!rec.material->scatter(ray, rec, albedo, new_ray, pdf_mat_scatter, render.seed))
 			break ;
 		if (pdf_mat_scatter <= 1e-6f)
@@ -151,7 +206,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 			{
 				AABB	box;
 				light->bbox(box);
-				Vec3f	light_pos = light->sample(render.seed);
+				Vec3f	light_pos = light->sample(rec.point, render.seed);
 
 				Vec3f	to_light = light_pos - rec.point;
 				float	dist = to_light.length();
@@ -163,7 +218,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				if (cos_theta <= 0.0f)
 					continue ;
 
-				Vec3f	transmit = shadow_transmittance(render.scene, rec.point, rec.normal, light_pos);
+				Vec3f	transmit = shadow_transmittance(render.scene, rec.point, rec.normal, light_pos, counter);
 
 				if (transmit.length_sq() < 1e-6f)
 					continue ;
@@ -176,7 +231,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				//poid Veach
 				float weight_light = power_heuristic(pdf_light, pdf_mat_eval);
 				
-				Vec3f light_color = light->getMat()->getColor();
+				Vec3f	light_color = light->getMat()->emitted(rec.u, rec.v, light_pos);
 				//throughput -> rebond d avant 
 				//albedo
 				//light_color
@@ -192,7 +247,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				if (cos_theta > 0.0f)
 				{
 					Vec3f	sun_target = rec.point + sun_dir * 1e5f;
-					Vec3f	transmit = shadow_transmittance(render.scene, rec.point, rec.normal, sun_target);
+					Vec3f	transmit = shadow_transmittance(render.scene, rec.point, rec.normal, sun_target, counter);
 
 					if (transmit.length_sq() > 0.0f)
 					{
@@ -205,14 +260,7 @@ Vec3f	traceRay(Ray ray, const Render &render)
 		if (rec.material->isSpecular()) 
 			throughput *= albedo; 
 		else 
-		{
-			float	cos_theta_indirect = Vec3f::dot(rec.normal, Vec3f::normalize(new_ray._dir));
-			if (cos_theta_indirect < 0.0f) 
-				cos_theta_indirect = 0.0f;
-				
-			Vec3f	brdf = albedo / (float)M_PI;
-			throughput *= (brdf * cos_theta_indirect) / pdf_mat_scatter;
-		}
+			throughput *= albedo;
 
 		// roulette russe
 		if (depth > 3)
@@ -225,10 +273,12 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				break ;
 			throughput /= max_comp;
 		}
-
+		prev_was_specular = rec.material->isSpecular();
+		prev_pdf_scatter = pdf_mat_scatter;
 		ray = new_ray;
 	}
-
+	if (render.bvh_debug.mode == BvhDebugMode::HEATMAP)
+		return (color_heatmap(node_tests, render.bvh_debug.max_tests));
 	return (accumulated_light);
 }
 
@@ -254,12 +304,21 @@ void	render(Render &render_job)
 			Vec3f	color = traceRay(ray, render_job);
 			size_t	idx = y * render_job.width + x;
 
-			if (render_job.frame_count == 1)
-				render_job.accum_buffer[idx] = color;
+			Vec3f	fc;
+			if (render_job.bvh_debug.mode != BvhDebugMode::OFF)
+				fc = color;
 			else
-				render_job.accum_buffer[idx] += color;
-			//moyenne
-			Vec3f	fc = render_job.accum_buffer[idx] / (float)render_job.frame_count;
+			{
+				if (render_job.frame_count == 1)
+					render_job.accum_buffer[idx] = color;
+				else
+					render_job.accum_buffer[idx] += color;
+				//moyenne
+				fc = render_job.accum_buffer[idx] / (float)render_job.frame_count;
+			}
+			fc._x = std::fmax(0.0f, fc._x);
+			fc._y = std::fmax(0.0f, fc._y);
+			fc._z = std::fmax(0.0f, fc._z);
 			//reinnhard loi tone mapping
 			fc._x = std::pow(fc._x / (fc._x + 1.0f), 1.0f / 2.2f);
 			fc._y = std::pow(fc._y / (fc._y + 1.0f), 1.0f / 2.2f);

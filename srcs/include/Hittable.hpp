@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:10:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 22:25:49 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 12:43:15 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ class	Hittable
 
 			return true si hit sinon false
 		*/
-		virtual bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const = 0;
+		virtual bool	hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests = nullptr) const = 0;
 
 		/*
 			function bounding box
@@ -43,10 +43,11 @@ class	Hittable
 			false (plane)
 		*/
 		virtual bool	bbox(AABB& output_box) const = 0;
-		virtual Vec3f	sample(uint32_t* seed) const 
+		virtual Vec3f	sample(const Vec3f& origin, uint32_t* seed) const
 		{
 			(void)seed;
-			return Vec3f(0.0f, 0.0f, 0.0f);
+			(void)origin;
+			return (Vec3f(0.0f));
 		}
 		virtual float	pdf_value(const Vec3f& origin, const Vec3f& dir) const 
 		{

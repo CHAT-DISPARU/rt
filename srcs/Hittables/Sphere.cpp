@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 13:14:43 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 21:56:11 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/17 12:46:31 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,8 +60,9 @@ Sphere::Sphere(float d, Vec3f center, Vec3f normal, const Mat4f &m, Material *ma
 
 		
 */
-bool	Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
+bool	Sphere::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests) const
 {
+	(void)node_tests;
 	Ray		l_ray = ray;
 	Vec3f	local_normal;
 	float	a;
@@ -86,10 +87,10 @@ bool	Sphere::hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const
 
 	t = (-b - sqrtd) / a;
 	
-	if (t < t_min || t > t_max)
+	if (t < tMin || t > tMax)
 	{
 		t = (-b + sqrtd) / a;
-		if (t < t_min || t > t_max)
+		if (t < tMin || t > tMax)
 			return (false);
 	}
 	rec.t = t;
@@ -106,21 +107,48 @@ bool	Sphere::bbox(AABB& output_box) const
 	return (true);
 }
 
-Vec3f Sphere::sample(uint32_t *seed) const
+Vec3f	Sphere::sample(const Vec3f& origin, uint32_t* seed) const
 {
-	return (_center + Vec3f::randomUnitVector(seed) * _radius);
+	Vec3f	oc = _center - origin;
+	float	dist2 = oc.length_sq();
+	float	dist = std::sqrt(dist2);
+
+	//dans sphere
+	if (dist2 <= _radius * _radius)
+		return (_center + Vec3f::randomUnitVector(seed) * _radius);
+
+	// tire cone fisible
+	float	cos_max = std::sqrt(1.0f - (_radius * _radius) / dist2);
+	float	r1 = Vec3f::randomFloat(seed);
+	float	r2 = Vec3f::randomFloat(seed);
+	float	cos_t = 1.0f - r1 * (1.0f - cos_max);
+	float	sin_t = std::sqrt(std::fmax(0.0f, 1.0f - cos_t * cos_t));
+	float	phi = 2.0f * (float)M_PI * r2;
+	//base ortonorme aolign sur oc
+	Vec3f	w = oc / dist;
+	Vec3f	up = (std::fabs(w._x) > 0.9f)
+				? Vec3f(0.0f, 1.0f, 0.0f) : Vec3f(1.0f, 0.0f, 0.0f);
+	Vec3f	u = Vec3f::normalize(Vec3f::cross(up, w));
+	Vec3f	v = Vec3f::cross(w, u);
+
+	//dir -> cone
+	Vec3f	dir = u * (std::cos(phi) * sin_t)
+				+ v * (std::sin(phi) * sin_t) + w * cos_t;
+	return (origin + Vec3f::normalize(dir) * dist);
 }
 
-float	Sphere::pdf_value(const Vec3f& origin, const Vec3f& dir) const
+float Sphere::pdf_value(const Vec3f& origin, const Vec3f& dir) const
 {
 	HitRecord	rec;
-
 	if (!this->hit(Ray(origin, dir), 1e-4f, FLT_MAX, rec))
 		return (0.0f);
-	// aire => solid angle
-	float	area = 4.0f * M_PI * _radius * _radius;
-	float	distance_squared = rec.t * rec.t;
-	float	cosine = std::fabs(Vec3f::dot(dir, rec.normal));
-	// PDF = (Distance au carre) / (Cosinus * Aire)
-	return (distance_squared / (cosine * area));
+	Vec3f	oc = _center - origin;
+	float	dist2 = oc.length_sq();
+
+	if (dist2 <= _radius * _radius)
+		return (1.0f / (4.0f * (float)M_PI * _radius * _radius));
+
+	float	cos_max = std::sqrt(1.0f - (_radius * _radius) / dist2);
+	float	solid_angle = 2.0f * (float)M_PI * (1.0f - cos_max);
+	return (1.0f / solid_angle);
 }

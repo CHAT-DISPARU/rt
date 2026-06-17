@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_gui.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/12 17:07:39 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 13:02:42 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 		render_total.frame_count = 1;
 	if (ImGui::Checkbox("add shadow rays", &render_total.shadow_ray))
 		render_total.frame_count = 1;
-	ImGui::SliderInt("depth max", &render_total.depth_max, 1.0f, 100.0f);
+	ImGui::SliderInt("depth max", &render_total.depth_max, 1, 100);
 	const char*	sample_labels[] = {"1", "2", "4", "8", "16", "32", "64", "128", "inf"};
 	const int	sample_values[] = {1, 2, 4, 8, 16, 32, 64, 128, -1};
 	const int	sample_count = 9;
@@ -90,6 +90,9 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 			break;
 		}
 	}
+	if (render_total.bvh_debug.mode != BvhDebugMode::OFF)
+		ImGui::BeginDisabled();
+
 	if (ImGui::BeginCombo("samples", sample_labels[sample_idx]))
 	{
 		for (int i = 0; i < sample_count; i++)
@@ -101,6 +104,53 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 				ImGui::SetItemDefaultFocus();
 		}
 		ImGui::EndCombo();
+	}
+	if (render_total.bvh_debug.mode != BvhDebugMode::OFF)
+		ImGui::EndDisabled();
+	ImGui::SeparatorText("BVH Debug");
+
+	const char*	bvh_modes[] = {"Off", "Heatmap", "Depth Slice"};
+	int	bvh_mode_idx = (int)render_total.bvh_debug.mode;
+	if (ImGui::Combo("mode##bvh", &bvh_mode_idx, bvh_modes, 3))
+	{
+		BvhDebugMode new_mode = (BvhDebugMode)bvh_mode_idx;
+
+		//activation
+		if (new_mode != BvhDebugMode::OFF &&
+			render_total.bvh_debug.mode == BvhDebugMode::OFF)
+		{
+			render_total.bvh_debug.saved_samples = render_total.samples;
+			render_total.samples = 1;
+		}
+		// desactivation
+		else if (new_mode == BvhDebugMode::OFF &&
+				render_total.bvh_debug.mode != BvhDebugMode::OFF)
+		{
+			if (render_total.bvh_debug.saved_samples != -1)
+				render_total.samples = render_total.bvh_debug.saved_samples;
+			render_total.bvh_debug.saved_samples = -1;
+		}
+		render_total.bvh_debug.mode = new_mode;
+		render_total.frame_count = 1;
+	}
+	if (render_total.bvh_debug.mode == BvhDebugMode::HEATMAP)
+	{
+		if (ImGui::SliderInt("max tests", &render_total.bvh_debug.max_tests, 10, 1000))
+			render_total.frame_count = 1;
+		ImGui::TextDisabled("bleu = rapide  rouge = lent");
+	}
+	if (render_total.bvh_debug.mode == BvhDebugMode::DEPTH_SLICE)
+	{
+		bool	changed = false;
+		changed |= ImGui::SliderInt("bvh depth min", &render_total.bvh_debug.min_depth,
+								0, render_total.bvh_debug.tree_depth);
+		changed |= ImGui::SliderInt("bvh depth max", &render_total.bvh_debug.max_depth,
+									render_total.bvh_debug.min_depth,
+									render_total.bvh_debug.tree_depth);
+		if (changed)
+			render_total.frame_count = 1;
+		ImGui::TextDisabled("rouge=0 orange=1 jaune=2 vert=3");
+		ImGui::TextDisabled("cyan=4 bleu=5 violet=6 rose=7");
 	}
 	ImGui::End();
 }

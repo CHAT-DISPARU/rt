@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BVHNode.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 16:30:47 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/12 16:48:26 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/17 12:54:16 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,14 +47,30 @@ class	BVHNode : public Hittable
 
 		BVHNode(std::vector<std::shared_ptr<Hittable>>& objects);
 
-		bool	hit(const Ray& ray, float t_min, float t_max, HitRecord& rec) const;
-		bool	hit_shadow(const Ray& ray, float tMin, float light_dist, HitRecord& rec) const;
+		bool	hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests = nullptr) const;
+		void    hit_box_depth(const Ray& ray, int depth_min, int depth_max,
+                      			float t_geom, Vec3f& color_out, float& alpha_out) const;
 		bool	bbox(AABB& output_box) const;
 
 		const std::vector<Node>& getLinearNodes() const
 		{
 			return _nodes;
 		};
+		int	getMaxDepth() const
+		{
+			if (_nodes.empty())
+				return 0;
+			return computeMaxDepth(0, 0);
+		}
+		int	computeMaxDepth(int nodeIdx, int depth) const
+		{
+			const Node& node = _nodes[nodeIdx];
+			if (node.primitiveCount > 0)
+				return depth;
+			int leftDepth  = computeMaxDepth(node.leftChildOrPrimOffset, depth + 1);
+			int rightDepth = computeMaxDepth(node.rightChildOffset,      depth + 1);
+			return std::max(leftDepth, rightDepth);
+		}
 
 	private:
 		std::vector<Node>						_nodes;
