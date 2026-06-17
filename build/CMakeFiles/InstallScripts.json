@@ -1,8 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/gajanvie/cursus/post_cc/rt/build/cmake_install.cmake",
-		"/home/gajanvie/cursus/post_cc/rt/build/_deps/sdl3-build/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
