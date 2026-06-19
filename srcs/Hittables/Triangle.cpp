@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Triangle.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 19:12:36 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 12:16:04 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,17 @@ bool	Triangle::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* 
 	rec.t = t;
 	rec.point = ray(t);
 	rec.material = _mat;
+	if (_has_uv)
+	{
+		float	w = 1.0f - u - v;
+		rec.u = w * _uv0[0] + u * _uv1[0] + v * _uv2[0];
+		rec.v = w * _uv0[1] + u * _uv1[1] + v * _uv2[1];
+	}
+	else
+	{
+		rec.u = u;
+		rec.v = v;
+	}
 	rec.set_face_normal(ray, _normal);
 	return (true);
 }

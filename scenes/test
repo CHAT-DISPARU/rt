@@ -13,6 +13,7 @@ type emissive
 color 1.0 0.7 0.4
 intensity 15.0
 
+
 mat chrome
 type metal
 color 0.95 0.95 0.95
@@ -31,6 +32,7 @@ fuzz 0.08
 
 mat rouge_mat
 color 0.8 0.1 0.1
+tex scenes/terre.jpg
 
 sp 0 -1000 0 1000  0 1 0  sol_beton
 sp 0 1010 0 1000  0 1 0  sol_beton

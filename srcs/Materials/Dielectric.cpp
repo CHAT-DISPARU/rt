@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Dielectric.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:38:58 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/14 22:19:21 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 12:23:09 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Dielectric.hpp"
+#include "rt.hpp"
 
 static float	schlick(float cosine, float ior_in, float ior_out)
 {
@@ -22,7 +23,10 @@ static float	schlick(float cosine, float ior_in, float ior_out)
 
 bool	Dielectric::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const
 {
-	attenuation = _color;
+	if (_hasTexture == false || !tex)
+		attenuation = _color;
+	else
+		attenuation = sampleTextureFast(getTexture(), rec.u, rec.v);
 
 	float	ratio = rec.front_face ? (rec.ni_from / _ni) : (_ni / rec.ni_from);
 	Vec3f	unitDir = Vec3f::normalize(r_in._dir);

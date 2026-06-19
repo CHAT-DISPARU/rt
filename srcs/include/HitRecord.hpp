@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/08 17:17:00 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/19 12:52:10 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ struct	HitRecord
 	Vec3f		normal;
 	Vec3f		point;
 	bool		front_face;
-	Material	*material;
+	Material	*material = nullptr;
 	float		ni_from = 1.0f;
 
 	void	set_face_normal(const Ray &r, const Vec3f &outward_normal)

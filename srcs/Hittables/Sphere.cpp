@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Sphere.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 13:14:43 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 19:11:24 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 10:27:46 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,6 @@ bool	Sphere::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* no
 {
 	(void)node_tests;
 	Ray		l_ray = ray;
-	Vec3f	local_normal;
 	float	a;
 	float	b;
 	float	c;
@@ -98,6 +97,15 @@ bool	Sphere::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* no
 	rec.point = ray(t);
 	Vec3f	out_normal = Vec3f::normalize(rec.point - _center);
 	rec.set_face_normal(ray, out_normal);
+	Vec3f local_p = l_ray(t);
+	float	phi;
+	float	theta;
+
+	phi = atan2(local_p._z, local_p._x);
+	float	y_clamped = std::fmax(-1.0f, std::fmin(1.0f, local_p._y));
+	theta = asin(y_clamped);
+	rec.u = 1.0 - ((phi + M_PI) / (2.0 * M_PI));
+	rec.v = (theta + M_PI / 2.0) / M_PI;
 	return (true);
 }
 

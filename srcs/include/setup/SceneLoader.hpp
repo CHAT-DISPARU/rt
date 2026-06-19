@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 16:41:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 17:21:37 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/19 11:31:57 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ struct	AppContext
 class	SceneLoader
 {
 	private :
+		static void	set_mesh(AppContext& app, std::istringstream &iss, std::string token);
 		static void	set_res(AppContext& app, std::istringstream &iss, std::string token);
 		static void	set_cam(AppContext& app, std::istringstream &iss, std::string token);
 		static void	set_mat(AppContext& app, std::istringstream &iss, std::string token, std::string &current_mtl_name, std::shared_ptr<Material> &current_mtl);
@@ -84,6 +85,7 @@ class	SceneLoader
 				set_cam(app, iss, token);
 				
 				set_mat(app, iss, token, current_mtl_name, current_mtl);
+				set_mesh(app, iss, token);
 
 				if (token == "sphere" || token == "sp")
 				{

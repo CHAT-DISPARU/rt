@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Lambertian.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:03:46 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 12:27:59 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 12:22:56 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Lambertian.hpp"
+#include "rt.hpp"
 
 bool	Lambertian::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const
 {
@@ -20,7 +21,10 @@ bool	Lambertian::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuati
 	if (scatterDir.nearZero())
 		scatterDir = rec.normal;
 	scattered = Ray(rec.point, scatterDir);
-	attenuation = _color;
+	if (_hasTexture == false || !tex)
+		attenuation = _color;
+	else
+		attenuation = sampleTextureFast(getTexture(), rec.u, rec.v);
 	float	cosine = Vec3f::dot(rec.normal, Vec3f::normalize(scatterDir));
 	pdf = cosine < 0.0f ? 0.0f : cosine / (float)M_PI;
 	return (true);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   rt.hpp                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:25:03 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/11 20:52:00 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 10:35:47 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,4 +49,5 @@ void	resize_sdl(SDLContext &sdl, int new_w, int new_h, Render &render_total);
 void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app,
 			const char **res_labels, int *res_w, int *res_h, int res_count,
 			int &res_current, float fps, float ms);
+Vec3f	sampleTextureFast(SDL_Surface* surface, float u, float v);
 

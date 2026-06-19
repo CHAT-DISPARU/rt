@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Quad.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/17 16:33:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 19:12:39 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 10:33:22 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,16 @@ bool	Quad::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node
 	rec.material = _mat;
 	rec.point = ray(t);
 	rec.set_face_normal(ray, _normal);
+	float	scale = _mat->getTexScale();
+	float	u = ((p._x + 1.0f) * 0.5f) * (_w / scale);
+	float	v = ((p._z + 1.0f) * 0.5f) * (_h / scale);
+
+	rec.u = std::fmod(u, 1.0f);
+	rec.v = std::fmod(v, 1.0f);
+	if (rec.u < 0.0f)
+		rec.u += 1.0f;
+	if (rec.v < 0.0f)
+		rec.v += 1.0f;
 	return (true);
 }
 

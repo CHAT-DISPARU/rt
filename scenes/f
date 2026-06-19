@@ -1,0 +1,39 @@
+res 1600 900
+samples inf
+camera 0.0 2.7 9.2  0.0 -0.15 -1.0  50
+
+mat mur_blanc
+color 0.7 0.7 0.7
+
+mat plafond_light
+type emissive
+color 12.0 12.0 12.0
+
+mat metal_f16
+type metal
+color 0.85 0.70 0.30
+fuzz 0.02
+
+mat verre_cockpit
+type glass
+color 0.95 0.98 1.0
+ni 1.5
+fuzz 0.0
+
+mat rouge_mat
+color 0.75 0.05 0.05
+
+
+qu  0.0  0.0  0.0    0  1  0   40 40  mur_blanc  
+qu  0.0 5.0  0.0    0 -1  0   40 40  mur_blanc  
+qu  0.0  5.0 -6.0    0  0  1   40 20  mur_blanc  
+qu -7.0 5.0  0.0    1  0  0   40 20  mur_blanc  
+qu  7.0 5.0  0.0   -1  0  0   40 20  mur_blanc  
+
+
+qu  0.0  4.9  0.0    0 -1  0    4  4  plafond_light 
+
+
+mesh scenes/Dragon.obj 0.02  -3.5 1.0 2.0   0 0 -1  180 rouge_mat
+mesh scenes/Dragon.obj 0.02   0.0 1.0 1.5   0 0 -1  180 metal_f16
+mesh scenes/Dragon.obj 0.02   3.5 1.0 2.0   0 0 -1  180 verre_cockpit

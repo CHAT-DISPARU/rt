@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Material.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:09:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 22:15:55 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 10:50:41 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "Math3D.hpp"
 #include "Ray.hpp"
 #include "HitRecord.hpp"
+#include <SDL3/SDL.h>
 
 struct HitRecord;
 
@@ -75,7 +76,106 @@ class Material
 		{
 			return (_intensity);
 		};
+		void setTexture(SDL_Surface* texture)
+		{
+			tex = texture;
+			_hasTexture = (texture != nullptr);
+		}
 
+		SDL_Surface* getTexture() const
+		{
+			return tex;
+		}
+
+		bool hasTexture() const
+		{
+			return _hasTexture;
+		}
+		void setNormal(SDL_Surface* normalMap)
+		{
+			normal = normalMap;
+			_hasNormal = (normalMap != nullptr);
+		}
+
+		SDL_Surface* getNormal() const
+		{
+			return normal;
+		}
+
+		bool hasNormal() const
+		{
+			return _hasNormal;
+		}
+		void setRoughness(SDL_Surface* roughnessMap)
+		{
+			roughness = roughnessMap;
+			_hasRoughness = (roughnessMap != nullptr);
+		}
+
+		SDL_Surface* getRoughness() const
+		{
+			return roughness;
+		}
+
+		bool hasRoughness() const
+		{
+			return _hasRoughness;
+		}
+		void setMetallic(SDL_Surface* metallicMap)
+		{
+			metalic = metallicMap;
+			_hasMetallic = (metallicMap != nullptr);
+		}
+
+		SDL_Surface* getMetallic() const
+		{
+			return metalic;
+		}
+
+		bool hasMetallic() const
+		{
+			return _hasMetallic;
+		}
+
+		void setOcclusion(SDL_Surface* occlusionMap)
+		{
+			occlusion = occlusionMap;
+			_hasOcclusion = (occlusionMap != nullptr);
+		}
+
+		SDL_Surface* getOcclusion() const
+		{
+			return occlusion;
+		}
+
+		bool hasOcclusion() const
+		{
+			return _hasOcclusion;
+		}
+
+		void setEmissive(SDL_Surface* emissiveMap)
+		{
+			emissive = emissiveMap;
+			_hasEmissive = (emissiveMap != nullptr);
+		}
+
+		SDL_Surface* getEmissive() const
+		{
+			return emissive;
+		}
+
+		bool hasEmissive() const
+		{
+			return _hasEmissive;
+		}
+		void	setTexScale(float texScale)
+		{
+			_texScale = texScale;
+		};
+		float	getTexScale() const
+		{
+			return (_texScale);
+		};
 		protected:
 			Vec3f	_color;
 			float	_intensity = 1.0f;
@@ -85,4 +185,12 @@ class Material
 			bool	_hasMetallic = false;
 			bool	_hasOcclusion = false;
 			bool	_hasEmissive = false;
+			SDL_Surface	*tex = nullptr;
+			SDL_Surface	*roughness = nullptr;
+			SDL_Surface	*metalic = nullptr;
+			SDL_Surface	*occlusion = nullptr;
+			SDL_Surface	*emissive = nullptr;
+			SDL_Surface	*normal = nullptr;
+			float		_texScale = 1.0f;
+			
 };

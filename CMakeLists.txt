@@ -9,11 +9,24 @@ FetchContent_Declare(
 	SDL3
 	GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
 	GIT_TAG			main
+	UPDATE_DISCONNECTED TRUE
 )
 
 set(SDL_DISABLE_INSTALL ON CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(SDL3)
+
+FetchContent_Declare(
+	SDL3_image
+	GIT_REPOSITORY  https://github.com/libsdl-org/SDL_image.git
+	GIT_TAG         main
+	UPDATE_DISCONNECTED TRUE
+)
+set(SDL3IMAGE_INSTALL OFF CACHE BOOL "" FORCE)
+set(SDLIMAGE_VENDORED ON CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(SDL3_image)
+
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,6 +41,7 @@ set(SOURCES
 	srcs/setup/setup_base_render.cpp
 	srcs/setup/setup_gui.cpp
 	srcs/setup/setup_sdl.cpp
+	srcs/setup/Texture.cpp
 	srcs/setup/SceneLoader.cpp
 	srcs/Hittables/BVHNodes.cpp
 	srcs/Hittables/Plane.cpp
@@ -46,7 +60,11 @@ set(SOURCES
 	imgui/backends/imgui_impl_sdlrenderer3.cpp
 	imgui/imgui_demo.cpp
 )
-
+set_source_files_properties(
+    srcs/setup/SceneLoader.cpp
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+    COMPILE_FLAGS "-Wno-error=unused-function -Wno-unused-function"
+)
 
 add_executable(rt ${SOURCES})
 
@@ -60,11 +78,23 @@ target_compile_options(rt PRIVATE
 	-mprefer-vector-width=256
 )
 
+# target_compile_options(rt PRIVATE
+#     -Wall -Wextra -Werror
+#     -g3
+#     -fno-omit-frame-pointer
+#     -fsanitize=address,undefined 
+# )
+
+# target_link_options(rt PRIVATE
+#     -fsanitize=address,undefined
+# )
+
 target_include_directories(rt PRIVATE
 	srcs/include
 	srcs/include/Hittables
 	srcs/include/Materials
 	srcs/include/setup
+	srcs/include/external
 	srcs/math
 	imgui
 	imgui/backends
@@ -76,3 +106,4 @@ find_package(Threads REQUIRED)
 target_link_libraries(rt PRIVATE Threads::Threads)
 
 target_link_libraries(rt PRIVATE SDL3::SDL3)
+target_link_libraries(rt PRIVATE SDL3_image::SDL3_image)

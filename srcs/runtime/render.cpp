@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 19:29:49 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/19 12:33:03 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,11 @@ Vec3f	traceRay(Ray ray, const Render &render)
 		}
 
 		// hit valide
+		if (!rec.material)
+		{
+			accumulated_light += throughput * Vec3f(0.0f, 0.0f, 0.0f);
+			break;
+		}
 		Vec3f	emitted = rec.material->emitted(rec.u, rec.v, rec.point);
 
 		if (emitted.length_sq() > 0.0f)
