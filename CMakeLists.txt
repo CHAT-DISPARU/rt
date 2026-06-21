@@ -24,6 +24,7 @@ FetchContent_Declare(
 )
 set(SDL3IMAGE_INSTALL OFF CACHE BOOL "" FORCE)
 set(SDLIMAGE_VENDORED ON CACHE BOOL "" FORCE)
+set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(SDL3_image)
 
@@ -43,6 +44,7 @@ set(SOURCES
 	srcs/setup/setup_sdl.cpp
 	srcs/setup/Texture.cpp
 	srcs/setup/SceneLoader.cpp
+	srcs/setup/stb_image_impl.cpp
 	srcs/Hittables/BVHNodes.cpp
 	srcs/Hittables/Plane.cpp
 	srcs/Hittables/Quad.cpp
@@ -52,6 +54,7 @@ set(SOURCES
 	srcs/Materials/DiffuseLight.cpp
 	srcs/Materials/Lambertian.cpp
 	srcs/Materials/Metal.cpp
+	srcs/Materials/PBRMaterial.cpp
 	imgui/imgui.cpp
 	imgui/imgui_draw.cpp
 	imgui/imgui_tables.cpp

@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 12:55:32 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/20 13:06:37 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ int	main(int ac, char **av)
 
 	SDLContext		sdl;
 	BvhDebugConfig  bvh_debug; 
-	Render			render_total(app.camera, app.scene, bvh_debug);
+	Render			render_total(app.camera, app.scene, bvh_debug, app.env_map);
 	ThreadPool		threads(THREAD_MAX);
 
 	bvh_debug.tree_depth = app.scene.getMaxDepth();

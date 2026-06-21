@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BVHNodes.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 14:29:08 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/20 14:48:06 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -420,7 +420,7 @@ struct StackEntry
 };
 
 void	BVHNode::hit_box_depth(const Ray& ray, int depth_min, int depth_max,
-								float t_geom, Vec3f& color_out, float& alpha_out) const
+								float t_geom, Vec3f& color_out, float& alpha_out, int current_depth) const
 {
 	if (_nodes.empty())
 		return;
@@ -428,7 +428,7 @@ void	BVHNode::hit_box_depth(const Ray& ray, int depth_min, int depth_max,
 	StackEntry	stack[128];
 	int			stackPtr = 0;
 
-	stack[stackPtr++] = {0, 0};
+	stack[stackPtr++] = {0, current_depth};
 	color_out = Vec3f(0.0f);
 	alpha_out = 0.0f;
 
@@ -497,23 +497,36 @@ void	BVHNode::hit_box_depth(const Ray& ray, int depth_min, int depth_max,
 			if (alpha_out > 0.98f)
 				break;
 		}
-		if (depth < depth_max && node.primitiveCount == 0)
+		if (depth < depth_max)
 		{
-			Vec3f	centerL = (_nodes[node.leftChildOrPrimOffset].bbox._min
-							+ _nodes[node.leftChildOrPrimOffset].bbox._max) * 0.5f;
-			Vec3f	centerR = (_nodes[node.rightChildOffset].bbox._min
-							+ _nodes[node.rightChildOffset].bbox._max) * 0.5f;
-			float	dL = Vec3f::dot(centerL - ray._o, ray._dir);
-			float	dR = Vec3f::dot(centerR - ray._o, ray._dir);
-			if (dL < dR)
+			if (node.primitiveCount == 0)
 			{
-				stack[stackPtr++] = {(int)node.rightChildOffset, depth + 1};
-				stack[stackPtr++] = {(int)node.leftChildOrPrimOffset, depth + 1};
+				Vec3f   centerL = (_nodes[node.leftChildOrPrimOffset].bbox._min
+								+ _nodes[node.leftChildOrPrimOffset].bbox._max) * 0.5f;
+				Vec3f   centerR = (_nodes[node.rightChildOffset].bbox._min
+								+ _nodes[node.rightChildOffset].bbox._max) * 0.5f;
+				float   dL = Vec3f::dot(centerL - ray._o, ray._dir);
+				float   dR = Vec3f::dot(centerR - ray._o, ray._dir);
+				
+				if (dL < dR)
+				{
+					stack[stackPtr++] = {(int)node.rightChildOffset, depth + 1};
+					stack[stackPtr++] = {(int)node.leftChildOrPrimOffset, depth + 1};
+				}
+				else
+				{
+					stack[stackPtr++] = {(int)node.leftChildOrPrimOffset, depth + 1};
+					stack[stackPtr++] = {(int)node.rightChildOffset, depth + 1};
+				}
 			}
 			else
 			{
-				stack[stackPtr++] = {(int)node.leftChildOrPrimOffset, depth + 1};
-				stack[stackPtr++] = {(int)node.rightChildOffset, depth + 1};
+				for (uint32_t i = 0; i < node.primitiveCount; ++i)
+				{
+					_orderedObjects[node.leftChildOrPrimOffset + i]->hit_box_depth(
+						ray, depth_min, depth_max, t_geom, color_out, alpha_out, depth
+					);
+				}
 			}
 		}
 	}

@@ -1,0 +1,9 @@
+res 1600 900
+samples inf
+camera 0 1.2 14  0 -0.05 -1  40
+
+env sky.hdr
+env_intensity 1.0
+env_rotation 0
+
+blackhole 0 0 0  1.4

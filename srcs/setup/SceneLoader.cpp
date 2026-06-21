@@ -3,13 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   SceneLoader.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/12 14:48:47 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/19 13:13:43 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/20 15:27:28 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <SDL3_image/SDL_image.h>
 #include <SDL3_image/SDL_image.h>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
@@ -214,6 +215,7 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 		std::cerr << "error syntax mesh (path.obj)" << std::endl;
 		return ;
 	}
+
 	float		scale = 1.0f;
 	Vec3f		pos(0.0f, 0.0f, 0.0f);
 	Vec3f		normal(0.0f, 1.0f, 0.0f);
@@ -222,11 +224,11 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 
 	if (iss >> scale)
 	{
-		float px, py, pz;
+		float	px, py, pz;
 		if (iss >> px >> py >> pz)
 		{
 			pos = Vec3f(px, py, pz);
-			
+
 			std::string	next_token;
 			if (iss >> next_token)
 			{
@@ -236,11 +238,11 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 					float	ny, nz;
 					if (iss >> ny >> nz)
 					{
-						normal = Vec3f(nx, ny, nz);
 						float	length = std::sqrt(nx*nx + ny*ny + nz*nz);
 						if (length > 0.0001f)
 							normal = Vec3f(nx/length, ny/length, nz/length);
-						std::string roll_token;
+
+						std::string	roll_token;
 						if (iss >> roll_token)
 						{
 							if (std::isdigit(roll_token[0]) || roll_token[0] == '-' || roll_token[0] == '+')
@@ -258,6 +260,7 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 			}
 		}
 	}
+
 	Vec3f	rot = normal.to_rotation_angles();
 	float	radX = rot._x;
 	float	radY = rot._y;
@@ -265,6 +268,7 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 	float	cx = std::cos(radX), sx = std::sin(radX);
 	float	cy = std::cos(radY), sy = std::sin(radY);
 	float	cz = std::cos(radZ), sz = std::sin(radZ);
+
 	tinyobj::ObjReaderConfig	config;
 	config.mtl_search_path = path.substr(0, path.find_last_of('/') + 1);
 
@@ -281,63 +285,108 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 	const auto&	shapes = reader.GetShapes();
 	const auto&	obj_materials = reader.GetMaterials();
 
+	auto loadTex = [&](const std::string& name) -> SDL_Surface*
+	{
+		if (name.empty())
+			return nullptr;
+		std::string		tex_path = config.mtl_search_path + name;
+		SDL_Surface*	raw = IMG_Load(tex_path.c_str());
+		if (!raw)
+		{
+			std::cerr << "texture introuvable: " << tex_path << "\n";
+			return nullptr;
+		}
+		SDL_Surface*	conv = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
+		SDL_DestroySurface(raw);
+		return conv;
+	};
+
 	std::vector<std::shared_ptr<Material>>	converted_mats;
 	for (const auto& m : obj_materials)
 	{
 		std::shared_ptr<Material>	mat;
-		bool	is_emissive = (m.emission[0] + m.emission[1] + m.emission[2]) > 0.0f;
-
-		if (is_emissive)
+		bool	is_emissive = (m.emission[0] + m.emission[1] + m.emission[2]) > 0.0f 
+				|| !m.emissive_texname.empty();
+		if (is_emissive || m.illum == 0)
 		{
 			auto	light = std::make_shared<DiffuseLight>();
-			light->setColor(Vec3f(m.emission[0], m.emission[1], m.emission[2]));
+			Vec3f	emit = is_emissive
+				? Vec3f(m.emission[0], m.emission[1], m.emission[2])
+				: Vec3f(m.diffuse[0],  m.diffuse[1],  m.diffuse[2]);
+			light->setColor(emit);
+			if (SDL_Surface* s = loadTex(m.emissive_texname.empty()
+										? m.diffuse_texname : m.emissive_texname))
+				light->setTexture(s);
 			mat = light;
 		}
-		else if (m.dissolve < 1.0f)
+		else if (m.illum == 4 || m.illum == 6 || m.illum == 7 || m.illum == 9
+				|| m.dissolve < 1.0f)
 		{
 			auto	glass = std::make_shared<Dielectric>();
 			glass->setNi(m.ior > 0.0f ? m.ior : 1.5f);
+			glass->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
+			if (SDL_Surface* s = loadTex(m.diffuse_texname))
+				glass->setTexture(s);
 			mat = glass;
 		}
-		else if (m.shininess > 200.0f) 
+		else if (m.illum == 3 || m.illum == 5)
 		{
 			auto	metal = std::make_shared<Metal>();
-			metal->setFuzz(1.0f - std::fmin(1.0f, m.shininess / 1000.0f));
+			metal->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
+			float	fuzz = (m.shininess > 0.0f)
+				? std::fmax(0.0f, 1.0f - m.shininess / 1000.0f)
+				: 0.0f;
+			metal->setFuzz(fuzz);
 			mat = metal;
 		}
 		else
-			mat = std::make_shared<Lambertian>();
-
-		mat->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
-		if (!m.diffuse_texname.empty())
 		{
-			std::string	tex_path = config.mtl_search_path + m.diffuse_texname;
-			SDL_Surface	*raw = IMG_Load(tex_path.c_str());
-			if (raw)
-			{
-				SDL_Surface	*converted = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
-				SDL_DestroySurface(raw);
-				if (converted)
-					mat->setTexture(converted);
-			}
-			else
-				std::cerr << "tinyobj: texture introuvable " << tex_path << std::endl;
+			auto	pbr = std::make_shared<PBRMaterial>();
+
+			pbr->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
+			if (SDL_Surface* s = loadTex(m.diffuse_texname))
+				pbr->setTexture(s);
+
+			float	rough = (m.illum == 1) ? 1.0f
+						: (m.roughness > 0.0f ? m.roughness
+						: std::fmax(0.0f, 1.0f - m.shininess / 1000.0f));
+			pbr->setRoughnessScalar(rough);
+			if (SDL_Surface* s = loadTex(m.roughness_texname))
+				pbr->setRoughness(s);
+
+			pbr->setMetallicScalar(m.metallic);
+			if (SDL_Surface* s = loadTex(m.metallic_texname))
+				pbr->setMetallic(s);
+
+			if (SDL_Surface* s = loadTex(m.normal_texname.empty()
+										? m.bump_texname : m.normal_texname))
+				pbr->setNormal(s);
+
+			if (SDL_Surface* s = loadTex(m.ambient_texname))
+				pbr->setOcclusion(s);
+
+			mat = pbr;
 		}
 
 		converted_mats.push_back(mat);
-		app.materials[std::string("mesh_mat_") + std::to_string(converted_mats.size() - 1)] = mat;
+		app.materials["mesh_mat_" + std::to_string(converted_mats.size() - 1)] = mat;
 	}
+
 	std::shared_ptr<Material>	default_mat = std::make_shared<Lambertian>();
 	default_mat->setColor(Vec3f(0.7f, 0.7f, 0.7f));
 	app.materials["default_mesh_mat"] = default_mat;
+
 	Material*	override_mat_ptr = nullptr;
 	if (!override_mat_name.empty())
 	{
 		if (app.materials.find(override_mat_name) != app.materials.end())
 			override_mat_ptr = app.materials[override_mat_name].get();
 		else
-			std::cerr << "Warning: materiel override '" << override_mat_name << "' introuvable." << std::endl;
+			std::cerr << "Warning: materiel override '" << override_mat_name << "' introuvable.\n";
 	}
+
+	auto	mesh = std::make_shared<Mesh>();
+
 	for (const auto& shape : shapes)
 	{
 		size_t	index_offset = 0;
@@ -345,7 +394,6 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 		for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++)
 		{
 			size_t	fv = shape.mesh.num_face_vertices[f];
-
 			if (fv != 3)
 			{
 				index_offset += fv;
@@ -355,30 +403,29 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 			Vec3f	verts[3];
 			float	uvs[3][2] = {{0}};
 			bool	has_uv = true;
+
 			for (size_t v = 0; v < 3; v++)
 			{
 				tinyobj::index_t	idx = shape.mesh.indices[index_offset + v];
-				//scale
+
 				float	vx = attrib.vertices[3 * idx.vertex_index + 0] * scale;
 				float	vy = attrib.vertices[3 * idx.vertex_index + 1] * scale;
 				float	vz = attrib.vertices[3 * idx.vertex_index + 2] * scale;
-				//rot X
+
 				float	y1 = vy * cx - vz * sx;
 				float	z1 = vy * sx + vz * cx;
 				vy = y1; vz = z1;
 
-				//rot Y
 				float	x2 = vx * cy + vz * sy;
 				float	z2 = -vx * sy + vz * cy;
 				vx = x2; vz = z2;
 
-				//rot Z
 				float	x3 = vx * cz - vy * sz;
 				float	y3 = vx * sz + vy * cz;
 				vx = x3; vy = y3;
 
-				//translation
 				verts[v] = Vec3f(vx + pos._x, vy + pos._y, vz + pos._z);
+
 				if (idx.texcoord_index >= 0)
 				{
 					uvs[v][0] = attrib.texcoords[2 * idx.texcoord_index + 0];
@@ -397,21 +444,71 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 				mat_ptr = converted_mats[mat_id].get();
 			else
 				mat_ptr = default_mat.get();
-			std::shared_ptr<Triangle> new_tr;
+
+			std::shared_ptr<Triangle>	new_tr;
 			if (has_uv)
 				new_tr = std::make_shared<Triangle>(verts[0], verts[1], verts[2],
-						mat_ptr, uvs[0], uvs[1], uvs[2]);
+								mat_ptr, uvs[0], uvs[1], uvs[2]);
 			else
 				new_tr = std::make_shared<Triangle>(verts[0], verts[1], verts[2], mat_ptr);
 
 			if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)
 				app.scene.add_light(new_tr);
-			else
-				app.scene.add(new_tr);
+			mesh->addTriangle(new_tr);
 
 			index_offset += fv;
 		}
 	}
-	std::cout << "mesh charge: " << shapes.size() << " shapes, "
-		<< obj_materials.size() << " materiaux" << std::endl;
+
+	if (mesh->triCount() > 0)
+	{
+		mesh->build();
+		app.scene.add(mesh);
+		app.meshes.push_back(mesh);
+	}
+
+	std::cout << "mesh charge: " << shapes.size() << " materiaux, "
+		<< mesh->triCount() << " triangles\n";
+}
+
+void	SceneLoader::set_blackhole(AppContext& app, std::istringstream &iss, std::string token)
+{
+	if (token != "blackhole" && token != "bh")
+		return ;
+
+	float	x = 0, y = 0, z = 0, rs = 1.0f;
+	if (iss >> x >> y >> z >> rs)
+	{
+		app.black_hole_enabled = true;
+		app.black_hole = BlackHole(Vec3f(x, y, z), rs);
+	}
+	else
+		std::cerr << "error syntax blackhole (x y z rs)" << std::endl;
+}
+
+void	SceneLoader::set_env(AppContext& app, std::istringstream &iss, std::string token)
+{
+	if (token == "env" || token == "hdri")
+	{
+		std::string	path;
+		if (iss >> path)
+		{
+			if (!app.env_map.load(path))
+				std::cerr << "Erreur chargement HDRI: " << path << std::endl;
+		}
+		else
+			std::cerr << "error syntax env (path.hdr)" << std::endl;
+	}
+	else if (token == "env_intensity")
+	{
+		float	val = 1.0f;
+		if (iss >> val)
+			app.env_map.setIntensity(val);
+	}
+	else if (token == "env_rotation")
+	{
+		float	deg = 0.0f;
+		if (iss >> deg)
+			app.env_map.setRotation(deg * (float)M_PI / 180.0f);
+	}
 }

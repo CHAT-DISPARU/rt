@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SceneLoader.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 16:41:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/19 11:31:57 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/20 13:16:52 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,11 @@
 #include "Lambertian.hpp"
 #include "Dielectric.hpp"
 #include "DiffuseLight.hpp"
+#include "PBRMaterial.hpp"
 #include "Metal.hpp"
+#include "Mesh.hpp"
+#include "BlackHole.hpp"
+#include "EnvironmentMap.hpp"
 
 struct	AppContext
 {
@@ -36,10 +40,14 @@ struct	AppContext
 	Camera	camera;
 
 	std::unordered_map<std::string, std::shared_ptr<Material>>	materials;
+	std::vector<std::shared_ptr<Mesh>>	meshes;
 	int		width = 1920;
 	int		height = 1080;
 	int		samples = -1;
 	size_t	frame_count = 0;
+	bool		black_hole_enabled = false;
+	BlackHole	black_hole = BlackHole(Vec3f(0.0f, 0.0f, 0.0f), 1.0f);
+	EnvironmentMap	env_map;
 };
 
 // ordre mult matrice 	Translation * Rotation * Scale
@@ -51,6 +59,8 @@ class	SceneLoader
 		static void	set_res(AppContext& app, std::istringstream &iss, std::string token);
 		static void	set_cam(AppContext& app, std::istringstream &iss, std::string token);
 		static void	set_mat(AppContext& app, std::istringstream &iss, std::string token, std::string &current_mtl_name, std::shared_ptr<Material> &current_mtl);
+		static void	set_blackhole(AppContext& app, std::istringstream &iss, std::string token);
+		static void	set_env(AppContext& app, std::istringstream &iss, std::string token);
 
 	public:
 
@@ -85,7 +95,9 @@ class	SceneLoader
 				set_cam(app, iss, token);
 				
 				set_mat(app, iss, token, current_mtl_name, current_mtl);
+				set_blackhole(app, iss, token);
 				set_mesh(app, iss, token);
+				set_env(app, iss, token);
 
 				if (token == "sphere" || token == "sp")
 				{

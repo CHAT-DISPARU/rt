@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Triangle.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/19 12:17:52 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/20 13:06:03 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,34 @@ class	Triangle : public Hittable
 		bool	bbox(AABB& output_box) const;
 		Vec3f	sample(const Vec3f& origin, uint32_t* seed) const;
 		float	pdf_value(const Vec3f& origin, const Vec3f& dir) const;
+		void	translate(const Vec3f& offset)
+		{
+			_v0 += offset;
+			_v1 += offset;
+			_v2 += offset;
+			_box = AABB();
+			_box.add_point(_v0);
+			_box.add_point(_v1);
+			_box.add_point(_v2);
+			_box._min -= Vec3f(0.001f);
+			_box._max += Vec3f(0.001f);
+		}
+		void applyTransform(const Mat4f& m)
+		{
+			_v0 = Vec3f::Point_Mult_mat4(_v0, m);
+			_v1 = Vec3f::Point_Mult_mat4(_v1, m);
+			_v2 = Vec3f::Point_Mult_mat4(_v2, m);
 
+			Vec3f edge1 = _v1 - _v0;
+			Vec3f edge2 = _v2 - _v0;
+			_normal = Vec3f::normalize(Vec3f::cross(edge1, edge2));
+			_box = AABB();
+			_box.add_point(_v0);
+			_box.add_point(_v1);
+			_box.add_point(_v2);
+			_box._min -= Vec3f(0.001f);
+			_box._max += Vec3f(0.001f);
+		}
 	private:
 		Vec3f		_v0;
 		Vec3f		_v1;

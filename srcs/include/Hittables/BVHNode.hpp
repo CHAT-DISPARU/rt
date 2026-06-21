@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 16:30:47 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 12:54:16 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/20 14:55:06 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,8 @@ class	BVHNode : public Hittable
 		BVHNode(std::vector<std::shared_ptr<Hittable>>& objects);
 
 		bool	hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests = nullptr) const;
-		void    hit_box_depth(const Ray& ray, int depth_min, int depth_max,
-                      			float t_geom, Vec3f& color_out, float& alpha_out) const;
+		void	hit_box_depth(const Ray& ray, int depth_min, int depth_max,
+					float t_geom, Vec3f& color_out, float& alpha_out, int current_depth = 0) const;
 		bool	bbox(AABB& output_box) const;
 
 		const std::vector<Node>& getLinearNodes() const
@@ -64,11 +64,20 @@ class	BVHNode : public Hittable
 		}
 		int	computeMaxDepth(int nodeIdx, int depth) const
 		{
-			const Node& node = _nodes[nodeIdx];
+			const Node&	node = _nodes[nodeIdx];
 			if (node.primitiveCount > 0)
-				return depth;
-			int leftDepth  = computeMaxDepth(node.leftChildOrPrimOffset, depth + 1);
-			int rightDepth = computeMaxDepth(node.rightChildOffset,      depth + 1);
+			{
+				int max_sub_depth = 0;
+				for (uint32_t i = 0; i < node.primitiveCount; ++i)
+				{
+					int sub_depth = _orderedObjects[node.leftChildOrPrimOffset + i]->getMaxDepth();
+					if (sub_depth > max_sub_depth)
+						max_sub_depth = sub_depth;
+				}
+				return depth + max_sub_depth;
+			}
+			int	leftDepth  = computeMaxDepth(node.leftChildOrPrimOffset, depth + 1);
+			int	rightDepth = computeMaxDepth(node.rightChildOffset,      depth + 1);
 			return std::max(leftDepth, rightDepth);
 		}
 

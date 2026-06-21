@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_gui.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 14:29:43 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/20 13:57:34 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,8 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 	ImGui::SeparatorText("Param");
 	if (ImGui::Checkbox("add sun", &render_total.sun_light.enabled))
 		render_total.frame_count = 1;
+	if (ImGui::Checkbox("add black hole", &render_total.black_hole_enabled))
+    	render_total.frame_count = 1;
 	if (ImGui::Checkbox("add shadow rays", &render_total.shadow_ray))
 		render_total.frame_count = 1;
 	ImGui::SliderInt("depth max", &render_total.depth_max, 1, 100);

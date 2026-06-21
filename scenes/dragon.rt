@@ -1,0 +1,37 @@
+res 1920 1080
+samples 100
+camera 0 6 28  0 -0.15 -1  60
+
+env_intensity 0.02
+
+newmat gold
+type metal
+color 1.0 0.84 0.0
+fuzz 0.05
+
+newmat crystal
+type dielectric
+ior 1.55
+color 0.9 0.95 1.0
+fuzz 0.0
+
+newmat neon_fire
+type emissive
+color 1.0 0.2 0.05
+intensity 20.0
+
+newmat neon_ice
+type emissive
+color 0.05 0.3 1.0
+intensity 20.0
+
+newmat dark_floor
+color 0.05 0.05 0.05
+
+mesh scenes/Dragon.obj 0.085 0 0 0 0 1 0 180 gold
+mesh scenes/Dragon.obj 0.085 -14 0 0 0 1 0 180 crystal
+mesh scenes/Dragon.obj 0.085 14 0 0 0 1 0 180 crystal
+mesh scenes/Dragon.obj 0.04 -10 4 0 0 1 0 180 neon_fire
+mesh scenes/Dragon.obj 0.04 10 4 0 0 1 0 180  neon_ice
+
+blackhole 0 30 -60 8.0

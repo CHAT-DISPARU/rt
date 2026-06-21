@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hittable.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 17:10:26 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/19 12:32:06 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/20 14:54:15 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,21 @@ class	Hittable
 		Material	*getMat() const
 		{
 			return (_mat);
+		}
+		virtual void hit_box_depth(const Ray& ray, int depth_min, int depth_max,
+                           float t_geom, Vec3f& color_out, float& alpha_out, int current_depth = 0) const
+		{
+			(void)ray;
+			(void)depth_min;
+			(void)depth_max;
+			(void)t_geom;
+			(void)color_out;
+			(void)alpha_out;
+			(void)current_depth;
+		}
+		virtual int getMaxDepth() const
+		{
+			return 0;
 		}
 
 	protected :

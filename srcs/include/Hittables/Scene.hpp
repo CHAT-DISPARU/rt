@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:41:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 12:54:36 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/20 14:46:50 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,13 @@ class	Scene : public Hittable
 		{
 			_bvh = std::make_shared<BVHNode>(_objects);
 		};
-
+		void rebuild()
+		{
+			_bvh = std::make_shared<BVHNode>(_objects);
+		}
 		bool	hit(const Ray& r, float t_min, float t_max, HitRecord& rec, int* node_tests = nullptr) const
 		{
 			return (_bvh->hit(r, t_min, t_max, rec, node_tests));
-		};
-		void	hit_box_depth(const Ray& r, int depth_min, int depth_max,
-			float t_geom, Vec3f& color_out, float& alpha_out) const
-		{
-			_bvh->hit_box_depth(r, depth_min, depth_max, t_geom, color_out, alpha_out);
 		};
 		bool	bbox(AABB& output_box) const
 		{
@@ -57,6 +55,13 @@ class	Scene : public Hittable
 			if (!_bvh)
 				return 0;
 			return (_bvh->getMaxDepth());
+		}
+		void hit_box_depth(const Ray& r, int depth_min, int depth_max,
+				   float t_geom, Vec3f& color_out, float& alpha_out, 
+				   int current_depth = 0) const override
+		{
+			if (_bvh)
+				_bvh->hit_box_depth(r, depth_min, depth_max, t_geom, color_out, alpha_out, current_depth);
 		}
 		
 

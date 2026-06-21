@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   render.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/19 12:33:03 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/21 08:50:45 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,20 @@ Vec3f	traceRay(Ray ray, const Render &render)
 	}
 	for (int depth = 0; depth < render.depth_max; ++depth)
 	{
+
+		if (render.black_hole_enabled)
+		{
+			Vec3f	bh_color;
+			Ray		bent_ray;
+			bool	consumed = render.black_hole.march(ray, bh_color, bent_ray);
+
+			if (consumed)
+			{
+				accumulated_light += throughput * bh_color;
+				break ;
+			}
+			ray = bent_ray;
+		}
 		HitRecord	rec;
 		
 		if (!render.scene.hit(ray, 1e-3f, FLT_MAX, rec, counter))
@@ -121,39 +135,8 @@ Vec3f	traceRay(Ray ray, const Render &render)
 			// ciel / soleil
 			if (render.sun_light.enabled)
 			{
-				Vec3f	unit_dir = Vec3f::normalize(ray._dir);
-				float	y = unit_dir._y;
-				Vec3f	sky_color;
-
-				if (y >= 0.0f)
-				{
-					float	t = y;
-					float	t_sq = t * t;
-					float	h = std::exp(-t * 8.0f);
-					Vec3f	horizon(0.52f, 0.83f, 1.0f);
-					Vec3f	low(0.40f, 0.65f, 0.98f);
-					Vec3f	zenith(0.05f, 0.25f, 0.85f);
-
-					sky_color = horizon * h + low * ((1.0f - h) * (1.0f - t_sq))
-								+ zenith * t_sq;
-				}
-				else
-				{
-					float	t = -y;
-					Vec3f	horizon(0.52f, 0.83f, 1.0f);
-					Vec3f	ground(0.05f, 0.15f, 0.35f);
-
-					sky_color = horizon * (1.0f - t) + ground * t;
-				}
-				sky_color *= 0.5f;
-
-				float	alignment = std::fmax(0.0f, Vec3f::dot(unit_dir, render.sun_light.direction));
-				float	disk = std::pow(alignment, render.sun_light.size) * render.sun_light.intensity;
-				float	glow = std::pow(alignment, render.sun_light.glow_size) * render.sun_light.glow_intensity;
-				Vec3f	sun_color = render.sun_light.color * disk
-									+ render.sun_light.glow_color * glow;
-
-				accumulated_light += throughput * (sky_color + sun_color);
+				if (render.env_map.isLoaded())
+					accumulated_light += throughput * render.env_map.sample(ray._dir);
 			}
 			break ;
 		}
@@ -236,23 +219,6 @@ Vec3f	traceRay(Ray ray, const Render &render)
 				//transmit filtre verre si ya
 				//cos_theta  beer lambert
 				accumulated_light += throughput * albedo * light_color * transmit * cos_theta * weight_light / pdf_light;
-			}
-			if (render.sun_light.enabled)
-			{
-				Vec3f	sun_dir = -render.sun_light.direction; 
-				float	cos_theta = Vec3f::dot(sun_dir, rec.normal);
-
-				if (cos_theta > 0.0f)
-				{
-					Vec3f	sun_target = rec.point + sun_dir * 1e5f;
-					Vec3f	transmit = shadow_transmittance(render.scene, rec.point, rec.normal, sun_target, counter);
-
-					if (transmit.length_sq() > 0.0f)
-					{
-						Vec3f	sun_contribution = render.sun_light.color * render.sun_light.intensity;
-						accumulated_light += throughput * albedo * sun_contribution * transmit * cos_theta;
-					}
-				}
 			}
 		}
 		throughput *= albedo;

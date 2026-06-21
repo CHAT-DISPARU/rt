@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HitRecord.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:27:50 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/19 12:52:10 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/20 12:14:41 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@ struct	HitRecord
 	float		u;
 	float		v;
 	Vec3f		normal;
+	Vec3f		tangent;
+	Vec3f		bitangent;
 	Vec3f		point;
 	bool		front_face;
 	Material	*material = nullptr;
