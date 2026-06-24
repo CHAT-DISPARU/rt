@@ -1,50 +1,128 @@
-res 1280 720
-samples inf
-camera 0 3 8  0 0 -1  60
+Settings {
+	resolution 1280 720
+	samples inf
+}
 
-mat sol_beton
-color 0.15 0.15 0.15
+Camera {
+	position 0 3 8
+	direction 0 0 -1
+	fov 60
+}
 
-mat mur
-color 0.45 0.45 0.45
+Material "sol_beton" {
+	color 0.15 0.15 0.15
+}
 
-mat neon_chaud
-type emissive
-color 1.0 0.7 0.4
-intensity 15.0
+Material "mur" {
+	color 0.45 0.45 0.45
+}
 
+Material "neon_chaud" {
+	type emissive
+	color 1.0 0.7 0.4
+	intensity 15.0
+}
 
-mat chrome
-type metal
-color 0.95 0.95 0.95
-fuzz 0.0
+Material "chrome" {
+	type metal
+	color 0.95 0.95 0.95
+	fuzz 0.0
+}
 
-mat verre_bleu
-type glass
-color 0.55 0.80 1.0
-ni 1.52
-fuzz 0.0
+Material "verre_bleu" {
+	type glass
+	color 0.55 0.80 1.0
+	ni 1.52
+	fuzz 0.0
+}
 
-mat or_brosse
-type metal
-color 0.90 0.72 0.18
-fuzz 0.08
+Material "or_brosse" {
+	type metal
+	color 0.90 0.72 0.18
+	fuzz 0.08
+}
 
-mat rouge_mat
-color 0.8 0.1 0.1
-tex scenes/terre.jpg
+Material "rouge_mat" {
+	color 0.8 0.1 0.1
+	texture scenes/terre.jpg
+}
 
-sp 0 -1000 0 1000  0 1 0  sol_beton
-sp 0 1010 0 1000  0 1 0  sol_beton
-pl 0 0 -6  0 0 1  mur
-pl 0 0  16  0 0 1  mur
-pl -7 0 0  1 0 0  mur
-pl 7 0 0  -1 0 0  mur
+Sphere {
+	position 0 -1000 0
+	radius 1000
+	normal 0 1 0
+	material sol_beton
+}
 
-sp -2 5 2 0.8  0 1 0  neon_chaud
-sp 2 5 2 0.8  0 1 0  neon_chaud
+Sphere {
+	position 0 1010 0
+	radius 1000
+	normal 0 1 0
+	material sol_beton
+}
 
-sp -3.0 1.0 0.0 1.0  0 1 0  chrome
-sp -1.0 1.0 0.0 1.0  0 1 0  verre_bleu
-sp 1.0 1.0 0.0 1.0  0 1 0  or_brosse
-sp 3.0 1.0 0.0 1.0  0 1 0  rouge_mat
+Plane {
+	position 0 0 -6
+	normal 0 0 1
+	material mur
+}
+
+Plane {
+	position 0 0 16
+	normal 0 0 1
+	material mur
+}
+
+Plane {
+	position -7 0 0
+	normal 1 0 0
+	material mur
+}
+
+Plane {
+	position 7 0 0
+	normal -1 0 0
+	material mur
+}
+
+Sphere {
+	position -2 5 2
+	radius 0.8
+	normal 0 1 0
+	material neon_chaud
+}
+
+Sphere {
+	position 2 5 2
+	radius 0.8
+	normal 0 1 0
+	material neon_chaud
+}
+
+Sphere {
+	position -3.0 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material chrome
+}
+
+Sphere {
+	position -1.0 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material verre_bleu
+}
+
+Sphere {
+	position 1.0 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material or_brosse
+}
+
+Sphere {
+	position 3.0 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material rouge_mat
+}

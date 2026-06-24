@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Vec3.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/03 15:25:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/17 17:12:45 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/23 20:09:13 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,6 +229,17 @@ struct Vec3
 	{
 		return rand_r(seed) / (RAND_MAX + 1.0);
 	}
+	static Vec3	randomInUnitDisk(unsigned int *seed)
+	{
+		Vec3	p;
+
+		while (1)
+		{
+			p = Vec3(randomFloat(seed) * 2.0f - 1.0f, randomFloat(seed) * 2.0f - 1.0f, 0.0f);
+			if (p.length_sq() < 1.0f)
+				return (p);
+		}
+	};
 	static Vec3	randomInUnitSphere(unsigned int *seed)
 	{
 		Vec3	p;

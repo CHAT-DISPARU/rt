@@ -37,6 +37,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(SOURCES
 	srcs/main.cpp
 	srcs/runtime/render.cpp
+	srcs/runtime/render_utils.cpp
 	srcs/runtime/Thread_calls.cpp
 	srcs/runtime/main_loop.cpp
 	srcs/setup/setup_base_render.cpp

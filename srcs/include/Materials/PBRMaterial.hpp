@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/20 11:54:38 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/20 13:41:30 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/24 11:54:09 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,4 @@ public:
 private:
 	float	_metallic_scalar  = 0.0f;
 	float	_roughness_scalar = 0.5f;
-	float	sampleRoughness(float u, float v) const;
-	float	sampleMetallic(float u, float v) const;
-	float	sampleAO(float u, float v) const;
-	Vec3f	sampleNormalTangentSpace(float u, float v) const;
 };

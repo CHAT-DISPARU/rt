@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   DiffuseLight.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:32:19 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/19 12:23:06 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/24 11:16:56 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,6 @@ bool	DiffuseLight::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenua
 
 Vec3f	DiffuseLight::emitted(float u, float v, const Vec3f& p) const
 {
-	(void)u;
-	(void)v;
 	(void)p;
-	Vec3f color;
-	if (_hasTexture == false || !tex)
-		color = _color;
-	else
-		color = sampleTextureFast(getTexture(), u, v);
-	return (color * _intensity);
+	return (sampleEmissive(u, v));
 }

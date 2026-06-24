@@ -1,59 +1,121 @@
-resolution 1280 720
-samples inf
-camera 0 20 35 0 -0.3 -1 65
+Settings {
+	resolution 1280 720
+	samples inf
+}
 
-mat mat_light_ceiling
-type emissive
-color 1.0 0.95 0.9
-intensity 12.0
+Camera {
+	position 0 3 12
+	direction 0 -0.15 -1
+	fov 60
+}
 
-mat mat_floor
-type metal
-color 0.02 0.02 0.03
-fuzz 0.02
+Environment {
+	path sky.hdr
+	intensity 1.0
+	rotation 0
+}
 
-mat mat_walls
-color 0.05 0.05 0.05
+# --- MATERIAUX ---
 
-mat mat_crystal
-type glass
-color 0.9 0.95 1.0
-ni 1.8
-fuzz 0.0
+Material "sol_mat" {
+	color 0.8 0.8 0.8
+}
 
-mat mat_glow_cyan
-type emissive
-color 0.1 0.8 1.0
-intensity 20.0
+Material "mur_incline_mat" {
+	color 0.2 0.2 0.25
+}
 
-mat mat_glow_magenta
-type emissive
-color 1.0 0.1 0.8
-intensity 20.0
+Material "verre_pur" {
+	type dielectric
+	ior 1.52
+	color 1.0 1.0 1.0
+	fuzz 0.0
+}
 
-mat mat_gold
-type metal
-color 1.0 0.8 0.2
-fuzz 0.05
+Material "or_poli" {
+	type metal
+	color 1.0 0.78 0.34
+	fuzz 0.02
+}
 
-quad 0 0 0 0 1 0 120 120 mat_floor
-quad 0 80 0 0 -1 0 120 120 mat_walls
-quad 0 40 -60 0 0 1 120 80 mat_walls
-quad 0 40 60 0 0 -1 120 80 mat_walls
-quad -60 40 0 1 0 0 80 120 mat_walls
-quad 60 40 0 -1 0 0 80 120 mat_walls
+Material "neon_chaud" {
+	type emissive
+	color 20.0 12.0 4.0
+}
 
-quad 0 79.9 0 0 -1 0 35 35 mat_light_ceiling
+Material "rouge_vif" {
+	color 0.9 0.1 0.1
+}
 
-triangle 0 25 0 8 15 0 0 15 8 mat_crystal
-triangle 0 25 0 0 15 8 -8 15 0 mat_crystal
-triangle 0 25 0 -8 15 0 0 15 -8 mat_crystal
-triangle 0 25 0 0 15 -8 8 15 0 mat_crystal
-triangle 0 5 0 0 15 8 8 15 0 mat_crystal
-triangle 0 5 0 -8 15 0 0 15 8 mat_crystal
-triangle 0 5 0 0 15 -8 -8 15 0 mat_crystal
-triangle 0 5 0 8 15 0 0 15 -8 mat_crystal
+Material "dragon_mat" {
+	type metal
+	color 0.1 0.6 0.8
+	fuzz 0.15
+}
 
-sp 14 18 8 2.5 0 1 0 mat_glow_cyan
-sp -12 10 -10 3 0 1 0 mat_glow_magenta
-sp 8 6 -6 4 0 1 0 mat_gold
+# --- GEOMETRIE ---
+
+# Le sol infini
+Plane {
+	position 0 0 0
+	normal 0 1 0
+	material sol_mat
+}
+
+# Le mur incliné à gauche pour tester le "roll" !
+Quad {
+	position -6 4 -3
+	normal 1 0 0
+	width 10
+	height 10
+	roll 45
+	material mur_incline_mat
+}
+
+# La source de lumière principale (flottante en haut à droite)
+Sphere {
+	position 4 7 0
+	radius 1.5
+	normal 0 1 0
+	material neon_chaud
+}
+
+# Boule de verre au premier plan à gauche
+Sphere {
+	position -2.5 1.5 2
+	radius 1.5
+	normal 0 1 0
+	material verre_pur
+}
+
+# Boule d'or au premier plan à droite
+Sphere {
+	position 2.5 1.5 3
+	radius 1.5
+	normal 0 1 0
+	material or_poli
+}
+
+# Un simple triangle posé au sol devant
+Triangle {
+	v0 -1 0.1 5
+	v1  1 0.1 5
+	v2  0 1.5 4.5
+	material rouge_vif
+}
+
+# Le Dragon au centre de la scène
+Mesh {
+	path scenes/Dragon.obj
+	scale 0.04
+	position 0 3.3 -2
+	normal 0 0 1
+	roll 180
+	material dragon_mat
+}
+
+# Et pour couronner le tout : la lentille gravitationnelle en arrière-plan !
+Blackhole {
+	position 0 6 -15
+	radius 4.0
+}

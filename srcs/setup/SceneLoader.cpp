@@ -5,261 +5,377 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/06/12 14:48:47 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/20 15:27:28 by CHAT-DISPAR      ###   ########.fr       */
+/*   Created: 2026/06/23 18:56:09 by CHAT-DISPAR       #+#    #+#             */
+/*   Updated: 2026/06/24 12:18:34 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <SDL3_image/SDL_image.h>
+
 #include <SDL3_image/SDL_image.h>
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #include "SceneLoader.hpp"
 
-void	SceneLoader::set_res(AppContext& app, std::istringstream &iss, std::string token)
+std::string	SceneLoader::trim(const std::string& s)
 {
-	if (token == "resolution" || token == "res")
-		{
-			if (!(iss >> app.width >> app.height))
-				std::cerr << "Erreur syntaxe resolution " << std::endl;
-		}
-		else if (token == "samples" || token == "s")
-		{
-			std::string	s_val;
-			if (iss >> s_val)
-			{
-				if (s_val == "inf")
-					app.samples = -1;
-				else
-				{
-					try
-					{
-						app.samples = std::stoi(s_val);
-					}
-					catch (...)
-					{
-						std::cerr << "error sample mode auto -> inf" << std::endl;
-						app.samples = -1;
-					}
-				}
-			}
-	}
+	auto	start = s.begin();
+	auto	end = s.end();
+
+	while (start != s.end() && std::isspace(*start))
+		start++;
+	do
+	{
+		end--;
+	} while (std::distance(start, end) > 0 && std::isspace(*end));
+	return (std::string(start, end + 1));
 }
 
-void	SceneLoader::set_cam(AppContext& app, std::istringstream &iss, std::string token)
+Vec3f	SceneLoader::parseVec3(const std::string& val, Vec3f def)
 {
-	if (token == "camera")
-	{
-		float	px = 0, py = 0, pz = 0;
-		float	dx = 0, dy = 0, dz = -1;
-		float	fov = 90.0f;
+	std::istringstream	iss(val);
+	float				x, y, z;
 
-		if (iss >> px >> py >> pz >> dx >> dy >> dz >> fov)
-		{
-			Vec3f	lookFrom(px, py, pz);
-			Vec3f	lookAt = lookFrom + Vec3f(dx, dy, dz);
-			app.camera = Camera(lookFrom, lookAt, Vec3f(0, 1, 0), fov, (float)app.width / (float)app.height);
-		}
-		else
-		{
-			std::cerr << "Erreur syntaxe camera" << std::endl;
-		}
-	}
+	if (iss >> x >> y >> z)
+		return (Vec3f(x, y, z));
+	return (def);
 }
 
-void	SceneLoader::set_mat(AppContext& app, std::istringstream &iss, std::string token, std::string &current_mtl_name, std::shared_ptr<Material> &current_mtl)
+bool	SceneLoader::loadRT(const std::string& filepath, AppContext& app)
 {
-	if (token == "newmat" || token == "mat")
+	std::ifstream	file(filepath);
+	std::string		token;
+	std::string		name = "";
+	std::string		next_token;
+
+	if (!file.is_open())
 	{
-		if (iss >> current_mtl_name)
-		{
-			current_mtl = std::make_shared<Lambertian>(); 
-			app.materials[current_mtl_name] = current_mtl;
-		}
-		else
-			std::cerr << "error: 'newmat' sans name" << std::endl;
+		std::cerr << "Erreur ouverture -> " << filepath << "\n";
+		return (false);
 	}
-	else if (token == "type")
+
+	while (file >> token)
 	{
-		if (current_mtl == nullptr)
+		if (token.empty() || token[0] == '#' || (token.size() >= 2 && token.substr(0, 2) == "//"))
 		{
-			std::cerr << "error type not in mat" << std::endl;
-			return ;
-		}
-		std::string	type;
-		if (iss >> type)
-		{
-			if (type == "metal")
-			{
-				app.materials[current_mtl_name] = std::make_shared<Metal>();
-				current_mtl = app.materials[current_mtl_name];
-			}
-			else if (type == "emissive")
-			{
-				app.materials[current_mtl_name] = std::make_shared<DiffuseLight>(); 
-				current_mtl = app.materials[current_mtl_name];
-			}
-			else if (type == "dielectric" || type == "glass")
-			{
-				app.materials[current_mtl_name] = std::make_shared<Dielectric>(); 
-				current_mtl = app.materials[current_mtl_name];
-			}
-		}
-	}
-	else if (token == "albedo" || token == "color")
-	{
-		if (current_mtl == nullptr)
-		{
-			std::cerr << "error albedo or color not in mat" << std::endl;
-			return ;
-		}
-		float	r = 0.0f, g = 0.0f, b = 0.0f;
+			std::string	dummy;
 			
-		if (iss >> r >> g >> b)
-			current_mtl->setColor(Vec3f(r, g, b));
-		else
-			std::cerr << "Erreur syntax color or albedo" << std::endl;
-	}
-	else if (token == "fuzz")
-	{
-		if (current_mtl == nullptr)
-		{
-			std::cerr << "error fuzz not in mat" << std::endl;
-			return ;
+			std::getline(file, dummy);
+			continue ;
 		}
 
-		float	fuzz_val = 0.0f;
-		if (iss >> fuzz_val)
+		file >> next_token;
+
+		if (next_token != "{")
 		{
-			if (auto metal_mat = std::dynamic_pointer_cast<Metal>(current_mtl))
-				metal_mat->setFuzz(fuzz_val);
-			else if (auto glass_mat = std::dynamic_pointer_cast<Dielectric>(current_mtl))
-				glass_mat->setFuzz(fuzz_val);
-			else
-				std::cerr << "fuzz ignored only metal or dielectric" << std::endl;
+			name = next_token;
+			name.erase(std::remove(name.begin(), name.end(), '\"'), name.end());
+			file >> next_token;
 		}
-		else
-			std::cerr << "Error syntax fuzz" << std::endl;
-	}
-	else if (token == "ni" || token == "ior")
-	{
-		if (current_mtl == nullptr)
+
+		if (next_token != "{")
 		{
-			std::cerr << "error ni not in mat" << std::endl;
-			return ;
+			std::cerr << "Erreur de syntaxe: accolade '{' attendue apres " << token << "\n";
+			continue ;
 		}
+
+		std::unordered_map<std::string, std::string>	params;
+		std::string										key;
+		std::string										val;
 		
-		float	ni_val = 0.0f;
-		if (iss >> ni_val)
+		while (file >> key && key != "}")
 		{
-			if (auto glass_mat = std::dynamic_pointer_cast<Dielectric>(current_mtl))
-				glass_mat->setNi(ni_val);
-			else
-				std::cerr << "ni ignored only dielectric" << std::endl;
+			std::getline(file, val);
+			params[key] = trim(val);
 		}
-		else
-			std::cerr << "Error syntax fuzz" << std::endl;
+		parseBlock(token, name, params, app);
 	}
-	else if (token == "intensity" || token == "power")
-	{
-		if (current_mtl == nullptr)
-		{
-			std::cerr << "error intensity not in mat" << std::endl;
-			return ;
-		}
-		float	intensity_val = 1.0f;
-		if (iss >> intensity_val)
-			current_mtl->setIntensity(intensity_val);
-		else
-			std::cerr << "Error syntax intensity" << std::endl;
-	}
-	else if (token == "tex" || token == "texture")
-	{
-		if (current_mtl == nullptr)
-		{
-			std::cerr << "error tex not in mat" << std::endl;
-			return ;
-		}
-		std::string	name;
-		if (iss >> name)
-		{
-			SDL_Surface	*raw = IMG_Load(name.c_str());
-			if (!raw)
-			{
-				std::cerr << "Error load tex" << std::endl;
-				return ;
-			}
-			SDL_Surface	*converted = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
-			SDL_DestroySurface(raw);
+	file.close();
+	return (true);
+}
 
-			if (!converted)
-			{
-				std::cerr << "Error convert tex: " << SDL_GetError() << std::endl;
-				return ;
-			}
-			current_mtl->setTexture(converted);
-		}
+void	SceneLoader::parseBlock(const std::string& type, const std::string& name, std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	if (type == "Settings" || type == "set")
+		buildSettings(params, app);
+	else if (type == "Camera" || type == "cam")
+		buildCamera(params, app);
+	else if (type == "Material" || type == "mat" || type == "newmat")
+		buildMaterial(name, params, app);
+	else if (type == "Sphere" || type == "sp")
+		buildSphere(params, app);
+	else if (type == "Plane" || type == "pl")
+		buildPlane(params, app);
+	else if (type == "Triangle" || type == "tr")
+		buildTriangle(params, app);
+	else if (type == "Quad" || type == "qu")
+		buildQuad(params, app);
+	else if (type == "Mesh" || type == "obj")
+		buildMesh(params, app);
+	else if (type == "Blackhole" || type == "bh")
+		buildBlackHole(params, app);
+	else if (type == "Environment" || type == "env" || type == "hdri")
+		buildEnvironment(params, app);
+	else
+		std::cerr << "Type de bloc inconnu: " << type << "\n";
+}
+
+
+void	SceneLoader::buildSettings(std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	if (params.count("resolution"))
+	{
+		std::istringstream	iss(params["resolution"]);
+		
+		iss >> app.width >> app.height;
+	}
+	if (params.count("samples"))
+	{
+		if (params["samples"] == "inf")
+			app.samples = -1;
 		else
-			std::cerr << "Error syntax tex" << std::endl;
+			app.samples = std::stoi(params["samples"]);
 	}
 }
 
-void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string token)
+void	SceneLoader::buildCamera(std::unordered_map<std::string, std::string>& params, AppContext& app)
 {
-	if (token != "mesh")
-		return ;
+	Vec3f	lookFrom = params.count("position") ? parseVec3(params["position"]) : Vec3f(0.0f, 0.0f, 0.0f);
+	Vec3f	dir = params.count("direction") ? parseVec3(params["direction"]) : Vec3f(0.0f, 0.0f, -1.0f);
+	float	fov = params.count("fov") ? std::stof(params["fov"]) : 90.0f;
+	float	lens_radius = params.count("lens_radius") ? std::stof(params["lens_radius"]) : 0.0f;
+	float	focus_dist = params.count("focus_dist") ? std::stof(params["focus_dist"]) : 10.0f;
+	Vec3f	lookAt = lookFrom + dir;
+	
+	app.camera = Camera(lookFrom, lookAt, Vec3f(0.0f, 1.0f, 0.0f), fov, (float)app.width / (float)app.height);
+	app.camera.set_dof(lens_radius, focus_dist);
+}
 
-	std::string	path;
-	if (!(iss >> path))
+void	SceneLoader::buildMaterial(const std::string& name, std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	std::string					type = params.count("type") ? params["type"] : "lambertian";
+	std::shared_ptr<Material>	mat = nullptr;
+
+	if (type == "metal")
+		mat = std::make_shared<Metal>();
+	else if (type == "emissive")
+		mat = std::make_shared<DiffuseLight>();
+	else if (type == "dielectric" || type == "glass")
+		mat = std::make_shared<Dielectric>();
+	else if (type == "pbr")
+		mat = std::make_shared<PBRMaterial>();
+	else
+		mat = std::make_shared<Lambertian>();
+
+	if (params.count("color"))
+		mat->setColor(parseVec3(params["color"]));
+	if (params.count("albedo"))
+		mat->setColor(parseVec3(params["albedo"]));
+	
+	if (params.count("fuzz"))
 	{
-		std::cerr << "error syntax mesh (path.obj)" << std::endl;
-		return ;
+		float	f = std::stof(params["fuzz"]);
+		
+		if (auto m = std::dynamic_pointer_cast<Metal>(mat))
+			m->setFuzz(f);
+		if (auto d = std::dynamic_pointer_cast<Dielectric>(mat))
+			d->setFuzz(f);
+	}
+	
+	if (params.count("ior") || params.count("ni"))
+	{
+		float	ior = std::stof(params.count("ior") ? params["ior"] : params["ni"]);
+		
+		if (auto d = std::dynamic_pointer_cast<Dielectric>(mat))
+			d->setNi(ior);
 	}
 
-	float		scale = 1.0f;
-	Vec3f		pos(0.0f, 0.0f, 0.0f);
-	Vec3f		normal(0.0f, 1.0f, 0.0f);
-	float		roll = 0.0f;
-	std::string	override_mat_name = "";
+	if (params.count("intensity"))
+		mat->setIntensity(std::stof(params["intensity"]));
 
-	if (iss >> scale)
+	auto load_mat_tex = [&](const std::string& path) -> SDL_Surface*
 	{
-		float	px, py, pz;
-		if (iss >> px >> py >> pz)
+		SDL_Surface	*raw = IMG_Load(path.c_str());
+		if (!raw)
 		{
-			pos = Vec3f(px, py, pz);
-
-			std::string	next_token;
-			if (iss >> next_token)
-			{
-				if (std::isdigit(next_token[0]) || next_token[0] == '-' || next_token[0] == '+')
-				{
-					float	nx = std::stof(next_token);
-					float	ny, nz;
-					if (iss >> ny >> nz)
-					{
-						float	length = std::sqrt(nx*nx + ny*ny + nz*nz);
-						if (length > 0.0001f)
-							normal = Vec3f(nx/length, ny/length, nz/length);
-
-						std::string	roll_token;
-						if (iss >> roll_token)
-						{
-							if (std::isdigit(roll_token[0]) || roll_token[0] == '-' || roll_token[0] == '+')
-							{
-								roll = std::stof(roll_token);
-								iss >> override_mat_name;
-							}
-							else
-								override_mat_name = roll_token;
-						}
-					}
-				}
-				else
-					override_mat_name = next_token;
-			}
+			std::cerr << "Erreur load texture: " << path << "\n";
+			return (nullptr);
 		}
+		SDL_Surface	*converted = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
+		SDL_DestroySurface(raw);
+		return (converted);
+	};
+	if (params.count("texture"))
+		mat->setTexture(load_mat_tex(params["texture"]));
+	if (params.count("normal"))
+		mat->setNormal(load_mat_tex(params["normal"]));
+	if (params.count("roughness"))
+		mat->setRoughness(load_mat_tex(params["roughness"]));
+	if (params.count("metallic"))
+		mat->setMetallic(load_mat_tex(params["metallic"]));
+	if (params.count("occlusion"))
+		mat->setOcclusion(load_mat_tex(params["occlusion"]));
+	if (params.count("emissive_map"))
+		mat->setEmissive(load_mat_tex(params["emissive_map"]));
+	if (params.count("tex_scale"))
+		mat->setTexScale(std::stof(params["tex_scale"]));
+	if (params.count("albedo_scale"))
+		mat->setAlbedoScale(std::stof(params["albedo_scale"]));
+	if (params.count("normal_scale"))
+		mat->setNormalScale(std::stof(params["normal_scale"]));
+	if (params.count("roughness_scale"))
+		mat->setRoughnessScale(std::stof(params["roughness_scale"]));
+	if (params.count("metallic_scale"))
+		mat->setMetallicScale(std::stof(params["metallic_scale"]));
+	if (params.count("occlusion_scale"))
+		mat->setOcclusionScale(std::stof(params["occlusion_scale"]));
+	if (params.count("emissive_scale"))
+		mat->setEmissiveScale(std::stof(params["emissive_scale"]));
+	if (params.count("normal_strength"))
+		mat->setNormalStrength(std::stof(params["normal_strength"]));
+	app.materials[name] = mat;
+}
+
+void	SceneLoader::buildSphere(std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	Vec3f		center = params.count("position") ? parseVec3(params["position"]) : Vec3f(0.0f, 0.0f, 0.0f);
+	Vec3f		normal = params.count("normal") ? parseVec3(params["normal"]) : Vec3f(0.0f, 1.0f, 0.0f);
+	float		radius = params.count("radius") ? std::stof(params["radius"]) : 1.0f;
+	float 		roll = params.count("roll") ? std::stof(params["roll"]) * (float)M_PI / 180.0f : 0.0f;
+	std::string	mat_name = params["material"];
+
+	if (app.materials.find(mat_name) == app.materials.end())
+	{
+		std::cerr << "Sphere: Material " << mat_name << " not found\n";
+		return ;
 	}
+
+	Vec3f		rot = normal.to_rotation_angles();
+	Mat4f		translation = Mat4f::translate(center);
+	Mat4f		rotX = Mat4f::rotateX(rot._x);
+	Mat4f		rotY = Mat4f::rotateY(rot._y);
+	Mat4f		scale = Mat4f::scale(Vec3f(radius, radius, radius));
+	Mat4f		roll_mat = Mat4f::rotate(roll, normal);
+	Mat4f		transform = translation * roll_mat * rotY * rotX * scale;
+	Material*	mat_ptr = app.materials[mat_name].get();
+	auto		new_sphere = std::make_shared<Sphere>(radius, center, normal, transform, mat_ptr);
+
+	if (dynamic_cast<DiffuseLight*>(mat_ptr))
+		app.scene.add_light(new_sphere);
+	else
+		app.scene.add(new_sphere);
+}
+
+void	SceneLoader::buildPlane(std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	Vec3f		point = params.count("position") ? parseVec3(params["position"]) : Vec3f(0.0f, 0.0f, 0.0f);
+	Vec3f		normal = params.count("normal") ? parseVec3(params["normal"]) : Vec3f(0.0f, 1.0f, 0.0f);
+	float		roll = params.count("roll") ? std::stof(params["roll"]) * (float)M_PI / 180.0f : 0.0f;
+	std::string	mat_name = params["material"];
+
+	normal = Vec3f::normalize(normal);
+	if (app.materials.find(mat_name) == app.materials.end())
+		return ;
+
+	Vec3f	up(0.0f, 1.0f, 0.0f);
+	Vec3f	axis = Vec3f::cross(up, normal);
+	float	sinA = axis.length();
+	float	cosA = Vec3f::dot(up, normal);
+	Mat4f	rotation;
+
+	if (sinA < 1e-6f)
+	{
+		if (cosA < 0.0f)
+			rotation = Mat4f::rotateX(M_PI);
+	}
+	else
+	{
+		axis = Vec3f::normalize(axis);
+		rotation = Mat4f::rotate((float)std::atan2(sinA, cosA), axis);
+	}
+
+	Mat4f		roll_mat = Mat4f::rotate(roll, normal);
+	Mat4f		transform = Mat4f::translate(point) * roll_mat * rotation;
+	Material*	mat_ptr = app.materials[mat_name].get();
+	auto		new_pl = std::make_shared<Plane>(point, normal, transform, mat_ptr);
+
+	if (dynamic_cast<DiffuseLight*>(mat_ptr))
+		app.scene.add_light(new_pl);
+	else
+		app.scene.add(new_pl);
+}
+
+void	SceneLoader::buildTriangle(std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	Vec3f		v0 = params.count("v0") ? parseVec3(params["v0"]) : Vec3f(0.0f, 0.0f, 0.0f);
+	Vec3f		v1 = params.count("v1") ? parseVec3(params["v1"]) : Vec3f(1.0f, 0.0f, 0.0f);
+	Vec3f		v2 = params.count("v2") ? parseVec3(params["v2"]) : Vec3f(0.0f, 1.0f, 0.0f);
+	std::string	mat_name = params["material"];
+
+	if (app.materials.find(mat_name) == app.materials.end())
+		return ;
+	
+	Material*	mat_ptr = app.materials[mat_name].get();
+	auto		new_tr = std::make_shared<Triangle>(v0, v1, v2, mat_ptr);
+
+	if (dynamic_cast<DiffuseLight*>(mat_ptr))
+		app.scene.add_light(new_tr);
+	else
+		app.scene.add(new_tr);
+}
+
+void	SceneLoader::buildQuad(std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	Vec3f		center = params.count("position") ? parseVec3(params["position"]) : Vec3f(0.0f, 0.0f, 0.0f);
+	Vec3f		normal = params.count("normal") ? parseVec3(params["normal"]) : Vec3f(0.0f, 1.0f, 0.0f);
+	float		w = params.count("width") ? std::stof(params["width"]) : 1.0f;
+	float		h = params.count("height") ? std::stof(params["height"]) : 1.0f;
+	float		roll = params.count("roll") ? std::stof(params["roll"]) * (float)M_PI / 180.0f : 0.0f;
+	std::string	mat_name = params["material"];
+
+	normal = Vec3f::normalize(normal);
+	if (app.materials.find(mat_name) == app.materials.end())
+		return ;
+
+	Vec3f	up(0.0f, 1.0f, 0.0f);
+	Vec3f	axis = Vec3f::cross(up, normal);
+	float	sinA = axis.length();
+	float	cosA = Vec3f::dot(up, normal);
+	Mat4f	rotation;
+
+	if (sinA < 1e-6f)
+	{
+		if (cosA < 0.0f)
+			rotation = Mat4f::rotateX(M_PI);
+	}
+	else
+	{
+		axis = Vec3f::normalize(axis);
+		rotation = Mat4f::rotate((float)std::atan2(sinA, cosA), axis);
+	}
+
+	Mat4f		mat_scale = Mat4f::scale(Vec3f(w / 2.0f, 1.0f, h / 2.0f));
+	Mat4f		roll_mat = Mat4f::rotate(roll, normal);
+	Mat4f		final_transform = Mat4f::translate(center) * roll_mat * rotation * mat_scale;
+	Material*	mat_ptr = app.materials[mat_name].get();
+	auto		new_quad = std::make_shared<Quad>(center, normal, final_transform, mat_ptr, w, h);
+
+	if (dynamic_cast<DiffuseLight*>(mat_ptr))
+		app.scene.add_light(new_quad);
+	else
+		app.scene.add(new_quad);
+}
+
+void	SceneLoader::buildMesh(std::unordered_map<std::string, std::string>& params, AppContext& app)
+{
+	if (!params.count("path"))
+		return ;
+
+	std::string		path = params["path"];
+	float			scale = params.count("scale") ? std::stof(params["scale"]) : 1.0f;
+	Vec3f			pos = params.count("position") ? parseVec3(params["position"]) : Vec3f(0.0f, 0.0f, 0.0f);
+	Vec3f			normal = params.count("normal") ? parseVec3(params["normal"]) : Vec3f(0.0f, 1.0f, 0.0f);
+	float			roll = params.count("roll") ? std::stof(params["roll"]) : 0.0f;
+	std::string		override_mat = params.count("material") ? params["material"] : "";
 
 	Vec3f	rot = normal.to_rotation_angles();
 	float	radX = rot._x;
@@ -278,8 +394,6 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 		std::cerr << "tinyobj error: " << reader.Error() << std::endl;
 		return ;
 	}
-	if (!reader.Warning().empty())
-		std::cerr << "tinyobj warning: " << reader.Warning() << std::endl;
 
 	const auto&	attrib = reader.GetAttrib();
 	const auto&	shapes = reader.GetShapes();
@@ -288,112 +402,158 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 	auto loadTex = [&](const std::string& name) -> SDL_Surface*
 	{
 		if (name.empty())
-			return nullptr;
+			return (nullptr);
 		std::string		tex_path = config.mtl_search_path + name;
 		SDL_Surface*	raw = IMG_Load(tex_path.c_str());
 		if (!raw)
-		{
-			std::cerr << "texture introuvable: " << tex_path << "\n";
-			return nullptr;
-		}
+			return (nullptr);
 		SDL_Surface*	conv = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
 		SDL_DestroySurface(raw);
-		return conv;
+		return (conv);
 	};
 
+	auto applyScales = [&](std::shared_ptr<Material> m)
+	{
+		if (params.count("tex_scale"))
+			m->setTexScale(std::stof(params["tex_scale"]));
+		if (params.count("albedo_scale"))
+			m->setAlbedoScale(std::stof(params["albedo_scale"]));
+		if (params.count("normal_scale"))
+			m->setNormalScale(std::stof(params["normal_scale"]));
+		if (params.count("roughness_scale"))
+			m->setRoughnessScale(std::stof(params["roughness_scale"]));
+		if (params.count("metallic_scale"))
+			m->setMetallicScale(std::stof(params["metallic_scale"]));
+		if (params.count("occlusion_scale"))
+			m->setOcclusionScale(std::stof(params["occlusion_scale"]));
+		if (params.count("emissive_scale"))
+			m->setEmissiveScale(std::stof(params["emissive_scale"]));
+	};
 	std::vector<std::shared_ptr<Material>>	converted_mats;
+
 	for (const auto& m : obj_materials)
 	{
 		std::shared_ptr<Material>	mat;
-		bool	is_emissive = (m.emission[0] + m.emission[1] + m.emission[2]) > 0.0f 
-				|| !m.emissive_texname.empty();
+		bool						is_emissive = (m.emission[0] + m.emission[1] + m.emission[2]) > 0.0f || !m.emissive_texname.empty();
+		
 		if (is_emissive || m.illum == 0)
 		{
 			auto	light = std::make_shared<DiffuseLight>();
-			Vec3f	emit = is_emissive
-				? Vec3f(m.emission[0], m.emission[1], m.emission[2])
-				: Vec3f(m.diffuse[0],  m.diffuse[1],  m.diffuse[2]);
+			Vec3f	emit = is_emissive ? Vec3f(m.emission[0], m.emission[1], m.emission[2]) : Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
+			
 			light->setColor(emit);
-			if (SDL_Surface* s = loadTex(m.emissive_texname.empty()
-										? m.diffuse_texname : m.emissive_texname))
+			
+			std::string tex_name = m.emissive_texname.empty() ? m.diffuse_texname : m.emissive_texname;
+			if (SDL_Surface* s = loadTex(tex_name))
+			{
 				light->setTexture(s);
+				if (!m.emissive_texname.empty())
+					light->setEmissiveScale(m.emissive_texopt.scale[0]);
+				else if (!m.diffuse_texname.empty())
+					light->setAlbedoScale(m.diffuse_texopt.scale[0]);
+			}
 			mat = light;
 		}
-		else if (m.illum == 4 || m.illum == 6 || m.illum == 7 || m.illum == 9
-				|| m.dissolve < 1.0f)
+		else if (m.illum == 4 || m.illum == 6 || m.illum == 7 || m.illum == 9 || m.dissolve < 1.0f)
 		{
 			auto	glass = std::make_shared<Dielectric>();
+			
 			glass->setNi(m.ior > 0.0f ? m.ior : 1.5f);
 			glass->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
 			if (SDL_Surface* s = loadTex(m.diffuse_texname))
+			{
 				glass->setTexture(s);
+				glass->setAlbedoScale(m.diffuse_texopt.scale[0]);
+			}
 			mat = glass;
 		}
 		else if (m.illum == 3 || m.illum == 5)
 		{
 			auto	metal = std::make_shared<Metal>();
+			float	fuzz = (m.shininess > 0.0f) ? std::fmax(0.0f, 1.0f - m.shininess / 1000.0f) : 0.0f;
+			
 			metal->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
-			float	fuzz = (m.shininess > 0.0f)
-				? std::fmax(0.0f, 1.0f - m.shininess / 1000.0f)
-				: 0.0f;
 			metal->setFuzz(fuzz);
+			if (SDL_Surface* s = loadTex(m.diffuse_texname))
+			{
+				metal->setTexture(s);
+				metal->setAlbedoScale(m.diffuse_texopt.scale[0]);
+			}
 			mat = metal;
 		}
 		else
 		{
 			auto	pbr = std::make_shared<PBRMaterial>();
-
+			float	rough = (m.illum == 1) ? 1.0f : (m.roughness > 0.0f ? m.roughness : std::fmax(0.0f, 1.0f - m.shininess / 1000.0f));
+			
 			pbr->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
+			
 			if (SDL_Surface* s = loadTex(m.diffuse_texname))
+			{
 				pbr->setTexture(s);
-
-			float	rough = (m.illum == 1) ? 1.0f
-						: (m.roughness > 0.0f ? m.roughness
-						: std::fmax(0.0f, 1.0f - m.shininess / 1000.0f));
+				pbr->setAlbedoScale(m.diffuse_texopt.scale[0]);
+			}
+			
 			pbr->setRoughnessScalar(rough);
 			if (SDL_Surface* s = loadTex(m.roughness_texname))
+			{
 				pbr->setRoughness(s);
-
+				pbr->setRoughnessScale(m.roughness_texopt.scale[0]);
+			}
+			
 			pbr->setMetallicScalar(m.metallic);
 			if (SDL_Surface* s = loadTex(m.metallic_texname))
+			{
 				pbr->setMetallic(s);
-
-			if (SDL_Surface* s = loadTex(m.normal_texname.empty()
-										? m.bump_texname : m.normal_texname))
+				pbr->setMetallicScale(m.metallic_texopt.scale[0]);
+			}
+			
+			std::string normal_name = m.normal_texname.empty() ? m.bump_texname : m.normal_texname;
+			if (SDL_Surface* s = loadTex(normal_name))
+			{
 				pbr->setNormal(s);
-
+				if (!m.normal_texname.empty())
+					pbr->setNormalScale(m.normal_texopt.scale[0]);
+				else if (!m.bump_texname.empty())
+					pbr->setNormalScale(m.bump_texopt.scale[0]);
+			}
+			
 			if (SDL_Surface* s = loadTex(m.ambient_texname))
+			{
 				pbr->setOcclusion(s);
-
+				pbr->setOcclusionScale(m.ambient_texopt.scale[0]);
+			}
+			
 			mat = pbr;
 		}
-
+		//surcharge fichier de base gagnant
+		applyScales(mat);
+		
 		converted_mats.push_back(mat);
 		app.materials["mesh_mat_" + std::to_string(converted_mats.size() - 1)] = mat;
 	}
 
 	std::shared_ptr<Material>	default_mat = std::make_shared<Lambertian>();
+	
 	default_mat->setColor(Vec3f(0.7f, 0.7f, 0.7f));
+	applyScales(default_mat);
 	app.materials["default_mesh_mat"] = default_mat;
 
 	Material*	override_mat_ptr = nullptr;
-	if (!override_mat_name.empty())
-	{
-		if (app.materials.find(override_mat_name) != app.materials.end())
-			override_mat_ptr = app.materials[override_mat_name].get();
-		else
-			std::cerr << "Warning: materiel override '" << override_mat_name << "' introuvable.\n";
-	}
+	
+	if (!override_mat.empty() && app.materials.find(override_mat) != app.materials.end())
+		override_mat_ptr = app.materials[override_mat].get();
 
 	auto	mesh = std::make_shared<Mesh>();
 
 	for (const auto& shape : shapes)
 	{
 		size_t	index_offset = 0;
-
+		
 		for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++)
 		{
 			size_t	fv = shape.mesh.num_face_vertices[f];
+			
 			if (fv != 3)
 			{
 				index_offset += fv;
@@ -432,27 +592,27 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 					uvs[v][1] = attrib.texcoords[2 * idx.texcoord_index + 1];
 				}
 				else
+				{
 					has_uv = false;
+				}
 			}
 
 			int			mat_id = shape.mesh.material_ids[f];
-			Material*	mat_ptr = nullptr;
-
-			if (override_mat_ptr != nullptr)
+			Material*	mat_ptr = default_mat.get();
+			
+			if (override_mat_ptr)
 				mat_ptr = override_mat_ptr;
 			else if (mat_id >= 0 && (size_t)mat_id < converted_mats.size())
 				mat_ptr = converted_mats[mat_id].get();
-			else
-				mat_ptr = default_mat.get();
 
 			std::shared_ptr<Triangle>	new_tr;
+			
 			if (has_uv)
-				new_tr = std::make_shared<Triangle>(verts[0], verts[1], verts[2],
-								mat_ptr, uvs[0], uvs[1], uvs[2]);
+				new_tr = std::make_shared<Triangle>(verts[0], verts[1], verts[2], mat_ptr, uvs[0], uvs[1], uvs[2]);
 			else
 				new_tr = std::make_shared<Triangle>(verts[0], verts[1], verts[2], mat_ptr);
 
-			if (dynamic_cast<DiffuseLight*>(mat_ptr) != nullptr)
+			if (dynamic_cast<DiffuseLight*>(mat_ptr))
 				app.scene.add_light(new_tr);
 			mesh->addTriangle(new_tr);
 
@@ -466,49 +626,27 @@ void	SceneLoader::set_mesh(AppContext& app, std::istringstream &iss, std::string
 		app.scene.add(mesh);
 		app.meshes.push_back(mesh);
 	}
-
-	std::cout << "mesh charge: " << shapes.size() << " materiaux, "
-		<< mesh->triCount() << " triangles\n";
+	std::cout << "Mesh charge: " << path << " (" << mesh->triCount() << " triangles)\n";
 }
 
-void	SceneLoader::set_blackhole(AppContext& app, std::istringstream &iss, std::string token)
+void	SceneLoader::buildBlackHole(std::unordered_map<std::string, std::string>& params, AppContext& app)
 {
-	if (token != "blackhole" && token != "bh")
-		return ;
-
-	float	x = 0, y = 0, z = 0, rs = 1.0f;
-	if (iss >> x >> y >> z >> rs)
-	{
-		app.black_hole_enabled = true;
-		app.black_hole = BlackHole(Vec3f(x, y, z), rs);
-	}
-	else
-		std::cerr << "error syntax blackhole (x y z rs)" << std::endl;
+	Vec3f	pos = params.count("position") ? parseVec3(params["position"]) : Vec3f(0.0f, 0.0f, 0.0f);
+	float	rs = params.count("radius") ? std::stof(params["radius"]) : 1.0f;
+	
+	app.black_hole_enabled = true;
+	app.black_hole = BlackHole(pos, rs);
 }
 
-void	SceneLoader::set_env(AppContext& app, std::istringstream &iss, std::string token)
+void	SceneLoader::buildEnvironment(std::unordered_map<std::string, std::string>& params, AppContext& app)
 {
-	if (token == "env" || token == "hdri")
+	if (params.count("path"))
 	{
-		std::string	path;
-		if (iss >> path)
-		{
-			if (!app.env_map.load(path))
-				std::cerr << "Erreur chargement HDRI: " << path << std::endl;
-		}
-		else
-			std::cerr << "error syntax env (path.hdr)" << std::endl;
+		if (!app.env_map.load(params["path"]))
+			std::cerr << "Erreur chargement HDRI: " << params["path"] << std::endl;
 	}
-	else if (token == "env_intensity")
-	{
-		float	val = 1.0f;
-		if (iss >> val)
-			app.env_map.setIntensity(val);
-	}
-	else if (token == "env_rotation")
-	{
-		float	deg = 0.0f;
-		if (iss >> deg)
-			app.env_map.setRotation(deg * (float)M_PI / 180.0f);
-	}
+	if (params.count("intensity"))
+		app.env_map.setIntensity(std::stof(params["intensity"]));
+	if (params.count("rotation"))
+		app.env_map.setRotation(std::stof(params["rotation"]) * (float)M_PI / 180.0f);
 }

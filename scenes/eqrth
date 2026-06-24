@@ -1,0 +1,101 @@
+# --- Configuration globale ---
+Settings {
+    resolution 1280 720
+    samples 100
+}
+
+# --- Éclairage global (HDRI) ---
+Environment {
+    path /home/titan/Téléchargements/sky.hdr
+    intensity 3.0
+    rotation 0
+}
+
+# --- Configuration de la caméra ---
+# Placée à Z=6.5, elle regarde vers l'avant (Z négatif)
+Camera {
+    position 0.0 0.8 6.5
+    direction 0.0 -0.1 -1.0
+    fov 55
+}
+
+# --- MATÉRIAUX ---
+
+# 1. Le Soleil (Hyper lumineux pour créer l'ombre rasante globale)
+Material sun_mat {
+    type emissive
+    color 1.0 0.95 0.9
+    intensity 10.0
+}
+
+# 2. Terre avec Relief (Gauche)
+Material earth_bump_mat {
+    type lambertian
+    texture /home/titan/Téléchargements/earth.jpg
+    normal /home/titan/Téléchargements/earth_normals_lowres_displacement.png
+    normal_strength 1.2
+}
+
+# 3. Terre Lisse (Droite)
+Material earth_flat_mat {
+    type lambertian
+    texture /home/titan/Téléchargements/earth.jpg
+}
+
+# 4. Mur avec Relief (Arrière-plan gauche)
+Material wall_bump {
+    type lambertian
+    color 0.6 0.6 0.6
+    normal /home/titan/Téléchargements/images.jpeg
+    normal_strength 0.15
+}
+
+# 5. Mur Lisse (Arrière-plan droit)
+Material wall_flat {
+    type lambertian
+    color 0.6 0.6 0.6
+}
+
+
+# --- GÉOMÉTRIE ---
+
+# Le Soleil (Placé en haut à droite pour éclairer les sphères ET les murs de biais)
+Sphere {
+    position 5.0 4.0 3.0
+    radius 1.8
+    material sun_mat
+}
+
+# --- Premier plan : Les deux Terres (Placées à Z = 2.0, surélevées à Y = 0.6) ---
+# Terre avec relief (Gauche)
+Sphere {
+    position -1.4 0.6 2.0
+    radius 0.9
+    material earth_bump_mat
+}
+
+# Terre lisse (Droite)
+Sphere {
+    position 1.4 0.6 2.0
+    radius 0.9
+    material earth_flat_mat
+}
+
+# --- Arrière-plan : Les deux murs (Placés plus loin à Z = -2.0) ---
+# Mur avec relief (Gauche)
+Quad {
+    position -1.8 0.8 -2.0
+    normal 0 0 1
+    width 3.2
+    height 3.2
+    material wall_bump
+}
+
+# Mur lisse (Droit)
+Quad {
+    position 1.8 0.8 -2.0
+    normal 0 0 1
+    width 3.2
+    height 3.2
+    material wall_flat
+}

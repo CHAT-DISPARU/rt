@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Math3D.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/04 21:04:52 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/06 17:56:30 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/23 19:47:58 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,5 +19,6 @@ struct Mat4;
 
 #include "Vec3.hpp"
 #include "Mat4.hpp"
+#include "Quaternion.hpp"
 #include <float.h>
 #include <limits>

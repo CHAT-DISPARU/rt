@@ -6,56 +6,12 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/20 12:03:32 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/20 20:53:14 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/24 11:52:56 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "PBRMaterial.hpp"
 #include "rt.hpp"
-
-float	PBRMaterial::sampleRoughness(float u, float v) const
-{
-	if (!hasRoughness())
-		return (_roughness_scalar);
-	float	val = sampleScalarLinear(roughness, u * _texScale, v * _texScale, 0);
-	return (val < 0.0f ? _roughness_scalar : val);
-}
-
-float	PBRMaterial::sampleMetallic(float u, float v) const
-{
-	if (!hasMetallic())
-		return (_metallic_scalar);
-	float	val = sampleScalarLinear(metalic, u * _texScale, v * _texScale, 0);
-	return (val < 0.0f ? _metallic_scalar : val);
-}
-
-float	PBRMaterial::sampleAO(float u, float v) const
-{
-	if (!hasOcclusion())
-		return (1.0f);
-	float	val = sampleScalarLinear(occlusion, u * _texScale, v * _texScale, 0);
-	return (val < 0.0f ? 1.0f : val);
-}
-
-Vec3f	PBRMaterial::sampleNormalTangentSpace(float u, float v) const
-{
-	if (!hasNormal())
-		return (Vec3f(0.0f, 0.0f, 1.0f));
-
-	u = u * _texScale - std::floor(u * _texScale);
-	v = v * _texScale - std::floor(v * _texScale);
-	int	x = std::min((int)(u * normal->w), normal->w - 1);
-	int	y = std::min((int)((1.0f - v) * normal->h), normal->h - 1);
-	Uint8*	pixels = (Uint8*)normal->pixels;
-	int		bpp = SDL_BYTESPERPIXEL(normal->format);
-	Uint8*	p = pixels + y * normal->pitch + x * bpp;
-
-	return (Vec3f(
-		p[0] / 255.0f * 2.0f - 1.0f,
-		p[1] / 255.0f * 2.0f - 1.0f,
-		p[2] / 255.0f * 2.0f - 1.0f
-	));
-}
 
 
 static float	distribution_ggx(const Vec3f& N, const Vec3f& H, float roughness)
@@ -92,31 +48,15 @@ bool	PBRMaterial::scatter(const Ray& r_in, const HitRecord& rec,
 						   Vec3f& attenuation, Ray& scattered,
 						   float& pdf, unsigned int* seed) const
 {
-	float	roughness = sampleRoughness(rec.u, rec.v);
-	float	metallic = sampleMetallic(rec.u, rec.v);
+	float	roughness = sampleRoughness(rec.u, rec.v, _roughness_scalar);
+	float	metallic = sampleMetallic(rec.u, rec.v, _metallic_scalar);
 	float	ao = sampleAO(rec.u, rec.v);
-	Vec3f	base_color = hasTexture() ? sampleTextureFast(tex, rec.u * _texScale, rec.v * _texScale)
-				: _color;
+	Vec3f	base_color = sampleAlbedo(rec.u, rec.v);
+	
 	Vec3f	N = rec.normal;
-
-	if (hasNormal())
-	{
-		Vec3f	tangent_normal = sampleNormalTangentSpace(rec.u, rec.v);
-		if (tangent_normal.length_sq() < 1e-6f)
-			tangent_normal = Vec3f(0.0f, 0.0f, 1.0f);
-		Vec3f N_perturbed = Vec3f::normalize(
-			rec.tangent * tangent_normal._x +
-			rec.bitangent * tangent_normal._y +
-			rec.normal * tangent_normal._z
-		);
-		if (Vec3f::dot(N_perturbed, rec.normal) < 0.0f)
-			N = rec.normal;
-		else
-			N = N_perturbed;
-	}
 	Vec3f	F0 = Vec3f(0.04f) * (1.0f - metallic) + base_color * metallic;
 	Vec3f	V = Vec3f::normalize(-r_in._dir);
-	float spec_prob = std::fmax(metallic, 0.04f);
+	float	spec_prob = std::fmax(metallic, 0.04f);
 
 	if (Vec3f::randomFloat(seed) < spec_prob)
 	{
@@ -134,17 +74,20 @@ bool	PBRMaterial::scatter(const Ray& r_in, const HitRecord& rec,
 				+ N * cosTheta;
 		H = Vec3f::normalize(H);
 		Vec3f	L = Vec3f::reflect(-V, H);
+		
 		if (Vec3f::dot(N, L) <= 0.0f)
 			return (false);
 		scattered = Ray(rec.point, L);
+		
 		float	D = distribution_ggx(N, H, roughness);
 		float	G = geometry_smith(N, V, L, roughness);
 		Vec3f	F = fresnel_schlick(std::fmax(Vec3f::dot(H, V), 0.0f), F0);
 		float	NdotL = std::fmax(Vec3f::dot(N, L), 0.0f);
 		float	NdotV = std::fmax(Vec3f::dot(N, V), 1e-4f);
-		Vec3f specular = (F * D * G) / (4.0f * NdotV * NdotL + 1e-6f);
-		float NdotH = std::fmax(Vec3f::dot(N, H), 0.0f);
-		float pdf_H = D * NdotH / (4.0f * std::fmax(Vec3f::dot(H, V), 1e-4f));
+		Vec3f	specular = (F * D * G) / (4.0f * NdotV * NdotL + 1e-6f);
+		float	NdotH = std::fmax(Vec3f::dot(N, H), 0.0f);
+		float	pdf_H = D * NdotH / (4.0f * std::fmax(Vec3f::dot(H, V), 1e-4f));
+		
 		pdf = pdf_H * spec_prob;
 		if (pdf < 1e-6f)
 			return (false);
@@ -159,6 +102,7 @@ bool	PBRMaterial::scatter(const Ray& r_in, const HitRecord& rec,
 		scattered = Ray(rec.point, scatterDir);
 		float	cosine = std::fmax(Vec3f::dot(N, Vec3f::normalize(scatterDir)), 0.0f);
 		float	pdf_diffuse = cosine / (float)M_PI;
+		
 		pdf = pdf_diffuse * (1.0f - spec_prob);
 		if (pdf < 1e-6f)
 			return (false);
@@ -170,8 +114,8 @@ bool	PBRMaterial::scatter(const Ray& r_in, const HitRecord& rec,
 
 float	PBRMaterial::scattering_pdf(const Ray& r_in, const HitRecord& rec, const Ray& scattered) const
 {
-	float	roughness = sampleRoughness(rec.u, rec.v);
-	float	metallic = sampleMetallic(rec.u, rec.v);
+	float	roughness = sampleRoughness(rec.u, rec.v, _roughness_scalar);
+	float	metallic = sampleMetallic(rec.u, rec.v, _metallic_scalar);
 	Vec3f	N = rec.normal;
 	Vec3f	V = Vec3f::normalize(-r_in._dir);
 	Vec3f	L = Vec3f::normalize(scattered._dir);
@@ -179,7 +123,6 @@ float	PBRMaterial::scattering_pdf(const Ray& r_in, const HitRecord& rec, const R
 
 	if (NdotL <= 0.0f)
 		return (0.0f);
-
 	float	spec_prob = std::fmax(metallic, 0.04f);
 	float	pdf_diffuse = NdotL / (float)M_PI;
 	Vec3f	H = Vec3f::normalize(V + L);
@@ -196,20 +139,7 @@ float	PBRMaterial::scattering_pdf(const Ray& r_in, const HitRecord& rec, const R
 Vec3f	PBRMaterial::emitted(float u, float v, const Vec3f& p) const
 {
 	(void)p;
-
 	if (!hasEmissive())
 		return (Vec3f(0.0f));
-	float	su = u * _texScale - std::floor(u * _texScale);
-	float	sv = v * _texScale - std::floor(v * _texScale);
-	int		x = std::min((int)(su * emissive->w), emissive->w - 1);
-	int		y = std::min((int)((1.0f - sv) * emissive->h), emissive->h - 1);
-	Uint8*	pixels = (Uint8*)emissive->pixels;
-	int		bpp = SDL_BYTESPERPIXEL(emissive->format);
-	Uint8*	pix = pixels + y * emissive->pitch + x * bpp;
-
-	return (Vec3f(
-		pix[0] / 255.0f,
-		pix[1] / 255.0f,
-		pix[2] / 255.0f
-	) * _intensity);
+	return (sampleEmissive(u, v));
 }

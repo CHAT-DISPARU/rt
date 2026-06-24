@@ -1,9 +1,21 @@
-res 1600 900
-samples inf
-camera 0 1.2 14  0 -0.05 -1  40
+Settings {
+	resolution 1600 900
+	samples inf
+}
 
-env sky.hdr
-env_intensity 1.0
-env_rotation 0
+Camera {
+	position 0 1.2 14
+	direction 0 -0.05 -1
+	fov 40
+}
 
-blackhole 0 0 0  1.4
+Environment {
+	path sky.hdr
+	intensity 1.0
+	rotation 0
+}
+
+Blackhole {
+	position 0 0 0
+	radius 1.4
+}

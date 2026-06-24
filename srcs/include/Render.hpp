@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/20 13:06:14 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/24 18:53:53 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 #include "Hittable.hpp"
 #include "Scene.hpp"
 #include "ThreadPool.hpp"
-#include "Sunlight.hpp"
 #include "BVHdebug.hpp"
 #include "EnvironmentMap.hpp"
 #include "BlackHole.hpp"
@@ -48,9 +47,21 @@ struct Render
 	uint32_t			*definitive;
 	float				cam_speed = 0.2f;
 	float				cam_rotate = 0.04f;
-	SunLight			sun_light;
 	bool				shadow_ray;
 	EnvironmentMap		&env_map;
+	bool				hdri;
+	bool                bloom_enabled = true;
+    float               bloom_threshold = 1.5f;
+    float               bloom_intensity = 0.25f;
+    int                 blur_radius = 15;
+	bool				ru_enabled = true;
 };
 
 void	render(Render &render);
+Vec3f	calculate_environment(const Ray& ray, const Render& render);
+bool	evaluate_blackholes(Ray& ray, const Render& render, Vec3f &accumulated_light, Vec3f throughput);
+Vec3f	evaluate_depth_slice(const Ray& ray, const Render& render);
+Vec3f	calculate_direct_lighting(const Ray& ray, const HitRecord& rec, const Render& render, Vec3f albedo, int* counter);
+Vec3f	apply_mis_weight(Vec3f emitted, const Ray& ray, const Render& render, float prev_pdf, bool prev_was_specular, int depth);
+bool	apply_russian_roulette(Vec3f& throughput, unsigned int* seed);
+void	applyNormalMap(HitRecord& rec);

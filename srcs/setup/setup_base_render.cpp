@@ -6,23 +6,11 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:29:02 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 22:42:44 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/23 19:06:47 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.hpp"
-
-void	set_sun(SunLight &sun)
-{
-	sun.direction = Vec3f::normalize(Vec3f(1.0f, 1.5f, -2.0f));
-	sun.color = Vec3f(1.0f, 0.65f, 0.0f);
-	sun.glow_color = Vec3f(1.0f, 0.50f, 0.0f);
-	sun.intensity = 3.0f;
-	sun.glow_intensity = 0.08f;
-	sun.size = 500.0f;
-	sun.glow_size = 12.0f;
-	sun.enabled = false;
-}
 
 void	setup_base_render(AppContext &app, Render &render_total)
 {
@@ -40,7 +28,7 @@ void	setup_base_render(AppContext &app, Render &render_total)
 	render_total.frame_count = 1;
 	render_total.accum_buffer = accum_buffer;
 	render_total.definitive = definitive;
-	set_sun(render_total.sun_light);
+	render_total.hdri = false;
 }
 
 void	cleanup_render(Render &render_total)

@@ -1,74 +1,175 @@
-res 1280 720
-samples inf
-camera 0 2 10  0 -0.2 -1  70
+Settings {
+	resolution 1280 720
+	samples inf
+}
 
-mat sol
-color 0.08 0.08 0.09
+Camera {
+	position 0 2 10
+	direction 0 -0.2 -1
+	fov 70
+}
 
-mat mur
-color 0.18 0.18 0.22
+Material "sol" {
+	color 0.08 0.08 0.09
+}
 
-mat plafond_light
-type emissive
-color 1.0 0.92 0.78
-intensity 5.0
+Material "mur" {
+	color 0.18 0.18 0.22
+}
 
-mat neon_rose
-type emissive
-color 8.0 0.4 2.5
-intensity 5.0
+Material "plafond_light" {
+	type emissive
+	color 1.0 0.92 0.78
+	intensity 5.0
+}
 
-mat neon_bleu
-type emissive
-color 0.2 1.2 6.0
-intensity 5.0
+Material "neon_rose" {
+	type emissive
+	color 8.0 0.4 2.5
+	intensity 5.0
+}
 
-mat chrome
-type metal
-color 0.95 0.95 0.95
-fuzz 0.0
+Material "neon_bleu" {
+	type emissive
+	color 0.2 1.2 6.0
+	intensity 5.0
+}
 
-mat or_brosse
-type metal
-color 0.90 0.72 0.18
-fuzz 0.08
+Material "chrome" {
+	type metal
+	color 0.95 0.95 0.95
+	fuzz 0.0
+}
 
-mat verre
-type glass
-color 1.0 1.0 1.0
-ni 1.5
-fuzz 0.0
+Material "or_brosse" {
+	type metal
+	color 0.90 0.72 0.18
+	fuzz 0.08
+}
 
-mat verre_bleu
-type glass
-color 0.55 0.80 1.0
-ni 1.52
-fuzz 0.0
+Material "verre" {
+	type glass
+	color 1.0 1.0 1.0
+	ni 1.5
+	fuzz 0.0
+}
 
-mat blanc_casse
-color 0.82 0.80 0.75
+Material "verre_bleu" {
+	type glass
+	color 0.55 0.80 1.0
+	ni 1.52
+	fuzz 0.0
+}
 
-mat rouge_brique
-color 0.72 0.18 0.12
+Material "blanc_casse" {
+	color 0.82 0.80 0.75
+}
 
-mat vert_mousse
-color 0.22 0.52 0.22
+Material "rouge_brique" {
+	color 0.72 0.18 0.12
+}
 
-sp 0 -1000 0 1000  0 1 0  sol
-sp 0 28 0 10  0 1 0  plafond_light
-pl 0 0 20  0 0 -1  mur
-pl 0 0 -6  0 0 1  mur
-pl -7 0 0  1 0 0  mur
-pl 7 0 0  -1 0 0  mur
+Material "vert_mousse" {
+	color 0.22 0.52 0.22
+}
 
-sp -4.5 1.0 0.0 1.0  0 1 0  chrome
-sp -1.5 1.0 0.0 1.0  0 1 0  or_brosse
-sp  1.5 1.0 0.0 1.0  0 1 0  verre
-sp  4.5 1.0 0.0 1.0  0 1 0  verre_bleu
+Sphere {
+	position 0 -1000 0
+	radius 1000
+	normal 0 1 0
+	material sol
+}
 
-sp -3.0 0.5 2.5 0.5  0 1 0  rouge_brique
-sp  0.0 0.5 2.5 0.5  0 1 0  blanc_casse
-sp  3.0 0.5 2.5 0.5  0 1 0  vert_mousse
+Sphere {
+	position 0 28 0
+	radius 10
+	normal 0 1 0
+	material plafond_light
+}
 
-sp -2.5 3.2 1.0 0.2  0 1 0  neon_rose
-sp  2.5 3.2 1.0 0.2  0 1 0  neon_bleu
+Plane {
+	position 0 0 20
+	normal 0 0 -1
+	material mur
+}
+
+Plane {
+	position 0 0 -6
+	normal 0 0 1
+	material mur
+}
+
+Plane {
+	position -7 0 0
+	normal 1 0 0
+	material mur
+}
+
+Plane {
+	position 7 0 0
+	normal -1 0 0
+	material mur
+}
+
+Sphere {
+	position -4.5 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material chrome
+}
+
+Sphere {
+	position -1.5 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material or_brosse
+}
+
+Sphere {
+	position 1.5 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material verre
+}
+
+Sphere {
+	position 4.5 1.0 0.0
+	radius 1.0
+	normal 0 1 0
+	material verre_bleu
+}
+
+Sphere {
+	position -3.0 0.5 2.5
+	radius 0.5
+	normal 0 1 0
+	material rouge_brique
+}
+
+Sphere {
+	position 0.0 0.5 2.5
+	radius 0.5
+	normal 0 1 0
+	material blanc_casse
+}
+
+Sphere {
+	position 3.0 0.5 2.5
+	radius 0.5
+	normal 0 1 0
+	material vert_mousse
+}
+
+Sphere {
+	position -2.5 3.2 1.0
+	radius 0.2
+	normal 0 1 0
+	material neon_rose
+}
+
+Sphere {
+	position 2.5 3.2 1.0
+	radius 0.2
+	normal 0 1 0
+	material neon_bleu
+}

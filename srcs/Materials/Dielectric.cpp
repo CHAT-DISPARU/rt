@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Dielectric.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 15:38:58 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/19 12:23:09 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/24 11:17:49 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,10 @@ static float	schlick(float cosine, float ior_in, float ior_out)
 
 bool	Dielectric::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuation, Ray& scattered, float& pdf, unsigned int* seed) const
 {
-	if (_hasTexture == false || !tex)
-		attenuation = _color;
-	else
-		attenuation = sampleTextureFast(getTexture(), rec.u, rec.v);
+	Vec3f	albedo = sampleAlbedo(rec.u, rec.v);
+	float	fuzz = sampleRoughness(rec.u, rec.v, _fuzz);
 
+	attenuation = albedo;
 	float	ratio = rec.front_face ? (rec.ni_from / _ni) : (_ni / rec.ni_from);
 	Vec3f	unitDir = Vec3f::normalize(r_in._dir);
 	float	cosTheta = std::fmin(Vec3f::dot(-unitDir, rec.normal), 1.0f);
@@ -39,8 +38,8 @@ bool	Dielectric::scatter(const Ray& r_in, const HitRecord& rec, Vec3f& attenuati
 		direction = Vec3f::reflect(unitDir, rec.normal);
 	else
 		direction = Vec3f::refract(unitDir, rec.normal, ratio);
+	Vec3f	finalDir = Vec3f::normalize(direction + fuzz * Vec3f::randomInUnitSphere(seed));
 	
-	Vec3f finalDir = Vec3f::normalize(direction + _fuzz * Vec3f::randomInUnitSphere(seed));
 	scattered = Ray(rec.point, finalDir);
 	pdf = 1.0f;
 	return (true);

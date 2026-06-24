@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Plane.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:15:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/19 12:14:52 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/24 11:46:40 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,13 +41,8 @@ bool	Plane::hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* nod
 	rec.point = ray(t);
 	rec.set_face_normal(ray, _normal);
 	local_p = l_ray._o + (l_ray._dir * t);
-	float	scale = _mat->getTexScale();
-	rec.u = std::fmod(local_p._x / scale, 1.0f);
-	rec.v = std::fmod(local_p._z / scale, 1.0f);
-	if (rec.u < 0.0f)
-		rec.u += 1.0f;
-	if (rec.v < 0.0f)
-		rec.v += 1.0f;
+	rec.u = local_p._x;
+	rec.v = local_p._z;
 	return (true);
 }
 

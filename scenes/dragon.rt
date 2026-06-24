@@ -1,37 +1,124 @@
-res 1920 1080
-samples 100
-camera 0 6 28  0 -0.15 -1  60
+Settings {
+	resolution 1600 900
+	samples inf
+}
 
-env_intensity 0.02
+Camera {
+	position 0 8.8 36
+	direction 0 -0.1 -1
+	fov 60
+}
 
-newmat gold
-type metal
-color 1.0 0.84 0.0
-fuzz 0.05
+Environment {
+	path sky.hdr
+	intensity 1.0
+	rotation 0
+}
 
-newmat crystal
-type dielectric
-ior 1.55
-color 0.9 0.95 1.0
-fuzz 0.0
+Material "diamond" {
+	type dielectric
+	ior 2.42
+	color 0.95 0.98 1.0
+	fuzz 0.0
+}
 
-newmat neon_fire
-type emissive
-color 1.0 0.2 0.05
-intensity 20.0
+Material "obsidian" {
+	type metal
+	color 0.08 0.06 0.10
+	fuzz 0.0
+}
 
-newmat neon_ice
-type emissive
-color 0.05 0.3 1.0
-intensity 20.0
+Material "copper" {
+	type metal
+	color 1.0 0.45 0.2
+	fuzz 0.01
+}
 
-newmat dark_floor
-color 0.05 0.05 0.05
+Material "dark_ground" {
+	color 0.04 0.04 0.05
+}
 
-mesh scenes/Dragon.obj 0.085 0 0 0 0 1 0 180 gold
-mesh scenes/Dragon.obj 0.085 -14 0 0 0 1 0 180 crystal
-mesh scenes/Dragon.obj 0.085 14 0 0 0 1 0 180 crystal
-mesh scenes/Dragon.obj 0.04 -10 4 0 0 1 0 180 neon_fire
-mesh scenes/Dragon.obj 0.04 10 4 0 0 1 0 180  neon_ice
+Material "light_top" {
+	type emissive
+	color 9.0 8.0 7.0
+}
 
-blackhole 0 30 -60 8.0
+Material "light_left" {
+	type emissive
+	color 2.0 4.0 9.0
+}
+
+Material "light_right" {
+	type emissive
+	color 9.0 3.0 1.5
+}
+
+Quad {
+	position 0.0 -0.1 0.0
+	normal 0 1 0
+	width 800
+	height 800
+	material dark_ground
+}
+
+Sphere {
+	position 0.0 28.0 8.0
+	radius 3.0
+	normal 0 1 0
+	material light_top
+}
+
+Sphere {
+	position -30.0 8.0 10.0
+	radius 2.0
+	normal 0 1 0
+	material light_left
+}
+
+Sphere {
+	position 30.0 8.0 10.0
+	radius 2.0
+	normal 0 1 0
+	material light_right
+}
+
+Mesh {
+	path scenes/Dragon.obj
+	scale 0.085
+	position -14.0 4.0 0.0
+	normal 0 0 -1
+	roll 180
+	material obsidian
+}
+
+Mesh {
+	path scenes/Dragon.obj
+	scale 0.085
+	position -5.0 4.0 0.0
+	normal 1 0 -1
+	roll 180
+	material diamond
+}
+
+Mesh {
+	path scenes/Dragon.obj
+	scale 0.085
+	position 5.0 4.0 0.0
+	normal 1 0 1
+	roll 180
+	material copper
+}
+
+Mesh {
+	path scenes/Dragon.obj
+	scale 0.085
+	position 14.0 4.0 0.0
+	normal 0 0 1
+	roll 180
+	material diamond
+}
+
+Blackhole {
+	position 0 15 -1800
+	radius 10.0
+}
