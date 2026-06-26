@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/23 18:08:08 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/24 11:21:32 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 18:05:58 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,8 +98,7 @@ Vec3f	evaluate_depth_slice(const Ray& ray, const Render& render)
 	}
 	Vec3f	box_color(0.0f);
 	float	box_alpha = 0.0f;
-	render.scene.hit_box_depth(ray, render.bvh_debug.min_depth,
-		render.bvh_debug.max_depth, t_geom, box_color, box_alpha);
+	render.scene.hit_box_depth(ray, render.bvh_debug, t_geom, box_color, box_alpha);
 	return ((base * (1.0f - box_alpha) + box_color * box_alpha));
 }
 

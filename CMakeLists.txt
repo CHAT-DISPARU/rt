@@ -4,11 +4,11 @@ project(RT VERSION 1.0 LANGUAGES CXX)
 
 include(FetchContent)
 
-
 FetchContent_Declare(
 	SDL3
-	GIT_REPOSITORY	https://github.com/libsdl-org/SDL.git
-	GIT_TAG			main
+	GIT_REPOSITORY  https://github.com/libsdl-org/SDL.git
+	GIT_TAG         main
+	GIT_SHALLOW     TRUE
 	UPDATE_DISCONNECTED TRUE
 )
 
@@ -20,6 +20,7 @@ FetchContent_Declare(
 	SDL3_image
 	GIT_REPOSITORY  https://github.com/libsdl-org/SDL_image.git
 	GIT_TAG         main
+	GIT_SHALLOW     TRUE
 	UPDATE_DISCONNECTED TRUE
 )
 set(SDL3IMAGE_INSTALL OFF CACHE BOOL "" FORCE)
@@ -46,6 +47,10 @@ set(SOURCES
 	srcs/setup/Texture.cpp
 	srcs/setup/SceneLoader.cpp
 	srcs/setup/stb_image_impl.cpp
+	srcs/setup/ScenePacker.cpp
+	srcs/setup/VulkanUtils.cpp
+	srcs/setup/vk_init.cpp
+	srcs/setup/vk_pipeline.cpp
 	srcs/Hittables/BVHNodes.cpp
 	srcs/Hittables/Plane.cpp
 	srcs/Hittables/Quad.cpp
@@ -64,10 +69,11 @@ set(SOURCES
 	imgui/backends/imgui_impl_sdlrenderer3.cpp
 	imgui/imgui_demo.cpp
 )
+
 set_source_files_properties(
-    srcs/setup/SceneLoader.cpp
-    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
-    COMPILE_FLAGS "-Wno-error=unused-function -Wno-unused-function"
+	srcs/setup/SceneLoader.cpp
+	PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+	COMPILE_FLAGS "-Wno-error=unused-function -Wno-unused-function"
 )
 
 add_executable(rt ${SOURCES})
@@ -102,12 +108,38 @@ target_include_directories(rt PRIVATE
 	srcs/math
 	imgui
 	imgui/backends
-	PROPERTIES COMPILE_OPTIONS "-Wno-error"
 )
+
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-target_link_libraries(rt PRIVATE Threads::Threads)
 
-target_link_libraries(rt PRIVATE SDL3::SDL3)
-target_link_libraries(rt PRIVATE SDL3_image::SDL3_image)
+target_link_libraries(rt PRIVATE 
+	Threads::Threads
+	SDL3::SDL3
+	SDL3_image::SDL3_image
+)
+
+find_package(Vulkan REQUIRED)
+target_link_libraries(rt PRIVATE Vulkan::Vulkan)
+target_include_directories(rt PRIVATE ${Vulkan_INCLUDE_DIRS})
+
+
+find_program(GLSLC_COMPILER glslc HINTS ${Vulkan_GLSLC_EXECUTABLE})
+
+if(NOT GLSLC_COMPILER)
+	message(FATAL_ERROR "glslc introuvable")
+endif()
+
+set(SHADER_SRC "${CMAKE_SOURCE_DIR}/srcs/shaders/raytracer.comp")
+set(SHADER_OUT "${CMAKE_CURRENT_BINARY_DIR}/raytracer.spv")
+
+add_custom_command(
+	OUTPUT ${SHADER_OUT}
+	COMMAND ${GLSLC_COMPILER} ${SHADER_SRC} -o ${SHADER_OUT}
+	DEPENDS ${SHADER_SRC}
+	COMMENT "Compiling Compute Shader: raytracer.comp -> raytracer.spv"
+)
+
+add_custom_target(Shaders ALL DEPENDS ${SHADER_OUT})
+add_dependencies(rt Shaders)

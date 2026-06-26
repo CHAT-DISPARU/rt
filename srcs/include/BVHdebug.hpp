@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/17 11:34:34 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 12:56:32 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 18:04:21 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,13 @@ enum class	BvhDebugMode
 struct BvhDebugConfig
 {
 	BvhDebugMode	mode = BvhDebugMode::OFF;
-	int				min_depth = 0;
-	int				max_depth = 4;
-	int				max_tests = 200;
-	int				tree_depth  = 20;
-	int				saved_samples = -1;
+	int		max_tests = 100;
+	int		min_depth = 0;
+	int		max_depth = 10;
+	int		tree_depth = 0;
+	bool		show_triangles = true;
+	bool		show_spheres = true;
+	bool		show_quads = true;
 };
 
 // bleu(0) → cyan(0.25) → vert(0.5) → jaune(0.75) → rouge(1)

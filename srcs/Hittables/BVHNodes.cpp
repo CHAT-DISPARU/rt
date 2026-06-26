@@ -6,13 +6,13 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 18:09:10 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/20 14:48:06 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 17:48:06 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BVHNode.hpp"
 
-BVHNode::BVHNode(std::vector<std::shared_ptr<Hittable>>& objects)
+BVHNode::BVHNode(const std::vector<std::shared_ptr<Hittable>>& objects)
 {
 	if (objects.empty())
 		return;

@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:03 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 22:28:44 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 17:34:09 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,4 +30,5 @@ class Metal : public Material
 		{
 			return true;
 		};
+		float	getFuzz() const { return _fuzz; }
 };

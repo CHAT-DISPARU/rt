@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 16:30:47 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/20 14:55:06 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 17:47:21 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,8 +45,9 @@ class	BVHNode : public Hittable
 			uint64_t	mortonCode; // code de Morton 32 bits 
 		};
 
-		BVHNode(std::vector<std::shared_ptr<Hittable>>& objects);
+		BVHNode(const std::vector<std::shared_ptr<Hittable>>& objects);
 
+		const std::vector<std::shared_ptr<Hittable>>&	getOrderedObjects() const { return _orderedObjects; }
 		bool	hit(const Ray& ray, float tMin, float tMax, HitRecord& rec, int* node_tests = nullptr) const;
 		void	hit_box_depth(const Ray& ray, int depth_min, int depth_max,
 					float t_geom, Vec3f& color_out, float& alpha_out, int current_depth = 0) const;
@@ -80,6 +81,7 @@ class	BVHNode : public Hittable
 			int	rightDepth = computeMaxDepth(node.rightChildOffset,      depth + 1);
 			return std::max(leftDepth, rightDepth);
 		}
+		const std::vector<Node>&	getNodes() const { return _nodes; }
 
 	private:
 		std::vector<Node>						_nodes;

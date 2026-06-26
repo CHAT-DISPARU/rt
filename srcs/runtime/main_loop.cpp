@@ -3,14 +3,74 @@
 /*                                                        :::      ::::::::   */
 /*   main_loop.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:24:32 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/16 14:31:50 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/25 19:31:41 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.hpp"
+
+void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total, int width, int height)
+{
+	// allopaue et lance la cmd
+	VkCommandBufferAllocateInfo	allocInfo{};
+
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = vCtx.commandPool;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer	cmd;
+
+	vkAllocateCommandBuffers(vCtx.device, &allocInfo, &cmd);
+
+	VkCommandBufferBeginInfo	beginInfo{};
+
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	vkBeginCommandBuffer(cmd, &beginInfo);
+
+	// lancer les shaders
+	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.computePipeline);
+	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.pipelineLayout, 0, 1, &vCtx.descriptorSet, 0, nullptr);
+
+	GPUPushConstants	pc{};
+
+	pc.cam_origin = cam.getOrigin();
+	pc.cam_forward = cam.getDir();
+	pc.cam_right = cam.getRight();
+	pc.cam_up = cam.getUp();
+	pc.fov = cam.getFov();
+	pc.frame_count = render_total.frame_count;
+	pc.max_depth = render_total.depth_max;
+	pc.seed = (uint32_t)rand();
+	
+	//on envoiue au gpu
+	vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
+	//plaque de 16x16
+	uint32_t	groupCountX = (width + 15) / 16;
+	uint32_t	groupCountY = (height + 15) / 16;
+
+	vkCmdDispatch(cmd, groupCountX, groupCountY, 1);
+	vkEndCommandBuffer(cmd);
+
+	// att le gpu
+	VkSubmitInfo	submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmd;
+
+	vkQueueSubmit(vCtx.computeQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(vCtx.computeQueue);
+	vkFreeCommandBuffers(vCtx.device, vCtx.commandPool, 1, &cmd);
+	void*			mappedData;
+	VkDeviceSize	outputSize = width * height * sizeof(uint32_t); //RGBA 8 bite -> 4 octets
+	vkMapMemory(vCtx.device, vCtx.outputBuffer.memory, 0, outputSize, 0, &mappedData);
+	memcpy(render_total.definitive, mappedData, outputSize);
+	vkUnmapMemory(vCtx.device, vCtx.outputBuffer.memory);
+}
 
 void	sdl_to_screen(SDLContext &sdl, uint32_t *pixels)
 {
@@ -47,7 +107,7 @@ void	sdl_to_screen(SDLContext &sdl, uint32_t *pixels)
 	SDL_RenderPresent(sdl.renderer);
 }
 
-void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, ThreadPool &threads)
+void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanContext &vCtx)
 {
 	bool		running = true;
 	bool		show_settings = false;
@@ -121,7 +181,13 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, ThreadPoo
 		}
 
 		// render
-		thread_calls(app.camera, render_total, threads);
+		if (app.camera.hasMoved())
+		{
+			render_total.frame_count = 1;
+			app.camera.resetMovedFlag();
+		}
+		run_compute_frame(vCtx, render_total.cam, render_total, app.width, app.height);
 		sdl_to_screen(sdl, render_total.definitive);
+		render_total.frame_count++;
 	}
 }

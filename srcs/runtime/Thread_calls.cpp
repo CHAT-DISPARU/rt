@@ -6,11 +6,13 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 14:55:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/24 18:32:32 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 20:56:12 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Render.hpp"
+#include "BVHdebug.hpp"
+#include "ThreadPool.hpp"
 #include <thread>
 #include <future>
 #include <complex>

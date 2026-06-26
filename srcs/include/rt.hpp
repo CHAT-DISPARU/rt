@@ -6,10 +6,11 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:25:03 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/20 12:04:41 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 20:53:28 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
 #include "imgui.h"
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_sdlrenderer3.h"
@@ -27,6 +28,9 @@
 #include "SceneLoader.hpp"
 #include "Render.hpp"
 #include "ThreadPool.hpp"
+#include "ScenePacker.hpp"
+#include "vk_context.hpp"
+#include "VulkanUtils.hpp"
 
 struct	SDLContext
 {
@@ -38,7 +42,8 @@ struct	SDLContext
 };
 
 void	thread_calls(Camera &cam, Render &render_total, ThreadPool &threads);
-void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, ThreadPool &threads);
+struct	VulkanContext;
+void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total, int width, int height);
 void	set_gui_frame(SDLContext &sdl, Render &render_total);
 void	setup_base_render(AppContext &app, Render &render_total);
 void	sdl_cleanup(SDLContext &sdl);
@@ -51,3 +56,6 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 			int &res_current, float fps, float ms);
 Vec3f	sampleTextureFast(SDL_Surface* surface, float u, float v);
 float	sampleScalarLinear(SDL_Surface* surface, float u, float v, int channel);
+bool	init_pipeline(VulkanContext& vCtx);
+void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanContext &vCtx);
+

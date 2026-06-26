@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:16 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/20 13:06:03 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 17:41:12 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,14 @@ class	Triangle : public Hittable
 			_box._min -= Vec3f(0.001f);
 			_box._max += Vec3f(0.001f);
 		}
+		Vec3f			getV0() const { return _v0; }
+		Vec3f			getV1() const { return _v1; }
+		Vec3f			getV2() const { return _v2; }
+		const float*	getUV0() const { return _uv0; }
+		const float*	getUV1() const { return _uv1; }
+		const float*	getUV2() const { return _uv2; }
+		bool			hasUV() const { return _has_uv; }
+
 	private:
 		Vec3f		_v0;
 		Vec3f		_v1;

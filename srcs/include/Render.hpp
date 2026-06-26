@@ -6,19 +6,18 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/24 18:53:53 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 20:55:01 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 #include "Camera.hpp"
-#include "HitRecord.hpp"
-#include "Hittable.hpp"
-#include "Scene.hpp"
-#include "ThreadPool.hpp"
-#include "BVHdebug.hpp"
 #include "EnvironmentMap.hpp"
 #include "BlackHole.hpp"
+
+class	Scene;
+struct	BvhDebugConfig;
+struct	HitRecord;
 #define THREAD_MAX 16
 
 struct Render

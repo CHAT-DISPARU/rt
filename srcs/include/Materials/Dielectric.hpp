@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 18:34:13 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/14 22:28:54 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 17:34:02 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,4 +41,5 @@ class Dielectric : public Material
 		{
 			return false;
 		};
+		float	getFuzz() const { return _fuzz; }
 };

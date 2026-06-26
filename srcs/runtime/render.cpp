@@ -6,12 +6,14 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/13 10:51:20 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/24 18:53:48 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 20:55:14 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "Render.hpp"
+#include "BVHdebug.hpp"
+#include "Scene.hpp"
 
 Vec3f	traceRay(Ray ray, const Render& render)
 {

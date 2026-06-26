@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/05 18:26:18 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/17 12:41:11 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 17:38:07 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,9 @@ class	Sphere : public Hittable
 		bool	bbox(AABB& output_box) const;
 		Vec3f	sample(const Vec3f& origin, uint32_t* seed) const;
 		float	pdf_value(const Vec3f& origin, const Vec3f& dir) const;
-		
+		const Mat4f&	getInverseTransform() const { return _inverse; }
+		Vec3f			getCenter() const { return _center; }
+		float			getRadius() const { return _radius; }
 		AABB		_box;
 	private:
 		Vec3f		_center;

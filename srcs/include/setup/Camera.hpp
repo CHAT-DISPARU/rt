@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/10 16:55:06 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/23 20:13:22 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 19:19:59 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,11 @@ class	Camera
 		{
 			return (m_focus_dist);
 		}
-
+		Vec3f	getOrigin() const { return (get_pos()); }
+		Vec3f	getDir() const { return (get_forward()); }
+		Vec3f	getRight() const { return (get_right()); }
+		Vec3f	getUp() const { return (get_up()); }
+		float	getFov() const { return (get_fov()); }
 	private:
 
 		void	update()

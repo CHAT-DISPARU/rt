@@ -32,7 +32,7 @@ Material sun_mat {
 Material earth_bump_mat {
     type lambertian
     texture /home/titan/Téléchargements/earth.jpg
-    normal /home/titan/Téléchargements/earth_normals_lowres_displacement.png
+    normal /home/titan/Téléchargements/images.jpeg
     normal_strength 1.2
 }
 
@@ -46,7 +46,7 @@ Material earth_flat_mat {
 Material wall_bump {
     type lambertian
     color 0.6 0.6 0.6
-    normal /home/titan/Téléchargements/images.jpeg
+    normal /home/titan/Téléchargements/8k_earth_normal_map_normal.png
     normal_strength 0.15
 }
 

@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/24 18:53:58 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 20:57:02 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,15 +157,15 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 			BvhDebugMode new_mode = (BvhDebugMode)bvh_mode_idx;
 			if (new_mode != BvhDebugMode::OFF && render_total.bvh_debug.mode == BvhDebugMode::OFF)
 			{
-				render_total.bvh_debug.saved_samples = render_total.samples;
+				//render_total.bvh_debug.saved_samples = render_total.samples;
 				render_total.samples = 1;
 			}
-			else if (new_mode == BvhDebugMode::OFF && render_total.bvh_debug.mode != BvhDebugMode::OFF)
-			{
-				if (render_total.bvh_debug.saved_samples != -1)
-					render_total.samples = render_total.bvh_debug.saved_samples;
-				render_total.bvh_debug.saved_samples = -1;
-			}
+			// else if (new_mode == BvhDebugMode::OFF && render_total.bvh_debug.mode != BvhDebugMode::OFF)
+			// {
+			// 	//if (render_total.bvh_debug.saved_samples != -1)
+			// 		render_total.samples = render_total.bvh_debug.saved_samples;
+			// 	//render_total.bvh_debug.saved_samples = -1;
+			// }
 			render_total.bvh_debug.mode = new_mode;
 			render_total.frame_count = 1;
 		}

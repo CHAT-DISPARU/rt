@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Quad.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
+/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/17 16:34:08 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/19 11:14:37 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/06/25 17:38:40 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,11 @@ class	Quad : public Hittable
 		bool	bbox(AABB& output_box) const;
 		Vec3f	sample(const Vec3f& origin, uint32_t* seed) const;
 		float	pdf_value(const Vec3f& origin, const Vec3f& dir) const;
+		const Mat4f&	getInverseTransform() const { return _inverse; }
+		Vec3f			getCenter() const { return _center; }
+		Vec3f			getNormal() const { return _normal; }
+		float			getW() const { return _w; }
+		float			getH() const { return _h; }
 
 	private:
 		Vec3f		_center;

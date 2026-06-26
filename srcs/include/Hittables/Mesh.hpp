@@ -6,7 +6,7 @@
 /*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/20 12:27:17 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/23 21:57:45 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/06/25 17:39:52 by CHAT-DISPAR      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,6 +89,7 @@ class	Mesh : public Hittable
 				return _bvh->getMaxDepth();
 			return 0;
 		}
+		const std::vector<std::shared_ptr<Triangle>>&	getTriangles() const { return _triangles; }
 	private:
 		std::vector<std::shared_ptr<Triangle>>	_triangles;
 		std::shared_ptr<BVHNode>	_bvh;
