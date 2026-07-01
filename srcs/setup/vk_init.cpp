@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   vk_init.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:21:08 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/25 18:51:26 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/01 14:50:57 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,12 +60,23 @@ bool	init_vulkan(VulkanContext& vCtx)
 	}
 
 	std::vector<VkPhysicalDevice>	devices(deviceCount);
-
 	vkEnumeratePhysicalDevices(vCtx.instance, &deviceCount, devices.data());
 	vCtx.physicalDevice = devices[0];
-	VkPhysicalDeviceProperties	deviceProperties;
-	vkGetPhysicalDeviceProperties(vCtx.physicalDevice, &deviceProperties);
-	std::cout << "GPU Selectionne : " << deviceProperties.deviceName << "\n";
+	//si on trouve un vraigpu on le prend
+	for (const auto& device : devices)
+	{
+		VkPhysicalDeviceProperties props;
+		vkGetPhysicalDeviceProperties(device, &props);
+		
+		if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		{
+			vCtx.physicalDevice = device;
+			break;
+		}
+	}
+	VkPhysicalDeviceProperties finalProperties;
+	vkGetPhysicalDeviceProperties(vCtx.physicalDevice, &finalProperties);
+	std::cout << "GPU Selectionne : " << finalProperties.deviceName << "\n";
 
 	//creation logical devise et de la queu
 	vCtx.computeQueueIndex = get_compute_queue_family(vCtx.physicalDevice);

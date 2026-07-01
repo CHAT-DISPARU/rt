@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   setup_gui.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/25 20:57:02 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/01 14:41:01 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app,
 	const char **res_labels, int *res_w, int *res_h, int res_count,
-	int &res_current, float fps, float ms)
+	int &res_current, float fps, float ms, VulkanContext &vCtx)
 {
 	static float	fps_history[100] = {};
 	static int		fps_offset = 0;
@@ -52,9 +52,10 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 			if (ImGui::Selectable(res_labels[i], selected))
 			{
 				res_current = i;
-				resize_sdl(sdl, res_w[i], res_h[i], render_total);
+				resize_sdl(sdl, res_w[i], res_h[i], render_total, vCtx);
 			}
-			if (selected) ImGui::SetItemDefaultFocus();
+			if (selected)
+				ImGui::SetItemDefaultFocus();
 		}
 		ImGui::EndCombo();
 	}

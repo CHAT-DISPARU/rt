@@ -3,31 +3,27 @@
 /*                                                        :::      ::::::::   */
 /*   main_loop.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:24:32 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/25 19:31:41 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/01 14:44:55 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.hpp"
 
-void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total, int width, int height)
+void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total)
 {
 	// allopaue et lance la cmd
 	VkCommandBufferAllocateInfo	allocInfo{};
-
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandPool = vCtx.commandPool;
 	allocInfo.commandBufferCount = 1;
-
 	VkCommandBuffer	cmd;
-
 	vkAllocateCommandBuffers(vCtx.device, &allocInfo, &cmd);
 
 	VkCommandBufferBeginInfo	beginInfo{};
-
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	vkBeginCommandBuffer(cmd, &beginInfo);
@@ -46,12 +42,15 @@ void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total, i
 	pc.frame_count = render_total.frame_count;
 	pc.max_depth = render_total.depth_max;
 	pc.seed = (uint32_t)rand();
+	pc.time = (float)SDL_GetTicks() / 1000.0f;
+	pc.w_h = render_total.height;
+	pc.w_w = render_total.width;
 	
 	//on envoiue au gpu
 	vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
 	//plaque de 16x16
-	uint32_t	groupCountX = (width + 15) / 16;
-	uint32_t	groupCountY = (height + 15) / 16;
+	uint32_t	groupCountX = (render_total.width + 15) / 16;
+	uint32_t	groupCountY = (render_total.height + 15) / 16;
 
 	vkCmdDispatch(cmd, groupCountX, groupCountY, 1);
 	vkEndCommandBuffer(cmd);
@@ -66,7 +65,7 @@ void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total, i
 	vkQueueWaitIdle(vCtx.computeQueue);
 	vkFreeCommandBuffers(vCtx.device, vCtx.commandPool, 1, &cmd);
 	void*			mappedData;
-	VkDeviceSize	outputSize = width * height * sizeof(uint32_t); //RGBA 8 bite -> 4 octets
+	VkDeviceSize	outputSize = render_total.width * render_total.height * sizeof(uint32_t); //RGBA 8 bite
 	vkMapMemory(vCtx.device, vCtx.outputBuffer.memory, 0, outputSize, 0, &mappedData);
 	memcpy(render_total.definitive, mappedData, outputSize);
 	vkUnmapMemory(vCtx.device, vCtx.outputBuffer.memory);
@@ -146,7 +145,7 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanCon
 		ImGui::NewFrame();
 		if (show_settings)
 			show_settings_window(sdl, render_total, app, res_labels, res_w, res_h, res_count, res_current,
-								fps, ms_per_frame);
+								fps, ms_per_frame, vCtx);
 
 		if (!ImGui::GetIO().WantCaptureKeyboard)
 		{
@@ -186,7 +185,7 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanCon
 			render_total.frame_count = 1;
 			app.camera.resetMovedFlag();
 		}
-		run_compute_frame(vCtx, render_total.cam, render_total, app.width, app.height);
+		run_compute_frame(vCtx, render_total.cam, render_total);
 		sdl_to_screen(sdl, render_total.definitive);
 		render_total.frame_count++;
 	}

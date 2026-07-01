@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Scene.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:41:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/25 20:42:14 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/01 13:21:53 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,8 +137,7 @@ class Scene : public Hittable
 			return (0);
 		}
 
-		// Dans Scene.hpp
-		void	hit_box_depth(const Ray& r, const BvhDebugConfig& config,
+		void	hit_box_depths(const Ray& r, const BvhDebugConfig& config,
 					float t_geom, Vec3f& color_out, float& alpha_out, 
 					int current_depth = 0) const
 		{

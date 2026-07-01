@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PBRMaterial.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/20 11:54:38 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/25 17:34:32 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/01 13:23:59 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,10 @@ class PBRMaterial : public Material
 	public:
 		bool	scatter(const Ray& r_in, const HitRecord& rec,
 						Vec3f& attenuation, Ray& scattered,
-						float& pdf, unsigned int* seed) const;
+						float& pdf, unsigned int* seed) const override;
 
 		float	scattering_pdf(const Ray& r_in, const HitRecord& rec,
-								const Ray& scattered) const;
+								const Ray& scattered) const override;
 
 		Vec3f	emitted(float u, float v, const Vec3f& p) const override;
 

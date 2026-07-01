@@ -1,4 +1,5 @@
 #version 460
+#extension GL_GOOGLE_include_directive : require
 // on utilise des truc de 16x16 pixel
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -111,7 +112,7 @@ layout(std430, binding = 7) readonly buffer BVHQdBuf
 // Le buffer de sortie (Binding 8)
 layout(std430, binding = 8) writeonly buffer OutBuf
 {
-	vec4 pixels[];
+	uint pixels[];
 };
 layout(push_constant) uniform PushConstants
 {
@@ -126,13 +127,25 @@ layout(push_constant) uniform PushConstants
 	int			frame_count;
 	int			max_depth;
 	uint		seed;
-	int			pad3;
+	float		time;
+	int			w_h;
+	int			w_w;
+	vec2		pad3;
 } pc;
+
+#include "intersection.glsl"
+
+uint	packColor(vec3 color)
+{
+	uvec3 c = uvec3(clamp(color, 0.0, 1.0) * 255.0);
+	return (c.r << 24) | (c.g << 16) | (c.b << 8) | 255u;
+}
+
 
 void	main()
 {
 	ivec2	pixel_coords = ivec2(gl_GlobalInvocationID.xy);
-	ivec2	resolution = ivec2(1920, 1080);
+	ivec2	resolution = ivec2(pc.w_w, pc.w_h);
 
 	if (pixel_coords.x >= resolution.x || pixel_coords.y >= resolution.y)
 		return ;
@@ -148,5 +161,5 @@ void	main()
 	ray_dir = normalize(ray_dir);
 	vec3	ray_origin = pc.cam_origin;
 	vec3	color = abs(ray_dir);
-	pixels[pixel_index] = vec4(color, 1.0);
+    pixels[pixel_index] = packColor(color);
 }
