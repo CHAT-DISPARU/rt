@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:25:03 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/07/01 14:40:47 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/02 18:32:37 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,5 +57,5 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 Vec3f	sampleTextureFast(SDL_Surface* surface, float u, float v);
 float	sampleScalarLinear(SDL_Surface* surface, float u, float v, int channel);
 bool	init_pipeline(VulkanContext& vCtx);
-void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanContext &vCtx);
+void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanContext &vCtx, ThreadPool &threads);
 

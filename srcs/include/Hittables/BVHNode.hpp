@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BVHNode.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/07 16:30:47 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/25 17:47:21 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/02 19:12:50 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,6 @@ class	BVHNode : public Hittable
 			return std::max(leftDepth, rightDepth);
 		}
 		const std::vector<Node>&	getNodes() const { return _nodes; }
-
 	private:
 		std::vector<Node>						_nodes;
 		std::vector<std::shared_ptr<Hittable>>	_orderedObjects;

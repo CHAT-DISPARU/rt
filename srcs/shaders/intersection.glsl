@@ -4,6 +4,7 @@ void set_face_normal(inout HitRecord rec, Ray r, vec3 outward_normal)
 {
 	rec.front_face = dot(r.dir, outward_normal) < 0.0;
 	rec.normal = rec.front_face ? outward_normal : -outward_normal;
+	rec.ni_from = r.current_ior;
 }
 
 //applique matrice invers
@@ -11,7 +12,7 @@ Ray	transform_ray(Ray r, mat4 inv_mat)
 {
 	vec3	local_o = (inv_mat * vec4(r.o, 1.0)).xyz;
 	vec3	local_dir = (inv_mat * vec4(r.dir, 0.0)).xyz;
-	return (Ray(local_o, local_dir));
+	return (Ray(local_o, local_dir, r.current_ior));
 }
 
 //triangle
@@ -99,12 +100,13 @@ bool hit_quad(Ray ray, GPUQuad quad, float t_min, float t_max, inout HitRecord r
 		return false;
 	rec.t = t;
 	rec.point = ray.o + t * ray.dir;
-	rec.normal = face_forward(ray.dir, quad.normal);
+	set_face_normal(rec, ray, quad.normal);
 	rec.u = ((p.x + 1.0) * 0.5) * quad.w;
 	rec.v = ((p.z + 1.0) * 0.5) * quad.h;
 	rec.mat_idx = quad.mat_idx;
 	return true;
 }
+
 
 //plane
 bool hit_plane(Ray ray, GPUPlane plane, float t_min, float t_max, inout HitRecord rec)
@@ -119,10 +121,21 @@ bool hit_plane(Ray ray, GPUPlane plane, float t_min, float t_max, inout HitRecor
 		return false;
 	rec.t = t;
 	rec.point = ray.o + t * ray.dir;
-	rec.normal = face_forward(ray.dir, plane.normal);
+	set_face_normal(rec, ray, plane.normal);
 	vec3	local_p = l_ray.o + l_ray.dir * t;
 	rec.u = local_p.x;
 	rec.v = local_p.z;
 	rec.mat_idx = plane.mat_idx;
 	return true;
+}
+
+bool	hit_aabb(vec3 aabb_min, vec3 aabb_max, Ray ray, vec3 invDir, float tMin, float tMax)
+{
+	vec3	t0 = (aabb_min - ray.o) * invDir;
+	vec3	t1 = (aabb_max - ray.o) * invDir;
+	vec3	tmin_vec = min(t0, t1);
+	vec3	tmax_vec = max(t0, t1);
+	float	tmin_final = max(tMin, max(tmin_vec.x, max(tmin_vec.y, tmin_vec.z)));
+	float	tmax_final = min(tMax, min(tmax_vec.x, min(tmax_vec.y, tmax_vec.z)));
+	return tmax_final > tmin_final;
 }

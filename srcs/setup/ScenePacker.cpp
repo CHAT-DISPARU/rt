@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ScenePacker.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 17:23:28 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/25 20:58:25 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/02 19:12:17 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,80 +97,115 @@ void	ScenePacker::pack_materials(const std::unordered_map<std::string, std::shar
 
 void	ScenePacker::pack_geometry(const Scene& scene)
 {
+	const int	PRIM_TRIANGLE = 0;
+	const int	PRIM_SPHERE = 1;
+	const int	PRIM_QUAD = 2;
+
+	if (const BVHNode* bvh_sph = scene.get_bvh_spheres())
+	{
+		for (const auto& obj_ptr : bvh_sph->getOrderedObjects())
+		{
+			if (auto* sphere = dynamic_cast<Sphere*>(obj_ptr.get()))
+			{
+				Material*	mat = sphere->getMat();
+				int			current_mat_idx = (mat && mat_to_idx.count(mat)) ? mat_to_idx[mat] : 0;
+				
+				GPUSphere	gpu_sph{};
+				gpu_sph.inverse_transform = sphere->getInverseTransform();
+				gpu_sph.center = sphere->getCenter();
+				gpu_sph.radius = sphere->getRadius();
+				gpu_sph.mat_idx = current_mat_idx;
+				
+				int	current_idx = gpu_spheres.size();
+				gpu_spheres.push_back(gpu_sph);
+				
+				if (gpu_materials[current_mat_idx].type == MAT_EMISSIVE)
+				{
+					GPULight light{};
+					light.prim_type = PRIM_SPHERE;
+					light.prim_idx = current_idx;
+					gpu_lights.push_back(light);
+				}
+			}
+		}
+	}
+	if (const BVHNode* bvh_qd = scene.get_bvh_quads())
+	{
+		for (const auto& obj_ptr : bvh_qd->getOrderedObjects())
+		{
+			if (auto* quad = dynamic_cast<Quad*>(obj_ptr.get()))
+			{
+				Material*	mat = quad->getMat();
+				int			current_mat_idx = (mat && mat_to_idx.count(mat)) ? mat_to_idx[mat] : 0;
+
+				GPUQuad		gpu_qd{};
+				gpu_qd.inverse_transform = quad->getInverseTransform();
+				gpu_qd.center = quad->getCenter();
+				gpu_qd.mat_idx = current_mat_idx;
+				gpu_qd.normal = quad->getNormal();
+				gpu_qd.w = quad->getW();
+				gpu_qd.h = quad->getH();
+				
+				int current_idx = gpu_quads.size();
+				gpu_quads.push_back(gpu_qd);
+				
+				if (gpu_materials[current_mat_idx].type == MAT_EMISSIVE)
+				{
+					GPULight light{};
+					light.prim_type = PRIM_QUAD;
+					light.prim_idx = current_idx;
+					gpu_lights.push_back(light);
+				}
+			}
+		}
+	}
+	if (const BVHNode* bvh_tri = scene.get_bvh_triangles())
+	{
+		for (const auto& obj_ptr : bvh_tri->getOrderedObjects())
+		{
+			if (auto* tri = dynamic_cast<Triangle*>(obj_ptr.get()))
+			{
+				Material*	mat = tri->getMat();
+				int			current_mat_idx = (mat && mat_to_idx.count(mat)) ? mat_to_idx[mat] : 0;
+
+				GPUTriangle	gpu_tri{};
+				gpu_tri.v0 = tri->getV0();
+				gpu_tri.mat_idx = current_mat_idx;
+				gpu_tri.v1 = tri->getV1();
+				gpu_tri.uv0_x = tri->getUV0()[0];
+				gpu_tri.v2 = tri->getV2();
+				gpu_tri.uv0_y = tri->getUV0()[1];
+				gpu_tri.uv1_x = tri->getUV1()[0];
+				gpu_tri.uv1_y = tri->getUV1()[1];
+				gpu_tri.uv2_x = tri->getUV2()[0];
+				gpu_tri.uv2_y = tri->getUV2()[1];
+				
+				int	current_idx = gpu_triangles.size();
+				gpu_triangles.push_back(gpu_tri);
+				
+				if (gpu_materials[current_mat_idx].type == MAT_EMISSIVE)
+				{
+					GPULight light{};
+					light.prim_type = PRIM_TRIANGLE;
+					light.prim_idx = current_idx;
+					gpu_lights.push_back(light);
+				}
+			}
+		}
+	}
 	for (const auto& obj_ptr : scene.getObjects())
 	{
-		Hittable*	raw_obj = obj_ptr.get();
-		Material*	mat = raw_obj->getMat();
-		int		current_mat_idx = (mat && mat_to_idx.count(mat)) ? mat_to_idx[mat] : 0;
+		if (auto* plane = dynamic_cast<Plane*>(obj_ptr.get()))
+		{
+			Material*	mat = plane->getMat();
+			int			current_mat_idx = (mat && mat_to_idx.count(mat)) ? mat_to_idx[mat] : 0;
 
-		if (auto* sphere = dynamic_cast<Sphere*>(raw_obj))
-		{
-			GPUSphere	gpu_sph{};
-			
-			gpu_sph.inverse_transform = sphere->getInverseTransform();
-			gpu_sph.center = sphere->getCenter();
-			gpu_sph.radius = sphere->getRadius();
-			gpu_sph.mat_idx = current_mat_idx;
-			gpu_spheres.push_back(gpu_sph);
-		}
-		else if (auto* plane = dynamic_cast<Plane*>(raw_obj))
-		{
 			GPUPlane	gpu_pl{};
-			
 			gpu_pl.inverse_transform = plane->getInverseTransform();
 			gpu_pl.point = plane->getPoint();
 			gpu_pl.mat_idx = current_mat_idx;
 			gpu_pl.normal = plane->getNormal();
 			gpu_planes.push_back(gpu_pl);
-		}
-		else if (auto* quad = dynamic_cast<Quad*>(raw_obj))
-		{
-			GPUQuad		gpu_qd{};
-			
-			gpu_qd.inverse_transform = quad->getInverseTransform();
-			gpu_qd.center = quad->getCenter();
-			gpu_qd.mat_idx = current_mat_idx;
-			gpu_qd.normal = quad->getNormal();
-			gpu_qd.w = quad->getW();
-			gpu_qd.h = quad->getH();
-			gpu_quads.push_back(gpu_qd);
-		}
-		else if (auto* tri = dynamic_cast<Triangle*>(raw_obj))
-		{
-			GPUTriangle	gpu_tri{};
-			
-			gpu_tri.v0 = tri->getV0();
-			gpu_tri.mat_idx = current_mat_idx;
-			gpu_tri.v1 = tri->getV1();
-			gpu_tri.uv0_x = tri->getUV0()[0];
-			gpu_tri.v2 = tri->getV2();
-			gpu_tri.uv0_y = tri->getUV0()[1];
-			gpu_tri.uv1_x = tri->getUV1()[0];
-			gpu_tri.uv1_y = tri->getUV1()[1];
-			gpu_tri.uv2_x = tri->getUV2()[0];
-			gpu_tri.uv2_y = tri->getUV2()[1];
-			gpu_triangles.push_back(gpu_tri);
-		}
-		else if (auto* mesh = dynamic_cast<Mesh*>(raw_obj))
-		{
-			for (const auto& mesh_tri : mesh->getTriangles())
-			{
-				GPUTriangle	gpu_tri{};
-				gpu_tri.v0 = mesh_tri->getV0();
-				gpu_tri.v1 = mesh_tri->getV1();
-				gpu_tri.v2 = mesh_tri->getV2();
-				gpu_tri.uv0_x = mesh_tri->getUV0()[0];
-				gpu_tri.uv0_y = mesh_tri->getUV0()[1];
-				gpu_tri.uv1_x = mesh_tri->getUV1()[0];
-				gpu_tri.uv1_y = mesh_tri->getUV1()[1];
-				gpu_tri.uv2_x = mesh_tri->getUV2()[0];
-				gpu_tri.uv2_y = mesh_tri->getUV2()[1];
-
-				Material*	tri_mat = mesh_tri->getMat();
-
-				gpu_tri.mat_idx = (tri_mat && mat_to_idx.count(tri_mat)) ? mat_to_idx[tri_mat] : current_mat_idx;
-				gpu_triangles.push_back(gpu_tri);
-			}
 		}
 	}
 }

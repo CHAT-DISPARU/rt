@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/06 17:41:12 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/07/01 13:21:53 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/02 17:23:15 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,6 +130,7 @@ class Scene : public Hittable
 		}
 
 		std::vector<std::shared_ptr<Hittable>>	getLights() const { return _light; }
+		unsigned int	getLightsCount() const {return _light.size(); }
 		const std::vector<std::shared_ptr<Hittable>>&	getObjects() const { return _objects; }
 
 		int	getMaxDepth() const override

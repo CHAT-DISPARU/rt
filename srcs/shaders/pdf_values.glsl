@@ -1,3 +1,8 @@
+
+#define GEOM_TRIANGLE 0
+#define GEOM_SPHERE 1
+#define GEOM_QUAD 2
+
 vec3 Triangle_sample(inout vec3 origin, GPUTriangle tri, inout uint seed)
 {
 	float	r1 = randomFloat(seed);
@@ -17,7 +22,7 @@ float	Triangle_pdf_value(vec3 origin, GPUTriangle tri, vec3 dir)
 {
 	HitRecord	rec;
 
-	if (!hit_triangle(Ray(origin, dir), tri, 1e-4, 1e30, rec))
+	if (!hit_triangle(Ray(origin, dir, 1.0), tri, 1e-4, 1e30, rec))
 		return (0.0f);
 
 	vec3	edge1 = tri.v1 - tri.v0;
@@ -65,7 +70,7 @@ vec3	Sphere_sample(vec3 origin, GPUSphere sph, inout uint seed)
 float	Sphere_pdf_value(vec3 origin, GPUSphere sph, vec3 dir)
 {
 	HitRecord	rec;
-	if (!hit_sphere(Ray(origin, dir), sph, 1e-4, 1e30, rec))
+	if (!hit_sphere(Ray(origin, dir, 1.0), sph, 1e-4, 1e30, rec))
 		return (0.0f);
 	vec3	oc = sph.center - origin;
 	float	dist2 = dot(oc, oc);
@@ -88,14 +93,14 @@ vec3	Quad_sample(vec3 origin, GPUQuad quad, inout uint seed)
 	float	local_z = r2 * 2.0 - 1.0;
 	vec3	local_p = vec3(local_x, 0.0, local_z);
 
-	return (quad.transform * vec4(local_p, 1.0)).xyz;
+	return (inverse(quad.inverse_transform) * vec4(local_p, 1.0)).xyz;
 }
 
 float	Quad_pdf_value(vec3 origin, vec3 dir, GPUQuad quad)
 {
 	HitRecord	rec;
 
-	if (!hit_quad(Ray(origin, dir), quad, 1e-4, 1e30, rec))
+	if (!hit_quad(Ray(origin, dir, 1.0), quad, 1e-4, 1e30, rec))
 		return 0.0;
 	float	area = quad.w * quad.h;
 	float	distance_squared = rec.t * rec.t;
@@ -103,4 +108,40 @@ float	Quad_pdf_value(vec3 origin, vec3 dir, GPUQuad quad)
 	if (cosine < 1e-6 || area < 1e-6)
 		return 0.0;
 	return (distance_squared / (cosine * area));
+}
+
+vec3	geometry_sample(int geom_type, int prim_idx, vec3 origin, inout uint seed)
+{
+	switch (geom_type)
+	{
+		case GEOM_TRIANGLE:
+			return Triangle_sample(origin, triangles[prim_idx], seed);
+			
+		case GEOM_SPHERE:
+			return Sphere_sample(origin, spheres[prim_idx], seed);
+			
+		case GEOM_QUAD:
+			return Quad_sample(origin, quads[prim_idx], seed);
+			
+		default:
+			return vec3(0.0);
+	}
+}
+
+float	geometry_pdf_value(int geom_type, int prim_idx, vec3 origin, vec3 dir)
+{
+	switch (geom_type)
+	{
+		case GEOM_TRIANGLE:
+			return Triangle_pdf_value(origin, triangles[prim_idx], dir);
+			
+		case GEOM_SPHERE:
+			return Sphere_pdf_value(origin, spheres[prim_idx], dir);
+			
+		case GEOM_QUAD:
+			return Quad_pdf_value(origin, dir, quads[prim_idx]);
+			
+		default:
+			return 0.0;
+	}
 }

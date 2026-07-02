@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:24:32 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/07/01 14:44:55 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/02 19:27:39 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,9 @@ void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total)
 	pc.time = (float)SDL_GetTicks() / 1000.0f;
 	pc.w_h = render_total.height;
 	pc.w_w = render_total.width;
+	pc.ru_enabled = render_total.ru_enabled;
+	pc.shadow_ray = render_total.shadow_ray;
+	pc.light_count = render_total.scene.getLightsCount();
 	
 	//on envoiue au gpu
 	vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
@@ -106,7 +109,7 @@ void	sdl_to_screen(SDLContext &sdl, uint32_t *pixels)
 	SDL_RenderPresent(sdl.renderer);
 }
 
-void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanContext &vCtx)
+void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanContext &vCtx, ThreadPool &threads)
 {
 	bool		running = true;
 	bool		show_settings = false;
@@ -178,15 +181,19 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanCon
 			else if (keys[SDL_SCANCODE_RIGHTBRACKET])
 				app.camera.roll(-render_total.cam_rotate);
 		}
-
-		// render
+		//thread_calls(app.camera, render_total, threads);
+		//render
+		(void)threads;
 		if (app.camera.hasMoved())
 		{
 			render_total.frame_count = 1;
 			app.camera.resetMovedFlag();
 		}
-		run_compute_frame(vCtx, render_total.cam, render_total);
-		sdl_to_screen(sdl, render_total.definitive);
-		render_total.frame_count++;
+		if (app.samples == -1 || render_total.frame_count <= (size_t)app.samples)
+		{
+			run_compute_frame(vCtx, render_total.cam, render_total);
+			sdl_to_screen(sdl, render_total.definitive);
+			render_total.frame_count++;
+		}
 	}
 }

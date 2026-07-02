@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ScenePacker.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 17:22:23 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/25 20:59:34 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/02 12:38:38 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ public:
 	std::vector<GPUBVHNode>		gpu_bvh_triangles;
 	std::vector<GPUBVHNode>		gpu_bvh_spheres;
 	std::vector<GPUBVHNode>		gpu_bvh_quads;
+	std::vector<GPULight>		gpu_lights;
 	void	pack_scene_to_gpu(const AppContext& app);
 
 private:

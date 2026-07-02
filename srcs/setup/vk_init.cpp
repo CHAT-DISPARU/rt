@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:21:08 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/01 14:50:57 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/02 16:50:37 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,7 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 							const VulkanBuffer& mat_buf, const VulkanBuffer& tri_buf, const VulkanBuffer& sph_buf, 
 							const VulkanBuffer& qd_buf, const VulkanBuffer& pl_buf,
 							const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
-							const VulkanBuffer& bvh_qd_buf)
+							const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf)
 {
 	//vec4f RGBA
 	//HOST_VISIBLE pour SDL3 
@@ -144,9 +144,9 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 				 vCtx.outputBuffer.buffer, vCtx.outputBuffer.memory);
 
 	//cb de buffer on va envote
-	// 9 buffers 8 entree de la scene + 1 sortie les pixels
-	std::vector<VkDescriptorSetLayoutBinding>	bindings(9);
-	for (uint32_t i = 0; i < 9; i++)
+	// 10 buffers 8 entree de la scene + 1 sortie les pixels
+	std::vector<VkDescriptorSetLayoutBinding>	bindings(10);
+	for (uint32_t i = 0; i < 10; i++)
 	{
 		bindings[i].binding = i;
 		bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; // SSBO
@@ -169,7 +169,7 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 	//create pool
 	VkDescriptorPoolSize	poolSize{};
 	poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	poolSize.descriptorCount = 9;
+	poolSize.descriptorCount = 10;
 
 	VkDescriptorPoolCreateInfo	poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -191,20 +191,21 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 		return false;
 
 	//pour gpu on dit tel int et egualk a tel buffer
-	std::vector<VkDescriptorBufferInfo>	bufferInfos(9);
+	std::vector<VkDescriptorBufferInfo>	bufferInfos(10);
 
 	bufferInfos[0] = {mat_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[1] = {tri_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[2] = {sph_buf.buffer, 0, VK_WHOLE_SIZE};
-	bufferInfos[3] = {qd_buf.buffer,  0, VK_WHOLE_SIZE};
-	bufferInfos[4] = {pl_buf.buffer,  0, VK_WHOLE_SIZE};
+	bufferInfos[3] = {qd_buf.buffer, 0, VK_WHOLE_SIZE};
+	bufferInfos[4] = {pl_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[5] = {bvh_tri_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[6] = {bvh_sph_buf.buffer, 0, VK_WHOLE_SIZE};
-	bufferInfos[7] = {bvh_qd_buf.buffer,  0, VK_WHOLE_SIZE};
+	bufferInfos[7] = {bvh_qd_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[8] = {vCtx.outputBuffer.buffer, 0, VK_WHOLE_SIZE};
+	bufferInfos[9] = {light_buf.buffer, 0, VK_WHOLE_SIZE};
 
-	std::vector<VkWriteDescriptorSet>	descriptorWrites(9);
-	for (uint32_t i = 0; i < 9; i++)
+	std::vector<VkWriteDescriptorSet>	descriptorWrites(10);
+	for (uint32_t i = 0; i < 10; i++)
 	{
 		descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[i].dstSet = vCtx.descriptorSet;

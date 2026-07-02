@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 16:53:13 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/01 14:17:11 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/02 17:24:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ struct alignas(16)	GPUMaterial
 
 	float	ior;// 4 
 	int	type;// 4 
-	int	albedo_tex_idx;// 4  => -1 soi pas de texture
+	int	albedo_tex_idx;// 4  => -1 soit pas de texture
 	int	normal_tex_idx;// 4  troisieme bloc
 
 	int	roughness_tex_idx;// 4 
@@ -115,22 +115,35 @@ struct alignas(16)	GPUQuad
 };
 
 
-// 96 6 x16
+//  7 x16
 struct alignas(16) GPUPushConstants
 {
-	Vec3f	cam_origin;// 12 
-	float	pad0;// 4  bloc 1
+	Vec3f	cam_origin;//12 
+	float	pad0;//4  bloc 1
 	Vec3f	cam_forward;// 12 
-	float	pad1;// 4   bloc 2
-	Vec3f	cam_right;// 12 
-	float	pad2;// 4  bloc 3
-	Vec3f	cam_up;// 12 
-	float	fov;// 4  bloc 4
-	int			frame_count;// 4 
-	int			max_depth;// 4 
-	uint32_t	seed;// 4 
-	float		time;// 4  bloc 5
+	float	pad1;//4   bloc 2
+	Vec3f	cam_right;//12 
+	float	pad2;//4  bloc 3
+	Vec3f	cam_up;//12 
+	float	fov;//4  bloc 4
+	int			frame_count;//4 
+	int			max_depth;//4 
+	uint32_t	seed;//4 
+	float		time;//4  bloc 5
 	int			w_h;// 4
 	int			w_w;//4
-	float	pad3[2];// 8 bloc 6
+	uint32_t	light_count;//4
+	int			shadow_ray;//4 bloc 6
+	int			ru_enabled;//4
+	int			pad[3];//12 bloc7
+	
+};
+
+
+//16 ok
+struct alignas(16) GPULight
+{
+	int	prim_type;//4
+	int	prim_idx;//4
+	int	pad[2];//8 bloc 1
 };

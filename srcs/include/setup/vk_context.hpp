@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   vk_context.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:20:51 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/25 19:15:46 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/02 17:26:29 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,5 +42,5 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 							const VulkanBuffer& mat_buf, const VulkanBuffer& tri_buf, const VulkanBuffer& sph_buf, 
 							const VulkanBuffer& qd_buf, const VulkanBuffer& pl_buf,
 							const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
-							const VulkanBuffer& bvh_qd_buf);
+							const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf);
 void	cleanup_vulkan(VulkanContext& vCtx);

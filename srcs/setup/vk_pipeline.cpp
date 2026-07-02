@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   vk_pipeline.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:54:58 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/25 21:03:26 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/07/02 16:52:54 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ bool	init_pipeline(VulkanContext& vCtx)
 		return (false);
 	}
 
-	//etape de computes
+	//etapes de computes
 	VkPipelineShaderStageCreateInfo shaderStageInfo{};
 	shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;

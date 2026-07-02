@@ -1,6 +1,6 @@
 #version 460
 #extension GL_GOOGLE_include_directive : require
-// on utilise des truc de 16x16 pixel
+// on utilise des trucs de 16x16 pixels
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 
@@ -56,7 +56,6 @@ struct	GPUQuad
 
 struct	GPUPlane
 {
-	mat4	transform;
 	mat4	inverse_transform;
 	vec3	point;
 	int		mat_idx;
@@ -75,6 +74,13 @@ struct GPUBVHNode
 	int		pad[2];
 };
 
+struct	GPULight
+{
+	int	prim_type;
+	int	prim_idx;
+	int	pad[2];
+};
+
 //binding buffer
 layout(std430, binding = 0) readonly buffer MatBuf
 {
@@ -84,15 +90,15 @@ layout(std430, binding = 1) readonly buffer TriBuf
 {
 	GPUTriangle triangles[];
 };
-layout(std430, binding = 2) readonly buffer SphBuf
+layout(std430, row_major, binding = 2) readonly buffer SphBuf
 {
 	GPUSphere spheres[];
 };
-layout(std430, binding = 3) readonly buffer QdBuf 
+layout(std430, row_major, binding = 3) readonly buffer QdBuf 
 {
 	GPUQuad quads[];
 };
-layout(std430, binding = 4) readonly buffer PlBuf 
+layout(std430, row_major, binding = 4) readonly buffer PlBuf 
 {
 	GPUPlane planes[];
 };
@@ -110,10 +116,16 @@ layout(std430, binding = 7) readonly buffer BVHQdBuf
 };
 
 // Le buffer de sortie (Binding 8)
-layout(std430, binding = 8) writeonly buffer OutBuf
+layout(std430, binding = 8) buffer OutBuf
 {
 	uint pixels[];
 };
+
+layout(std430, binding = 9) readonly buffer LightBuf
+{
+	GPULight lights[];
+};
+
 layout(push_constant) uniform PushConstants
 {
 	vec3		cam_origin;
@@ -130,15 +142,59 @@ layout(push_constant) uniform PushConstants
 	float		time;
 	int			w_h;
 	int			w_w;
-	vec2		pad3;
+	uint		light_count;
+	int			shadow_ray;
+	int			ru_enabled;
+	int			pad[3];
 } pc;
 
+struct	Ray
+{
+	vec3	o;
+	vec3	dir;
+	float	current_ior;
+};
+
+struct	HitRecord
+{
+	vec3	point;
+	vec3	normal;
+	float	t;
+	float	u;
+	float	v;
+	bool	front_face;
+	int		mat_idx;
+	float	ni_from;
+};
+
+#define MAT_LAMBERTIAN 0
+#define MAT_METAL 1
+#define MAT_DIELECTRIC 2
+#define MAT_PBR 3
+#define MAT_LIGHT 4
+#define M_PI 3.14159265358979323846
+
+#include "random_utils.glsl"
 #include "intersection.glsl"
+#include "materials.glsl"
+#include "hit_bvhs.glsl"
+#include "pdf_values.glsl"
+#include "shadow.glsl"
+#include "traceray.glsl"
+
 
 uint	packColor(vec3 color)
 {
 	uvec3 c = uvec3(clamp(color, 0.0, 1.0) * 255.0);
 	return (c.r << 24) | (c.g << 16) | (c.b << 8) | 255u;
+}
+
+vec3	unpackColor(uint c)
+{
+	float	r = float((c >> 24) & 255u) / 255.0;
+	float	g = float((c >> 16) & 255u) / 255.0;
+	float	b = float((c >> 8)  & 255u) / 255.0;
+	return vec3(r, g, b);
 }
 
 
@@ -160,6 +216,19 @@ void	main()
 					+ pc.cam_up * (ndc_y * half_h);
 	ray_dir = normalize(ray_dir);
 	vec3	ray_origin = pc.cam_origin;
-	vec3	color = abs(ray_dir);
-    pixels[pixel_index] = packColor(color);
+	Ray		ray = Ray(ray_origin, ray_dir, 1.0);
+	uint pixel_seed = pc.seed + uint(pixel_index);
+	pixel_seed = pcg_hash(pixel_seed);
+	vec3	color = traceRay(ray, pixel_seed);
+
+	if (pc.frame_count > 1)
+	{
+		vec3	old_srgb = unpackColor(pixels[pixel_index]);
+		vec3	old_ldr_linear = pow(old_srgb, vec3(2.2));
+		vec3	old_hdr = old_ldr_linear / (vec3(1.0) - min(old_ldr_linear, vec3(0.999)));
+		color = mix(old_hdr, color, 1.0 / float(pc.frame_count));
+	}
+	vec3	mapped_color = color / (color + vec3(1.0));
+	mapped_color = pow(mapped_color, vec3(1.0 / 2.2));
+	pixels[pixel_index] = packColor(mapped_color);
 }

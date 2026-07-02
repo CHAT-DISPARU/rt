@@ -1,4 +1,4 @@
-#define M_PI 3.14159265358979323846
+
 
 //verre
 float	schlick(float cosine, float ior_in, float ior_out)
@@ -39,9 +39,9 @@ vec3	fresnel_schlick(float cosTheta, vec3 F0)
 }
 
 
-///verre scatter
+//verre scatter
 
-bool	Dielectric_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuation, inout Ray scattered, inout float pdf, inout uint seed) const
+bool	Dielectric_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuation, inout Ray scattered, inout float pdf, inout uint seed)
 {
 	vec3	albedo = mat.color;
 	float	fuzz = mat.roughness;
@@ -54,13 +54,17 @@ bool	Dielectric_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 att
 	float	sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 	bool	noRefract = ratio * sinTheta > 1.0f;
 	vec3	direction;
+	float	next_ior = r_in.current_ior;
 
 	if (noRefract || schlick(cosTheta, rec.ni_from, ni) > randomFloat(seed))
 		direction = reflect(unitDir, rec.normal);
 	else
+	{
 		direction = refract(unitDir, rec.normal, ratio);
+		next_ior = rec.front_face ? ni : 1.0;
+	}
 	vec3	finalDir = normalize(direction + fuzz * randomInUnitSphere(seed));
-	scattered = Ray(rec.point, finalDir);
+	scattered = Ray(rec.point, finalDir, next_ior);
 	pdf = 1.0f;
 	return (true);
 }
@@ -72,11 +76,11 @@ bool	Lambertian_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 att
 {
 	vec3	albedo = mat.color;
 	float	ao = 1.0;
-	vec3	scatter_direction = rec.normal + randomUnitVector(seed);
+	vec3 scatter_direction = normalize(rec.normal + randomUnitVector(seed));
 
 	if (dot(scatter_direction, scatter_direction) < 1e-16)
 		scatter_direction = rec.normal;
-	scattered = Ray(rec.point, scatter_direction);
+	scattered = Ray(rec.point, scatter_direction, r_in.current_ior);
 	attenuation = albedo * ao;
 	pdf = max(dot(rec.normal, scattered.dir), 0.0) / M_PI;
 	return true;
@@ -89,65 +93,62 @@ bool	Metal_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuat
 	vec3	albedo = mat.color;
 	float	fuzz = mat.roughness;
 	vec3	reflected = reflect(normalize(r_in.dir), rec.normal);
-
-	scattered = Ray(rec.point, reflected + randomInUnitSphere(seed) * fuzz);
+	scattered = Ray(rec.point, normalize(reflected + randomInUnitSphere(seed) * fuzz), r_in.current_ior);
 	attenuation = albedo;
 	pdf = 1.0;
 	return dot(scattered.dir, rec.normal) > 0.0;
 }
 
-bool PBR_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuation, inout Ray scattered, inout float pdf, inout uint seed)
+bool	PBR_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuation, inout Ray scattered, inout float pdf, inout uint seed)
 {
 	float	roughness = mat.roughness;
 	float	metallic = mat.metallic;
 	float	ao = 1.0; 
 	vec3	base_color = mat.color;
 	vec3	N = rec.normal;
-	//mix fait x * (1 - a) + y * a
 	vec3	F0 = mix(vec3(0.04), base_color, metallic);
 	vec3	V = normalize(-r_in.dir);
+	//proba choisir le diffu
 	float	spec_prob = max(metallic, 0.04);
+	
 	if (randomFloat(seed) < spec_prob)
 	{
-		//specular
 		float	a = roughness * roughness;
 		float	r1 = randomFloat(seed);
 		float	r2 = randomFloat(seed);
 		float	phi = 2.0 * M_PI * r1;
 		float	cosTheta = sqrt((1.0 - r2) / (1.0 + (a * a - 1.0) * r2));
-		float	sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+		float	sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
 		vec3	up = (abs(N.z) < 0.999) ? vec3(0,0,1) : vec3(1,0,0);
 		vec3	tangentX = normalize(cross(up, N));
 		vec3	tangentY = cross(N, tangentX);
 		vec3	H = tangentX * (sinTheta * cos(phi)) + tangentY * (sinTheta * sin(phi)) + N * cosTheta;
-
 		H = normalize(H);
 		vec3	L = reflect(-V, H);
 		if (dot(N, L) <= 0.0)
 			return false;
-		scattered = Ray(rec.point, L);
-		
+		scattered = Ray(rec.point, L, r_in.current_ior);
 		float	D = distribution_ggx(N, H, roughness);
 		float	G = geometry_smith(N, V, L, roughness);
 		vec3	F = fresnel_schlick(max(dot(H, V), 0.0), F0);
 		float	NdotL = max(dot(N, L), 0.0);
 		float	NdotV = max(dot(N, V), 1e-4);
-		vec3	specular = (F * D * G) / (4.0 * NdotV * NdotL + 1e-6);
 		float	NdotH = max(dot(N, H), 0.0);
-		float	pdf_H = D * NdotH / (4.0 * max(dot(H, V), 1e-4));
+		float	HdotV = max(dot(H, V), 1e-4);
+		float	pdf_H = (D * NdotH) / (4.0 * HdotV);
 		pdf = pdf_H * spec_prob;
 		if (pdf < 1e-6)
 			return false;
-		attenuation = specular * NdotL * ao / pdf;
+		attenuation = (F * G * HdotV * ao) / (NdotV * NdotH * spec_prob);
 		return true;
 	}
 	else
 	{
-		//diffuse
-		vec3	scatterDir = N + randomUnitVector(seed);
+		vec3	scatterDir = normalize(N + randomUnitVector(seed));
 		if (dot(scatterDir, scatterDir) < 1e-16)
 			scatterDir = N;
-		scattered = Ray(rec.point, scatterDir);
+		scattered = Ray(rec.point, scatterDir, r_in.current_ior);
+		
 		float	cosine = max(dot(N, normalize(scatterDir)), 0.0);
 		float	pdf_diffuse = cosine / M_PI;
 		pdf = pdf_diffuse * (1.0 - spec_prob);
@@ -158,19 +159,12 @@ bool PBR_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuatio
 		return true;
 	}
 }
-
 //light
 bool	DiffuseLight_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuation, inout Ray scattered, inout float pdf, inout uint seed)
 {
 	return false;
 }
 
-
-#define MAT_LAMBERTIAN 0
-#define MAT_METAL 1
-#define MAT_DIELECTRIC 2
-#define MAT_PBR 3
-#define MAT_LIGHT 4
 
 bool	mat_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuation, inout Ray scattered, inout float pdf, inout uint seed)
 {
@@ -193,7 +187,7 @@ bool	mat_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuatio
 
 vec3	mat_emitted(GPUMaterial mat, float u, float v, vec3 p)
 {
-	if (mat.type == MAT_LIGHT || mat.emission != vec3(0.0))
+	if (mat.type == MAT_LIGHT)
 		return mat.emission;
 	return vec3(0.0);
 }
