@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 17:23:28 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/02 19:12:17 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/09 13:10:43 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,8 @@ void	ScenePacker::pack_materials(const std::unordered_map<std::string, std::shar
 		gpu_mat.roughness_tex_idx = raw_mat->hasRoughness() ? register_texture(raw_mat->getRoughness()) : -1;
 		gpu_mat.metallic_tex_idx = raw_mat->hasMetallic() ? register_texture(raw_mat->getMetallic()) : -1;
 		gpu_mat.emission_tex_idx = raw_mat->hasEmissive() ? register_texture(raw_mat->getEmissive()) : -1;
-
+		gpu_mat.is_opaq = raw_mat->isOpaq() ? 1 : 0;
+		gpu_mat.is_spec = raw_mat->isSpecular() ? 1 : 0;
 		if (dynamic_cast<Lambertian*>(raw_mat))
 		{
 			gpu_mat.type = MAT_LAMBERTIAN;

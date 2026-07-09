@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:24:32 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/07/02 19:27:39 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/09 12:39:37 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,6 +182,7 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanCon
 				app.camera.roll(-render_total.cam_rotate);
 		}
 		//thread_calls(app.camera, render_total, threads);
+		//sdl_to_screen(sdl, render_total.definitive);
 		//render
 		(void)threads;
 		if (app.camera.hasMoved())

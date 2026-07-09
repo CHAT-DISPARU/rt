@@ -75,9 +75,9 @@ vec3	traceRay(Ray ray, inout uint seed)
 		//applyNormalMap(rec);
 		// light
 		GPUMaterial	mat = materials[rec.mat_idx];
-		bool	is_glass = (mat.type == MAT_DIELECTRIC);
-		bool	is_pure_mirror = ((mat.type == MAT_METAL) || (mat.type == MAT_PBR)) && (mat.roughness < 0.01);
-		bool	can_receive_direct_light = !is_glass && !is_pure_mirror;
+		bool is_opaq = (mat.is_opaq == 1);
+		bool is_spec = (mat.is_spec == 1);
+		bool can_receive = is_opaq && !is_spec;
 		vec3	emitted = mat_emitted(mat, rec.u, rec.v, rec.point);
 		if (dot(emitted, emitted) > 0.0f)
 		{
@@ -93,9 +93,22 @@ vec3	traceRay(Ray ray, inout uint seed)
 			break ;
 	
 		// shadow rays /next event simulation
-		if (pc.shadow_ray == 1 && can_receive_direct_light)
-			accumulated_light += throughput * calculate_direct_lighting(ray, rec, albedo, seed);
+		if (pc.shadow_ray == 1 && can_receive)
+		{
+			if (pc.light_count > 0 && depth == 0)
+            {
+                GPULight  dbg_light   = lights[0];
+                vec3      dbg_pos     = geometry_sample(dbg_light.prim_type, dbg_light.prim_idx, rec.point, seed);
+                vec3      dbg_trans   = shadow_transmittance(rec.point, rec.normal, dbg_pos);
+                float     dbg_len     = dot(dbg_trans, dbg_trans);
 
+                if (dbg_len < 1e-6)
+                    return vec3(1.0, 0.0, 0.0);
+                else
+                    return vec3(0.0, 1.0, 0.0);
+            }
+			accumulated_light += throughput * calculate_direct_lighting(ray, rec, albedo, seed);
+		}
 		throughput *= albedo;
 
 		//roulette russe
@@ -106,7 +119,7 @@ vec3	traceRay(Ray ray, inout uint seed)
 		}
 
 		//next bounce
-		prev_was_specular = is_glass || is_pure_mirror;
+		prev_was_specular = is_spec;
 		prev_pdf_scatter = pdf_mat_scatter;
 		ray = new_ray;
 	}

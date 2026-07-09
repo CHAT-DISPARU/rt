@@ -17,7 +17,11 @@ struct	GPUMaterial
 	int		r_tex_idx;
 	int		m_tex_idx;
 	int		e_tex_idx;
+	int		is_opaq;
+	int		is_spec;
 	int		pad0;
+	int		pad1;
+	int		pad2; 
 };
 
 struct	GPUTriangle

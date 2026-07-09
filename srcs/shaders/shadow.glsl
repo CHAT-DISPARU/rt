@@ -61,7 +61,7 @@ vec3	shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 	{
 		HitRecord	hit;
 
-		if (!hit_scene(shadow, 1e-4, light_dist - 1e-4, hit))
+		if (!hit_scene(shadow, 1e-4, light_dist, hit))
 			break ;
 		//source
 		GPUMaterial mat = materials[hit.mat_idx];
@@ -69,39 +69,24 @@ vec3	shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 		if (dot(emit, emit) > 0.0f)
 			break ;
 		// opaq zero
-		bool is_glass = (mat.type == MAT_DIELECTRIC) || 
-						(mat.type == MAT_PBR && mat.ior > 1.0 && mat.metallic < 0.1);
-		if (!is_glass)
-			return (vec3(0.0f));
+		if (mat.is_opaq == 1)
+			return vec3(0.0);
 		// beer lambert apllique la tinte....
 		vec3	mat_color = mat.color;
 		transmittance *= mat_color;
 
 		if (dot(transmittance, transmittance) < 1e-6f)
 			return (vec3(0.0f));
-
-		/*float	ior = hit.material->ior();
-		bool	enter = (dot(shadow.dir, hit.normal) < 0.0f);
-		float	ratio = enter ? (1.0f / ior) : ior;
-		vec3	n = enter ? hit.normal : -hit.normal;
-		vec3	refracted = refract(normalize(shadow.dir), n, ratio);
-
-		//refract echoue
-		if (refracted.length_sq() < 0.5f)
-			return (vec3(0.0f));
-
-		vec3	offset_normal = enter ? -hit.normal : hit.normal;
-		*/
 		shadow.o = hit.point + shadow.dir * 1e-3f;
-		//shadow.dir = normalize(refracted);
 		light_dist = length(target_pos - shadow.o);
 	}
 	return (transmittance);
 }
 
-vec3    calculate_direct_lighting(Ray ray, HitRecord rec, vec3 albedo, inout uint seed)
+
+vec3	calculate_direct_lighting(Ray ray, HitRecord rec, vec3 albedo, inout uint seed)
 {
-	vec3    total_light = vec3(0.0);
+	vec3	total_light = vec3(0.0);
 	
 	GPUMaterial surface_mat = materials[rec.mat_idx];
 	for (int i = 0; i < pc.light_count; ++i)

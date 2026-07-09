@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 16:53:13 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/02 17:24:24 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/09 13:07:52 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,10 @@ struct alignas(16)	GPUMaterial
 	int	roughness_tex_idx;// 4 
 	int	metallic_tex_idx;// 4 
 	int	emission_tex_idx;// 4 
-	int	pad0;// 4  quatrieme bloc
+	int is_opaq;// 4    bloc 4
+
+    int	is_spec;// 4
+    int	pad0[3];// bloc 5
 };
 
 // 64  4 x 16 ok
