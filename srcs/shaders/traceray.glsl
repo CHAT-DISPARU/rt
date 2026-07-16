@@ -95,18 +95,18 @@ vec3	traceRay(Ray ray, inout uint seed)
 		// shadow rays /next event simulation
 		if (pc.shadow_ray == 1 && can_receive)
 		{
-			if (pc.light_count > 0 && depth == 0)
-            {
-                GPULight  dbg_light   = lights[0];
-                vec3      dbg_pos     = geometry_sample(dbg_light.prim_type, dbg_light.prim_idx, rec.point, seed);
-                vec3      dbg_trans   = shadow_transmittance(rec.point, rec.normal, dbg_pos);
-                float     dbg_len     = dot(dbg_trans, dbg_trans);
+			// if (pc.light_count > 0 && depth == 0)
+			// {
+			// 	GPULight  dbg_light   = lights[0];
+			// 	vec3      dbg_pos     = geometry_sample(dbg_light.prim_type, dbg_light.prim_idx, rec.point, seed);
+			// 	vec3      dbg_trans   = shadow_transmittance(rec.point, rec.normal, dbg_pos);
+			// 	float     dbg_len     = dot(dbg_trans, dbg_trans);
 
-                if (dbg_len < 1e-6)
-                    return vec3(1.0, 0.0, 0.0);
-                else
-                    return vec3(0.0, 1.0, 0.0);
-            }
+			// 	if (dbg_len < 1e-6)
+			// 		return vec3(1.0, 0.0, 0.0);
+			// 	else
+			// 		return vec3(0.0, 1.0, 0.0);
+			// }
 			accumulated_light += throughput * calculate_direct_lighting(ray, rec, albedo, seed);
 		}
 		throughput *= albedo;

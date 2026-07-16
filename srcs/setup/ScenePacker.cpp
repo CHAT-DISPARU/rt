@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 17:23:28 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/09 13:10:43 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/16 15:28:54 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,10 @@ void	ScenePacker::pack_materials(const std::unordered_map<std::string, std::shar
 		GPUMaterial	gpu_mat = {};
 		
 		gpu_mat.color = raw_mat->getColor();
-		gpu_mat.emission = raw_mat->sampleEmissive(0.0f, 0.0f);
+		if (dynamic_cast<DiffuseLight*>(raw_mat))
+			gpu_mat.emission = raw_mat->getColor() * raw_mat->getIntensity();
+		else
+			gpu_mat.emission = 0.0;
 		gpu_mat.ior = raw_mat->ior();
 		
 		//pas encore gerre juste 0 ou -1

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/07/02 18:33:40 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/16 14:26:34 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ int main(int ac, char **av)
 	VulkanBuffer	gpu_bvh_qd_buffer = createAndUploadSSBO(vCtx.device, vCtx.physicalDevice, vCtx.commandPool, vCtx.computeQueue, packer.gpu_bvh_quads);
 	VulkanBuffer	gpu_light_buffer = createAndUploadSSBO(vCtx.device, vCtx.physicalDevice, vCtx.commandPool, vCtx.computeQueue, packer.gpu_lights);
 	VulkanBuffer	gpu_pl_buffer = createAndUploadSSBO(vCtx.device, vCtx.physicalDevice, vCtx.commandPool, vCtx.computeQueue, packer.gpu_planes);
-
 	if (!init_descriptors(vCtx, app.width, app.height,
 						  gpu_mat_buffer, gpu_tri_buffer, gpu_sph_buffer, gpu_qd_buffer, gpu_pl_buffer,
 						  gpu_bvh_tri_buffer, gpu_bvh_sph_buffer, gpu_bvh_qd_buffer, gpu_light_buffer))

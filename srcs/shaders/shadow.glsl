@@ -47,15 +47,15 @@ vec3	shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 	float	light_dist = length(light_dir);
 
 	if (light_dist < 1e-6f)
-		return (vec3(1.0f));
+		return (vec3(1));
 	vec3	dir_norm = light_dir / light_dist;
 	//oppose a la light
-	if (dot(dir_norm, surface_normal) <= 0.0f)
-		return (vec3(0.0f));
+	if (dot(dir_norm, surface_normal) <= 0)
+		return (vec3(0));
 	//monte un peut l origine sur la normal pour pas touche soi meme
-	Ray		shadow = Ray(origin + surface_normal * 1e-3f, dir_norm, 1.0f);
+	Ray		shadow = Ray(origin + surface_normal * 1e-3f, dir_norm, 1);
 	
-	vec3	transmittance = vec3(1.0f);
+	vec3	transmittance = vec3(1);
 	int		MAX_SHADOW_BOUNCES = 80;
 	for (int bounce = 0; bounce < MAX_SHADOW_BOUNCES; ++bounce)
 	{

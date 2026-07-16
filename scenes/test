@@ -20,7 +20,7 @@ Material "mur" {
 Material "neon_chaud" {
 	type emissive
 	color 1.0 0.7 0.4
-	intensity 15.0
+	intensity 2000.0
 }
 
 Material "chrome" {
@@ -92,12 +92,12 @@ Sphere {
 	material neon_chaud
 }
 
-Sphere {
-	position 2 5 2
-	radius 0.8
-	normal 0 1 0
-	material neon_chaud
-}
+// Sphere {
+// 	position 2 5 2
+// 	radius 0.8
+// 	normal 0 1 0
+// 	material neon_chaud
+// }
 
 Sphere {
 	position -3.0 1.0 0.0

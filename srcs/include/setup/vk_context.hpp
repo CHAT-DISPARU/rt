@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:20:51 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/02 17:26:29 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/16 14:27:10 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,13 @@ struct VulkanContext
 	uint32_t			computeQueueIndex = 0;
 	VkCommandPool		commandPool = VK_NULL_HANDLE;
 
-	VulkanBuffer		outputBuffer;// buffer nouveau pixel...
+	VulkanBuffer			outputBuffer;// buffer nouveau pixel...
+	VulkanBuffer			accum_pixel;
 	VkDescriptorSetLayout	descriptorSetLayout = VK_NULL_HANDLE;
 	VkDescriptorPool		descriptorPool = VK_NULL_HANDLE;
 	VkDescriptorSet			descriptorSet = VK_NULL_HANDLE;
 	VkPipelineLayout		pipelineLayout = VK_NULL_HANDLE;
-	VkPipeline			computePipeline = VK_NULL_HANDLE;
+	VkPipeline				computePipeline = VK_NULL_HANDLE;
 };
 
 

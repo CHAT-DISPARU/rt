@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:21:08 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/02 16:50:37 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/07/16 14:39:31 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,24 +129,28 @@ void	cleanup_vulkan(VulkanContext& vCtx)
 		vkDestroyInstance(vCtx.instance, nullptr);
 }
 
-bool	init_descriptors(VulkanContext& vCtx, int width, int height,
-							const VulkanBuffer& mat_buf, const VulkanBuffer& tri_buf, const VulkanBuffer& sph_buf, 
-							const VulkanBuffer& qd_buf, const VulkanBuffer& pl_buf,
-							const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
-							const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf)
+bool init_descriptors(VulkanContext& vCtx, int width, int height,
+						const VulkanBuffer& mat_buf, const VulkanBuffer& tri_buf, const VulkanBuffer& sph_buf, 
+						const VulkanBuffer& qd_buf, const VulkanBuffer& pl_buf,
+						const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
+						const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf)
 {
-	//vec4f RGBA
-	//HOST_VISIBLE pour SDL3 
-	VkDeviceSize	outputSize = width * height * 4 * sizeof(float);
+
+	VkDeviceSize outputSize = width * height * sizeof(uint32_t);
 	createBuffer(vCtx.device, vCtx.physicalDevice, outputSize,
 				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 				 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				 vCtx.outputBuffer.buffer, vCtx.outputBuffer.memory);
 
+	VkDeviceSize accumSize = width * height * 4 * sizeof(float);
+	createBuffer(vCtx.device, vCtx.physicalDevice, accumSize,
+				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+				 vCtx.accum_pixel.buffer, vCtx.accum_pixel.memory);
 	//cb de buffer on va envote
 	// 10 buffers 8 entree de la scene + 1 sortie les pixels
-	std::vector<VkDescriptorSetLayoutBinding>	bindings(10);
-	for (uint32_t i = 0; i < 10; i++)
+	std::vector<VkDescriptorSetLayoutBinding>	bindings(11);
+	for (uint32_t i = 0; i < 11; i++)
 	{
 		bindings[i].binding = i;
 		bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; // SSBO
@@ -169,7 +173,7 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 	//create pool
 	VkDescriptorPoolSize	poolSize{};
 	poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	poolSize.descriptorCount = 10;
+	poolSize.descriptorCount = 11;
 
 	VkDescriptorPoolCreateInfo	poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -191,7 +195,7 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 		return false;
 
 	//pour gpu on dit tel int et egualk a tel buffer
-	std::vector<VkDescriptorBufferInfo>	bufferInfos(10);
+	std::vector<VkDescriptorBufferInfo>	bufferInfos(11);
 
 	bufferInfos[0] = {mat_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[1] = {tri_buf.buffer, 0, VK_WHOLE_SIZE};
@@ -203,9 +207,9 @@ bool	init_descriptors(VulkanContext& vCtx, int width, int height,
 	bufferInfos[7] = {bvh_qd_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[8] = {vCtx.outputBuffer.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[9] = {light_buf.buffer, 0, VK_WHOLE_SIZE};
-
-	std::vector<VkWriteDescriptorSet>	descriptorWrites(10);
-	for (uint32_t i = 0; i < 10; i++)
+	bufferInfos[10] = {vCtx.accum_pixel.buffer, 0 , VK_WHOLE_SIZE};
+	std::vector<VkWriteDescriptorSet>	descriptorWrites(11);
+	for (uint32_t i = 0; i < 11; i++)
 	{
 		descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[i].dstSet = vCtx.descriptorSet;
