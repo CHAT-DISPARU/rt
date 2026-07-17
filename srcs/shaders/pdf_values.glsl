@@ -22,7 +22,8 @@ float	Triangle_pdf_value(vec3 origin, GPUTriangle tri, vec3 dir)
 {
 	HitRecord	rec;
 
-	if (!hit_triangle(Ray(origin, dir, 1.0), tri, 1e-4, 1e30, rec))
+	rec.ni_from = 1;
+	if (!hit_triangle(Ray(origin, dir), tri, 1e-4, 1e30, rec))
 		return (0.0f);
 
 	vec3	edge1 = tri.v1 - tri.v0;
@@ -70,7 +71,8 @@ vec3	Sphere_sample(vec3 origin, GPUSphere sph, inout uint seed)
 float	Sphere_pdf_value(vec3 origin, GPUSphere sph, vec3 dir)
 {
 	HitRecord	rec;
-	if (!hit_sphere(Ray(origin, dir, 1.0), sph, 1e-4, 1e30, rec))
+	rec.ni_from = 1;
+	if (!hit_sphere(Ray(origin, dir), sph, 1e-4, 1e30, rec))
 		return (0.0f);
 	vec3	oc = sph.center - origin;
 	float	dist2 = dot(oc, oc);
@@ -100,7 +102,8 @@ float	Quad_pdf_value(vec3 origin, vec3 dir, GPUQuad quad)
 {
 	HitRecord	rec;
 
-	if (!hit_quad(Ray(origin, dir, 1.0), quad, 1e-4, 1e30, rec))
+	rec.ni_from = 1;
+	if (!hit_quad(Ray(origin, dir), quad, 1e-4, 1e30, rec))
 		return 0.0;
 	float	area = quad.w * quad.h;
 	float	distance_squared = rec.t * rec.t;

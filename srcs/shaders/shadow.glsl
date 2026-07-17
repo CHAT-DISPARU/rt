@@ -53,7 +53,7 @@ vec3	shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 	if (dot(dir_norm, surface_normal) <= 0)
 		return (vec3(0));
 	//monte un peut l origine sur la normal pour pas touche soi meme
-	Ray		shadow = Ray(origin + surface_normal * 1e-3f, dir_norm, 1);
+	Ray		shadow = Ray(origin + surface_normal * 1e-3f, dir_norm);
 	
 	vec3	transmittance = vec3(1);
 	int		MAX_SHADOW_BOUNCES = 80;
@@ -61,6 +61,7 @@ vec3	shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 	{
 		HitRecord	hit;
 
+		hit.ni_from = 1;
 		if (!hit_scene(shadow, 1e-4, light_dist, hit))
 			break ;
 		//source

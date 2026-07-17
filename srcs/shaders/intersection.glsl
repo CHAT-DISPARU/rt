@@ -4,7 +4,6 @@ void set_face_normal(inout HitRecord rec, Ray r, vec3 outward_normal)
 {
 	rec.front_face = dot(r.dir, outward_normal) < 0.0;
 	rec.normal = rec.front_face ? outward_normal : -outward_normal;
-	rec.ni_from = r.current_ior;
 }
 
 //applique matrice invers
@@ -12,7 +11,7 @@ Ray	transform_ray(Ray r, mat4 inv_mat)
 {
 	vec3	local_o = (inv_mat * vec4(r.o, 1.0)).xyz;
 	vec3	local_dir = (inv_mat * vec4(r.dir, 0.0)).xyz;
-	return (Ray(local_o, local_dir, r.current_ior));
+	return (Ray(local_o, local_dir));
 }
 
 //triangle

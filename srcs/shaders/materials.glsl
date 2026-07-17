@@ -54,17 +54,13 @@ bool	Dielectric_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 att
 	float	sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 	bool	noRefract = ratio * sinTheta > 1.0f;
 	vec3	direction;
-	float	next_ior = r_in.current_ior;
 
 	if (noRefract || schlick(cosTheta, rec.ni_from, ni) > randomFloat(seed))
 		direction = reflect(unitDir, rec.normal);
 	else
-	{
 		direction = refract(unitDir, rec.normal, ratio);
-		next_ior = rec.front_face ? ni : 1.0;
-	}
 	vec3	finalDir = normalize(direction + fuzz * randomInUnitSphere(seed));
-	scattered = Ray(rec.point, finalDir, next_ior);
+	scattered = Ray(rec.point, f inalDir);
 	pdf = 1.0f;
 	return (true);
 }
@@ -80,7 +76,7 @@ bool	Lambertian_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 att
 
 	if (dot(scatter_direction, scatter_direction) < 1e-16)
 		scatter_direction = rec.normal;
-	scattered = Ray(rec.point, scatter_direction, r_in.current_ior);
+	scattered = Ray(rec.point, scatter_direction);
 	attenuation = albedo * ao;
 	pdf = max(dot(rec.normal, scattered.dir), 0.0) / M_PI;
 	return true;
@@ -93,7 +89,7 @@ bool	Metal_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuat
 	vec3	albedo = mat.color;
 	float	fuzz = mat.roughness;
 	vec3	reflected = reflect(normalize(r_in.dir), rec.normal);
-	scattered = Ray(rec.point, normalize(reflected + randomInUnitSphere(seed) * fuzz), r_in.current_ior);
+	scattered = Ray(rec.point, normalize(reflected + randomInUnitSphere(seed) * fuzz));
 	attenuation = albedo;
 	pdf = 1.0;
 	return dot(scattered.dir, rec.normal) > 0.0;
@@ -127,7 +123,7 @@ bool	PBR_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuatio
 		vec3	L = reflect(-V, H);
 		if (dot(N, L) <= 0.0)
 			return false;
-		scattered = Ray(rec.point, L, r_in.current_ior);
+		scattered = Ray(rec.point, L);
 		float	D = distribution_ggx(N, H, roughness);
 		float	G = geometry_smith(N, V, L, roughness);
 		vec3	F = fresnel_schlick(max(dot(H, V), 0.0), F0);
@@ -147,7 +143,7 @@ bool	PBR_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 attenuatio
 		vec3	scatterDir = normalize(N + randomUnitVector(seed));
 		if (dot(scatterDir, scatterDir) < 1e-16)
 			scatterDir = N;
-		scattered = Ray(rec.point, scatterDir, r_in.current_ior);
+		scattered = Ray(rec.point, scatterDir);
 		
 		float	cosine = max(dot(N, normalize(scatterDir)), 0.0);
 		float	pdf_diffuse = cosine / M_PI;

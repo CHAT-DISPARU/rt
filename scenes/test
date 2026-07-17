@@ -20,7 +20,7 @@ Material "mur" {
 Material "neon_chaud" {
 	type emissive
 	color 1.0 0.7 0.4
-	intensity 2000.0
+	intensity 20.0
 }
 
 Material "chrome" {

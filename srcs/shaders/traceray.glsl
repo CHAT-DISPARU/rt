@@ -67,6 +67,7 @@ vec3	traceRay(Ray ray, inout uint seed)
 
 		// hit geom
 		HitRecord	rec;
+		rec.ni_from = 1;
 		if (!hit_scene(ray, 1e-4, 1e30, rec))//!render.scene.hit(ray, 1e-3f, FLT_MAX, rec, counter))
 		{
 			accumulated_light += throughput * calculate_environment(ray);

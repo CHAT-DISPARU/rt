@@ -162,7 +162,6 @@ struct	Ray
 {
 	vec3	o;
 	vec3	dir;
-	float	current_ior;
 };
 
 struct	HitRecord
@@ -211,7 +210,7 @@ void	main()
 					+ pc.cam_up * (ndc_y * half_h);
 	ray_dir = normalize(ray_dir);
 	vec3	ray_origin = pc.cam_origin;
-	Ray		ray = Ray(ray_origin, ray_dir, 1.0);
+	Ray		ray = Ray(ray_origin, ray_dir);
 	uint pixel_seed = pc.seed + uint(pixel_index);
 	pixel_seed = pcg_hash(pixel_seed);
 	vec3	color = traceRay(ray, pixel_seed);
