@@ -135,7 +135,6 @@ layout(std430, binding = 10) buffer AccumBuf
 	vec4	accum_buffer[];
 };
 
-
 layout(push_constant) uniform PushConstants
 {
 	vec3		cam_origin;

@@ -26,10 +26,10 @@ Material "metal_f16" {
 }
 
 Material "verre_cockpit" {
-	type glass
-	color 0.95 0.98 1.0
-	ni 1.5
-	fuzz 0.0
+    type glass
+    color 1.0 1.0 1.0
+    ni 1.15
+    fuzz 0.0
 }
 
 Material "rouge_mat" {

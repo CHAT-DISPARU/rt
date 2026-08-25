@@ -131,13 +131,14 @@ if(NOT GLSLC_COMPILER)
 	message(FATAL_ERROR "glslc introuvable")
 endif()
 
-set(SHADER_SRC "${CMAKE_SOURCE_DIR}/srcs/shaders/raytracer.comp")
+set(SHADER_SRC "${CMAKE_SOURCE_DIR}/srcs/shaders_test//raytracer.comp")
 set(SHADER_OUT "${CMAKE_CURRENT_BINARY_DIR}/raytracer.spv")
+file(GLOB SHADER_INCLUDES "${CMAKE_SOURCE_DIR}/srcs/shaders_test/*.glsl")
 
 add_custom_command(
 	OUTPUT ${SHADER_OUT}
-	COMMAND ${GLSLC_COMPILER} ${SHADER_SRC} -o ${SHADER_OUT}
-	DEPENDS ${SHADER_SRC}
+	COMMAND ${GLSLC_COMPILER} -O ${SHADER_SRC} -o ${SHADER_OUT}
+	DEPENDS ${SHADER_SRC} ${SHADER_INCLUDES}
 	COMMENT "Compiling Compute Shader: raytracer.comp -> raytracer.spv"
 )
 

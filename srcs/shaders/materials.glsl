@@ -1,6 +1,14 @@
 
 
 //verre
+vec3	safe_refract(vec3 v, vec3 n, float ni)
+{
+	float	cos_theta = min(dot(-v, n), 1.0);
+	vec3	r_out_perp = ni * (v + cos_theta * n);
+	vec3	r_out_parallel = -sqrt(abs(1.0 - dot(r_out_perp, r_out_perp))) * n;
+	return (r_out_perp + r_out_parallel);
+}
+
 float	schlick(float cosine, float ior_in, float ior_out)
 {
 	float	r0 = (ior_in - ior_out) / (ior_in + ior_out);
@@ -50,7 +58,8 @@ bool	Dielectric_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 att
 	attenuation = albedo;
 	float	ratio = rec.front_face ? (rec.ni_from / ni) : (ni / rec.ni_from);
 	vec3	unitDir = normalize(r_in.dir);
-	float	cosTheta = min(dot(-unitDir, rec.normal), 1.0f);
+	vec3	face_normal = rec.front_face ? rec.normal : -rec.normal;
+	float	cosTheta = min(dot(-unitDir, face_normal), 1.0f);
 	float	sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 	bool	noRefract = ratio * sinTheta > 1.0f;
 	vec3	direction;
@@ -58,9 +67,9 @@ bool	Dielectric_scatter(Ray r_in, HitRecord rec, GPUMaterial mat, inout vec3 att
 	if (noRefract || schlick(cosTheta, rec.ni_from, ni) > randomFloat(seed))
 		direction = reflect(unitDir, rec.normal);
 	else
-		direction = refract(unitDir, rec.normal, ratio);
+		direction = safe_refract(unitDir, rec.normal, ratio);
 	vec3	finalDir = normalize(direction + fuzz * randomInUnitSphere(seed));
-	scattered = Ray(rec.point, f inalDir);
+	scattered = Ray(rec.point, finalDir);
 	pdf = 1.0f;
 	return (true);
 }
