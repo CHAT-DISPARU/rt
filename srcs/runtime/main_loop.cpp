@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main_loop.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:24:32 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/08/25 16:57:30 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/08/26 15:32:46 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,8 @@ void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total)
 	pc.ru_enabled = render_total.ru_enabled;
 	pc.shadow_ray = render_total.shadow_ray;
 	pc.light_count = render_total.scene.getLightsCount();
+	pc.m_focus_dist = cam.get_focus_dist();
+	pc.m_lens_radius = cam.get_lens_radius();
 	
 	//on envoiue au gpu
 	vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
@@ -73,7 +75,7 @@ void	run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total)
 	memcpy(render_total.definitive, mappedData, outputSize);
 	vkUnmapMemory(vCtx.device, vCtx.outputBuffer.memory);
 }
-
+//500 1,7
 void	sdl_to_screen(SDLContext &sdl, uint32_t *pixels)
 {
 	void*	texture_pixels;
@@ -181,20 +183,25 @@ void	main_loop(SDLContext &sdl, AppContext &app, Render &render_total, VulkanCon
 			else if (keys[SDL_SCANCODE_RIGHTBRACKET])
 				app.camera.roll(-render_total.cam_rotate);
 		}
-		//thread_calls(app.camera, render_total, threads);
-		//sdl_to_screen(sdl, render_total.definitive);
-		//render
-		(void)threads;
-		if (app.camera.hasMoved())
+		if (render_total.cpu)
 		{
-			render_total.frame_count = 1;
-			app.camera.resetMovedFlag();
-		}
-		if (app.samples == -1 || render_total.frame_count <= (size_t)app.samples)
-		{
-			run_compute_frame(vCtx, render_total.cam, render_total);
+			thread_calls(app.camera, render_total, threads);
 			sdl_to_screen(sdl, render_total.definitive);
-			render_total.frame_count++;
+		}
+		//render
+		else
+		{
+			if (app.camera.hasMoved())
+			{
+				render_total.frame_count = 1;
+				app.camera.resetMovedFlag();
+			}
+			if (app.samples == -1 || render_total.frame_count <= (size_t)app.samples)
+			{
+				run_compute_frame(vCtx, render_total.cam, render_total);
+				sdl_to_screen(sdl, render_total.definitive);
+				render_total.frame_count++;
+			}
 		}
 	}
 }

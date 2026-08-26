@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/07/01 14:41:01 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/26 15:25:01 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,9 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 	// bloom post prcess
 	if (ImGui::CollapsingHeader("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::Checkbox("Enable Bloom", &render_total.bloom_enabled);
+		ImGui::Checkbox("cpu", &render_total.cpu);
+		if (ImGui::Checkbox("Enable Bloom", &render_total.bloom_enabled))
+			render_total.frame_count = 1;
 		if (render_total.bloom_enabled)
 		{
 			ImGui::SliderFloat("Threshold", &render_total.bloom_threshold, 0.5f, 5.0f, "%.2f");
@@ -145,7 +147,7 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 		}
 		ImGui::TextDisabled("Tone Mapping: Reinhard");
 	}
-
+	
 
 	//debug bvh
 	if (ImGui::CollapsingHeader("BVH Debug"))

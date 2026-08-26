@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Render.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/06/25 20:55:01 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/08/26 15:20:30 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ struct Render
     float               bloom_intensity = 0.25f;
     int                 blur_radius = 15;
 	bool				ru_enabled = true;
+	bool				cpu = false;
 };
 
 void	render(Render &render);

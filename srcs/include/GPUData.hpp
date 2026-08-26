@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 16:53:13 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/09 13:07:52 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/26 15:27:55 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,9 +122,9 @@ struct alignas(16)	GPUQuad
 struct alignas(16) GPUPushConstants
 {
 	Vec3f	cam_origin;//12 
-	float	pad0;//4  bloc 1
+	float	m_lens_radius;//4  bloc 1
 	Vec3f	cam_forward;// 12 
-	float	pad1;//4   bloc 2
+	float	m_focus_dist;//4   bloc 2
 	Vec3f	cam_right;//12 
 	float	pad2;//4  bloc 3
 	Vec3f	cam_up;//12 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   SceneLoader.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: CHAT-DISPARU <CHAT-DISPARU@student.42.f    +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/23 18:56:09 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/06/24 12:18:34 by CHAT-DISPAR      ###   ########.fr       */
+/*   Updated: 2026/08/26 16:14:29 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -430,12 +430,10 @@ void	SceneLoader::buildMesh(std::unordered_map<std::string, std::string>& params
 			m->setEmissiveScale(std::stof(params["emissive_scale"]));
 	};
 	std::vector<std::shared_ptr<Material>>	converted_mats;
-
 	for (const auto& m : obj_materials)
 	{
 		std::shared_ptr<Material>	mat;
 		bool						is_emissive = (m.emission[0] + m.emission[1] + m.emission[2]) > 0.0f || !m.emissive_texname.empty();
-		
 		if (is_emissive || m.illum == 0)
 		{
 			auto	light = std::make_shared<DiffuseLight>();

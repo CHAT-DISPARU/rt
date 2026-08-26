@@ -4,14 +4,14 @@
 
 #include "structs.glsl"
 
-=
+
 layout(push_constant) uniform PushConstants
 {
 	vec3  cam_origin;
-	float _pad0;
+	float	m_lens_radius;
 
 	vec3  cam_forward;
-	float _pad1;
+	float m_focus_dist;
 
 	vec3  cam_right;
 	float _pad2;
