@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 16:53:13 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/26 15:27:55 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/27 14:50:58 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,8 @@ struct alignas(16)	GPUMaterial
 	int	emission_tex_idx;// 4 
 	int is_opaq;// 4    bloc 4
 
-    int	is_spec;// 4
-    int	pad0[3];// bloc 5
+	int	is_spec;// 4
+	int	pad0[3];// bloc 5
 };
 
 // 64  4 x 16 ok
@@ -119,27 +119,29 @@ struct alignas(16)	GPUQuad
 
 
 //  7 x16
+// 80 octets au total (5 x 16)
 struct alignas(16) GPUPushConstants
 {
-	Vec3f	cam_origin;//12 
-	float	m_lens_radius;//4  bloc 1
-	Vec3f	cam_forward;// 12 
-	float	m_focus_dist;//4   bloc 2
-	Vec3f	cam_right;//12 
-	float	pad2;//4  bloc 3
-	Vec3f	cam_up;//12 
-	float	fov;//4  bloc 4
-	int			frame_count;//4 
-	int			max_depth;//4 
-	uint32_t	seed;//4 
-	float		time;//4  bloc 5
-	int			w_h;// 4
-	int			w_w;//4
-	uint32_t	light_count;//4
-	int			shadow_ray;//4 bloc 6
-	int			ru_enabled;//4
-	int			pad[3];//12 bloc7
-	
+	Vec3f		cam_origin;     // 12 
+	float		m_lens_radius;  // 4   bloc 1
+	Vec3f		cam_forward;    // 12 
+	float		m_focus_dist;   // 4   bloc 2
+	Vec3f		cam_right;      // 12 
+	float		pad2;		    // 4   bloc 3
+	Vec3f		cam_up;		  // 12 
+	float		fov;            // 4   bloc 4
+	int			frame_count;    // 4 
+	int			max_depth;      // 4 
+	uint32_t	seed;			  // 4 
+	float		time;			  // 4   bloc 5
+	int			w_h;			   // 4
+	int			w_w;			   // 4
+	uint32_t	light_count;    // 4
+	int			shadow_ray;     // 4   bloc 6
+	int			ru_enabled;     // 4
+	int			light_teck;     // 4
+	int			ping_pong;      // 4   <-- NOUVEAU
+	int			pad;            // 4   bloc 7
 };
 
 
@@ -149,4 +151,44 @@ struct alignas(16) GPULight
 	int	prim_type;//4
 	int	prim_idx;//4
 	int	pad[2];//8 bloc 1
+};
+
+struct alignas(16) RayState
+{
+	Vec3f     origin;
+	uint32_t  pixel_index;
+
+	Vec3f     dir;
+	uint32_t  seed;
+
+	Vec3f     throughput;
+	int       depth;
+
+	Vec3f     accumulated_light;
+	float     prev_pdf_scatter;
+
+	int       prev_was_specular;
+	int       is_active;
+	int       pad[2];
+};
+
+struct alignas(16) ShadowRay
+{
+	Vec3f     origin;
+	uint32_t  pixel_index;
+
+	Vec3f     dir;
+	float     max_dist;
+
+	Vec3f     radiance_contrib;
+	int       pad;
+};
+
+struct alignas(16) QueueCounters
+{
+	uint32_t active_rays;
+	uint32_t shadow_rays;
+	uint32_t next_active_rays;
+	uint32_t pad;
+	
 };

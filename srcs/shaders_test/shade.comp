@@ -1,0 +1,139 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#include "structs.glsl"
+
+layout(push_constant) uniform PushConstants
+{
+	vec3  cam_origin;
+	float m_lens_radius;
+	vec3  cam_forward;
+	float m_focus_dist;
+	vec3  cam_right;
+	float _pad2;
+	vec3  cam_up;
+	float fov;
+	int   frame_count;
+	int   max_depth;
+	uint  seed;
+	float time;
+	int   w_h;
+	int   w_w;
+	uint  light_count;
+	int   shadow_ray;
+	int   ru_enabled;
+	int   light_teck;
+	int   ping_pong;
+	int   _pad5;
+} pc;
+
+
+layout(std430, set = 0, binding = 0) readonly buffer MaterialBuffer     { GPUMaterial materials[]; };
+layout(std430, set = 0, binding = 1) readonly buffer TriangleBuffer     { GPUTriangle triangles[]; };
+layout(std430, set = 0, binding = 2) readonly buffer SphereBuffer       { GPUSphere   spheres[]; };
+layout(std430, set = 0, binding = 3) readonly buffer QuadBuffer         { GPUQuad     quads[]; };
+layout(std430, set = 0, binding = 4) readonly buffer PlaneBuffer        { GPUPlane    planes[]; };
+layout(std430, set = 0, binding = 5) readonly buffer BVHTriangleBuffer  { GPUBVHNode  bvh_triangles[]; };
+layout(std430, set = 0, binding = 6) readonly buffer BVHSphereBuffer    { GPUBVHNode  bvh_spheres[]; };
+layout(std430, set = 0, binding = 7) readonly buffer BVHQuadBuffer      { GPUBVHNode  bvh_quads[]; };
+layout(std430, set = 0, binding = 8) writeonly buffer OutputBuffer      { uint        out_pixels[]; };
+layout(std430, set = 0, binding = 9) readonly buffer LightBuffer        { GPULight    lights[]; };
+layout(std430, set = 0, binding = 10) buffer AccumBuffer                { vec4        accum_pixels[]; };
+layout(std430, set = 0, binding = 11) buffer RayQueueBuffer      { RayState ray_queue[]; };
+layout(std430, set = 0, binding = 12) buffer NextRayQueueBuffer  { RayState next_ray_queue[]; };
+layout(std430, set = 0, binding = 13) buffer HitQueueBuffer      { HitRecord hit_queue[]; };
+layout(std430, set = 0, binding = 14) buffer CounterBuffer       { 
+	uint global_active_rays; 
+	uint shadow_rays;
+	uint next_global_active_rays;
+	uint _pad;
+};
+
+#include "common.glsl"
+#include "random.glsl"
+#include "intersect.glsl"
+#include "bvh.glsl"
+#include "materials.glsl"
+#include "lighting.glsl"
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+void main()
+{
+	uint ray_idx = gl_GlobalInvocationID.x;
+
+	if (ray_idx >= global_active_rays)
+		return;
+
+	RayState state = ray_queue[ray_idx];
+	if (state.is_active == 0)
+		return;
+
+	HitRecord rec = hit_queue[ray_idx];
+	Ray ray = Ray(state.origin, state.dir);
+	bool ray_dead = false;
+
+	if (rec.t < 0.0)
+	{
+		state.accumulated_light += state.throughput * sample_environment(ray.dir);
+		ray_dead = true;
+	}
+	else
+	{
+
+		vec3 emitted = material_emitted(rec.mat_idx, rec.u, rec.v, rec.point);
+		if (dot(emitted, emitted) > 0.0)
+		{
+			bool prev_spec = (state.prev_was_specular != 0);
+			state.accumulated_light += state.throughput * apply_mis_weight(emitted, ray, state.prev_pdf_scatter, prev_spec, state.depth);
+			ray_dead = true;
+		}
+		else
+		{
+			float pdf_mat_scatter = 1.0;
+			Ray   new_ray;
+			vec3  albedo;
+			
+			if (!material_scatter(rec.mat_idx, ray, rec, albedo, new_ray, pdf_mat_scatter, state.seed))
+			{
+				ray_dead = true;
+			}
+			else
+			{
+				GPUMaterial mat = materials[rec.mat_idx];
+				
+				if (pc.shadow_ray != 0 && mat.is_opaq != 0 && mat.is_spec == 0)
+				{
+					if (pc.light_teck == 0)
+						state.accumulated_light += state.throughput * calculate_direct_lighting(ray, rec, albedo, state.seed);
+					else
+						state.accumulated_light += state.throughput * calculate_direct_lighting_rand(ray, rec, albedo, state.seed);
+				}
+
+				state.throughput *= albedo;
+
+				if (pc.ru_enabled != 0 && state.depth > 3)
+				{
+					if (!apply_russian_roulette(state.throughput, state.seed))
+						ray_dead = true;
+				}
+				state.origin = new_ray.origin;
+				state.dir = new_ray.dir;
+				state.prev_was_specular = (mat.is_spec != 0) ? 1 : 0;
+				state.prev_pdf_scatter = pdf_mat_scatter;
+				state.depth += 1;
+			}
+		}
+	}
+	if (ray_dead || state.depth >= pc.max_depth)
+	{
+		uint pIdx = state.pixel_index;
+		vec4 prevAccum = (pc.frame_count == 1) ? vec4(0.0) : accum_pixels[pIdx];
+		accum_pixels[pIdx] = prevAccum + vec4(state.accumulated_light, 0.0);
+	}
+	else
+	{
+		uint next_idx = atomicAdd(next_global_active_rays, 1);
+		next_ray_queue[next_idx] = state;
+	}
+}

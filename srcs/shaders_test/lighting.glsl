@@ -193,7 +193,7 @@ vec3 shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 		if (hmat.is_opaq != 0)
 			return vec3(0.0);
 
-		vec3 mat_color = hmat.color; // sampleAlbedo sans texture
+		vec3 mat_color = hmat.color;
 		transmittance *= mat_color;
 
 		if (dot(transmittance, transmittance) < 1e-6)
@@ -204,6 +204,44 @@ vec3 shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 	}
 	return transmittance;
 }
+
+vec3	calculate_direct_lighting_rand(Ray ray, HitRecord rec, vec3 albedo, inout uint seed)
+{
+	if (pc.light_count == 0u)
+		return vec3(0.0);
+
+	float r = random_float(seed);
+	uint light_idx = min(uint(r * float(pc.light_count)), pc.light_count - 1u);
+	GPULight light = lights[light_idx];
+	vec3 light_pos = light_sample(light, rec.point, seed);
+	vec3 to_light = light_pos - rec.point;
+	float dist = length(to_light);
+	if (dist < 1e-6)
+		return vec3(0.0);
+
+	vec3 to_light_n = to_light / dist;
+	float cos_theta = dot(to_light_n, rec.normal);
+	if (cos_theta <= 0.0)
+		return vec3(0.0);
+
+	vec3 transmit = shadow_transmittance(rec.point, rec.normal, light_pos);
+	if (dot(transmit, transmit) < 1e-6)
+		return vec3(0.0);
+
+	float base_pdf_light = light_pdf_value(light, rec.point, to_light_n);
+	if (base_pdf_light <= 1e-6)
+		return vec3(0.0);
+	float pdf_selection = 1.0 / float(pc.light_count);
+	float actual_pdf_light = base_pdf_light * pdf_selection;
+	Ray toLightRay;
+	toLightRay.origin = rec.point;
+	toLightRay.dir = to_light_n;
+	float pdf_mat_eval = material_scattering_pdf(rec.mat_idx, ray, rec, toLightRay);
+	float weight = power_heuristic(actual_pdf_light, pdf_mat_eval);
+	vec3 light_color = material_emitted(light_get_mat_idx(light), rec.u, rec.v, light_pos);
+	return albedo * light_color * transmit * cos_theta * weight / actual_pdf_light;
+}
+
 
 vec3 calculate_direct_lighting(Ray ray, HitRecord rec, vec3 albedo, inout uint seed)
 {

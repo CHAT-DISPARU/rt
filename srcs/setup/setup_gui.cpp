@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/08/26 15:25:01 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/27 13:34:20 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,14 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 	//rendu
 	if (ImGui::CollapsingHeader("Renderer Settings", ImGuiTreeNodeFlags_DefaultOpen))
 	{
+		const char* light_modes[] = { "All Lights", "Random Light" };
+		int current_light_idx = (render_total.light_tech == 1) ? 1 : 0;
+		if (ImGui::Combo("Light Sampling", &current_light_idx, light_modes, 2))
+        {
+            render_total.light_tech = current_light_idx;
+            render_total.frame_count = 1;
+        }
+		ImGui::Spacing();
 		if (ImGui::Checkbox("HDRI Env", &render_total.hdri))
 			render_total.frame_count = 1;
 		
@@ -88,6 +96,7 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
 		}
 
 		if (render_total.bvh_debug.mode != BvhDebugMode::OFF) ImGui::BeginDisabled();
+
 		if (ImGui::BeginCombo("Max Samples", sample_labels[sample_idx]))
 		{
 			for (int i = 0; i < 9; i++) {

@@ -1,0 +1,56 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#include "structs.glsl"
+
+layout(push_constant) uniform PushConstants
+{
+	vec3  cam_origin;
+	float m_lens_radius;
+	vec3  cam_forward;
+	float m_focus_dist;
+	vec3  cam_right;
+	float _pad2;
+	vec3  cam_up;
+	float fov;
+	int   frame_count;
+	int   max_depth;
+	uint  seed;
+	float time;
+	int   w_h;
+	int   w_w;
+	uint  light_count;
+	int   shadow_ray;
+	int   ru_enabled;
+	int   light_teck;
+	int   ping_pong;
+	int   _pad5;
+} pc;
+
+layout(std430, set = 0, binding = 8) writeonly buffer OutputBuffer { uint out_pixels[]; };
+layout(std430, set = 0, binding = 10) readonly buffer AccumBuffer  { vec4 accum_pixels[]; };
+layout(std430, set = 0, binding = 11) buffer RayQueueBuffer      { RayState ray_queue[]; };
+layout(std430, set = 0, binding = 12) buffer NextRayQueueBuffer  { RayState next_ray_queue[]; };
+layout(std430, set = 0, binding = 13) buffer HitQueueBuffer      { HitRecord hit_queue[]; };
+layout(std430, set = 0, binding = 14) buffer CounterBuffer       { 
+	uint global_active_rays; 
+	uint shadow_rays;
+	uint next_global_active_rays;
+	uint _pad;
+};
+#include "tonemap.glsl"
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+void main()
+{
+	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	if (pixel.x >= pc.w_w || pixel.y >= pc.w_h)
+		return;
+
+	uint pixelIndex = uint(pixel.y) * uint(pc.w_w) + uint(pixel.x);
+
+	vec4 accum = accum_pixels[pixelIndex];
+	vec3 finalColor = accum.rgb / float(pc.frame_count);
+	out_pixels[pixelIndex] = tonemap_pack(finalColor);
+}

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/08/26 15:20:30 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/27 13:33:49 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,7 @@ struct Render
     int                 blur_radius = 15;
 	bool				ru_enabled = true;
 	bool				cpu = false;
+	int					light_tech = 0;
 };
 
 void	render(Render &render);

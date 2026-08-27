@@ -30,7 +30,7 @@ layout(push_constant) uniform PushConstants
 	int   shadow_ray;
 
 	int   ru_enabled;
-	int   _pad3;
+	int		light_teck;
 	int   _pad4;
 	int   _pad5;
 } pc;

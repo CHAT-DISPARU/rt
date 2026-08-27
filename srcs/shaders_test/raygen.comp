@@ -1,0 +1,74 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#include "structs.glsl"
+
+layout(push_constant) uniform PushConstants
+{
+	vec3  cam_origin;
+	float m_lens_radius;
+	vec3  cam_forward;
+	float m_focus_dist;
+	vec3  cam_right;
+	float _pad2;
+	vec3  cam_up;
+	float fov;
+	int   frame_count;
+	int   max_depth;
+	uint  seed;
+	float time;
+	int   w_h;
+	int   w_w;
+	uint  light_count;
+	int   shadow_ray;
+	int   ru_enabled;
+	int   light_teck;
+	int   ping_pong;
+	int   _pad5;
+} pc;
+
+layout(std430, set = 0, binding = 11) buffer RayQueueBuffer      { RayState ray_queue[]; };
+layout(std430, set = 0, binding = 12) buffer NextRayQueueBuffer  { RayState next_ray_queue[]; };
+layout(std430, set = 0, binding = 13) buffer HitQueueBuffer      { HitRecord hit_queue[]; };
+layout(std430, set = 0, binding = 14) buffer CounterBuffer       { 
+	uint global_active_rays; 
+	uint shadow_rays;
+	uint next_global_active_rays;
+	uint _pad;
+};
+#include "random.glsl"
+#include "camera.glsl"
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+void main()
+{
+	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	if (pixel.x >= pc.w_w || pixel.y >= pc.w_h)
+		return;
+
+	uint pixelIndex = uint(pixel.y) * uint(pc.w_w) + uint(pixel.x);
+
+	uint current_seed = init_seed(uvec2(pixel), uint(pc.frame_count), pc.seed);
+
+	float inv_w = 1.0 / float(pc.w_w);
+	float inv_h = 1.0 / float(pc.w_h);
+
+	float u = (float(pixel.x) + random_float(current_seed)) * inv_w;
+	float v = (float(pixel.y) + random_float(current_seed)) * inv_h;
+
+	Ray ray = camera_get_ray(u, v, current_seed);
+
+	RayState state;
+	state.origin = ray.origin;
+	state.pixel_index = pixelIndex;
+	state.dir = ray.dir;
+	state.seed = current_seed;
+	state.throughput = vec3(1.0);
+	state.depth = 0;
+	state.accumulated_light = vec3(0.0);
+	state.prev_pdf_scatter = 1.0;
+	state.prev_was_specular = 0;
+	state.is_active = 1;
+	ray_queue[pixelIndex] = state;
+}

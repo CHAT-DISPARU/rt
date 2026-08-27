@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:20:51 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/16 14:27:10 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/27 14:55:45 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,18 @@ struct VulkanContext
 
 	VulkanBuffer			outputBuffer;// buffer nouveau pixel...
 	VulkanBuffer			accum_pixel;
+	VulkanBuffer			rayQueueA;
+	VulkanBuffer			rayQueueB;
+	VulkanBuffer			hitQueue;
+	VulkanBuffer			counterBuffer;
 	VkDescriptorSetLayout	descriptorSetLayout = VK_NULL_HANDLE;
 	VkDescriptorPool		descriptorPool = VK_NULL_HANDLE;
-	VkDescriptorSet			descriptorSet = VK_NULL_HANDLE;
+	VkDescriptorSet			descriptorSets[2];
 	VkPipelineLayout		pipelineLayout = VK_NULL_HANDLE;
-	VkPipeline				computePipeline = VK_NULL_HANDLE;
+	VkPipeline				raygenPipeline = VK_NULL_HANDLE;
+	VkPipeline				intersectPipeline = VK_NULL_HANDLE;
+	VkPipeline				shadePipeline = VK_NULL_HANDLE;
+	VkPipeline				tonemapPipeline = VK_NULL_HANDLE;
 };
 
 

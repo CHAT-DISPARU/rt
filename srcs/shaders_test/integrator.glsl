@@ -33,8 +33,12 @@ vec3 trace_ray(Ray ray, inout uint seed)
 
 		GPUMaterial mat = materials[rec.mat_idx];
 		if (pc.shadow_ray != 0 && mat.is_opaq != 0 && mat.is_spec == 0)
-			accumulated_light += throughput * calculate_direct_lighting(ray, rec, albedo, seed);
-
+		{
+			if (pc.light_teck == 0)
+				accumulated_light += throughput * calculate_direct_lighting(ray, rec, albedo, seed);
+			else
+				accumulated_light += throughput * calculate_direct_lighting_rand(ray, rec, albedo, seed);
+		}
 		throughput *= albedo;
 
 		if (pc.ru_enabled != 0)

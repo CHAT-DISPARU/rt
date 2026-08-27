@@ -131,16 +131,24 @@ if(NOT GLSLC_COMPILER)
 	message(FATAL_ERROR "glslc introuvable")
 endif()
 
-set(SHADER_SRC "${CMAKE_SOURCE_DIR}/srcs/shaders_test//raytracer.comp")
-set(SHADER_OUT "${CMAKE_CURRENT_BINARY_DIR}/raytracer.spv")
 file(GLOB SHADER_INCLUDES "${CMAKE_SOURCE_DIR}/srcs/shaders_test/*.glsl")
 
-add_custom_command(
-	OUTPUT ${SHADER_OUT}
-	COMMAND ${GLSLC_COMPILER} -O ${SHADER_SRC} -o ${SHADER_OUT}
-	DEPENDS ${SHADER_SRC} ${SHADER_INCLUDES}
-	COMMENT "Compiling Compute Shader: raytracer.comp -> raytracer.spv"
-)
+set(SHADER_NAMES "raygen" "intersect" "shade" "tonemap")
+set(ALL_SHADER_OUTS "")
 
-add_custom_target(Shaders ALL DEPENDS ${SHADER_OUT})
+foreach(SHADER_NAME ${SHADER_NAMES})
+    set(SHADER_SRC "${CMAKE_SOURCE_DIR}/srcs/shaders_test/${SHADER_NAME}.comp")
+    set(SHADER_OUT "${CMAKE_CURRENT_BINARY_DIR}/${SHADER_NAME}.spv")
+    
+    add_custom_command(
+        OUTPUT ${SHADER_OUT}
+        COMMAND ${GLSLC_COMPILER} -O ${SHADER_SRC} -o ${SHADER_OUT}
+        DEPENDS ${SHADER_SRC} ${SHADER_INCLUDES}
+        COMMENT "Compiling Compute Shader: ${SHADER_NAME}.comp -> ${SHADER_NAME}.spv"
+    )
+    
+    list(APPEND ALL_SHADER_OUTS ${SHADER_OUT})
+endforeach()
+
+add_custom_target(Shaders ALL DEPENDS ${ALL_SHADER_OUTS})
 add_dependencies(rt Shaders)

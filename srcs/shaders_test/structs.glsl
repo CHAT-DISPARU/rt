@@ -17,6 +17,38 @@ const float PI       = 3.14159265358979323846;
 const float FLT_MAX  = 3.402823466e+38;
 const float EPSILON  = 1e-6;
 
+struct RayState
+{
+	vec3  origin;             // 12
+	uint  pixel_index;        // 4   bloc 1 (16)
+
+	vec3  dir;                // 12
+	uint  seed;               // 4   bloc 2 (16)
+
+	vec3  throughput;         // 12
+	int   depth;              // 4   bloc 3 (16)
+
+	vec3  accumulated_light;  // 12
+	float prev_pdf_scatter;   // 4   bloc 4 (16)
+
+	int   prev_was_specular;  // 4
+	int   is_active;          // 4
+	int   _pad0;              // 4
+	int   _pad1;              // 4   bloc 5 (16)
+};
+
+struct ShadowRay
+{
+	vec3  origin;             // 12
+	uint  pixel_index;        // 4   bloc 1 (16)
+
+	vec3  dir;                // 12
+	float max_dist;           // 4   bloc 2 (16)
+
+	vec3  radiance_contrib;   // 12
+	int   _pad0;              // 4   bloc 3 (16)
+};
+
 struct GPUMaterial
 {
 	vec3  color;              // 12

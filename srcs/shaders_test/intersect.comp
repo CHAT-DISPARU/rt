@@ -1,0 +1,82 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#include "structs.glsl"
+
+layout(push_constant) uniform PushConstants
+{
+	vec3  cam_origin;
+	float m_lens_radius;
+	vec3  cam_forward;
+	float m_focus_dist;
+	vec3  cam_right;
+	float _pad2;
+	vec3  cam_up;
+	float fov;
+	int   frame_count;
+	int   max_depth;
+	uint  seed;
+	float time;
+	int   w_h;
+	int   w_w;
+	uint  light_count;
+	int   shadow_ray;
+	int   ru_enabled;
+	int   light_teck;
+	int   ping_pong;
+	int   _pad5;
+} pc;
+
+
+layout(std430, set = 0, binding = 0) readonly buffer MaterialBuffer     { GPUMaterial materials[]; };
+layout(std430, set = 0, binding = 1) readonly buffer TriangleBuffer     { GPUTriangle triangles[]; };
+layout(std430, set = 0, binding = 2) readonly buffer SphereBuffer       { GPUSphere   spheres[]; };
+layout(std430, set = 0, binding = 3) readonly buffer QuadBuffer         { GPUQuad     quads[]; };
+layout(std430, set = 0, binding = 4) readonly buffer PlaneBuffer        { GPUPlane    planes[]; };
+layout(std430, set = 0, binding = 5) readonly buffer BVHTriangleBuffer  { GPUBVHNode  bvh_triangles[]; };
+layout(std430, set = 0, binding = 6) readonly buffer BVHSphereBuffer    { GPUBVHNode  bvh_spheres[]; };
+layout(std430, set = 0, binding = 7) readonly buffer BVHQuadBuffer      { GPUBVHNode  bvh_quads[]; };
+
+layout(std430, set = 0, binding = 11) buffer RayQueueBuffer      { RayState ray_queue[]; };
+layout(std430, set = 0, binding = 12) buffer NextRayQueueBuffer  { RayState next_ray_queue[]; };
+layout(std430, set = 0, binding = 13) buffer HitQueueBuffer      { HitRecord hit_queue[]; };
+layout(std430, set = 0, binding = 14) buffer CounterBuffer       { 
+	uint global_active_rays; 
+	uint shadow_rays;
+	uint next_global_active_rays;
+	uint _pad;
+};
+#include "common.glsl"
+#include "intersect.glsl"
+#include "bvh.glsl"
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+void main()
+{
+	uint ray_idx = gl_GlobalInvocationID.x;
+
+	if (ray_idx >= global_active_rays)
+		return;
+
+	RayState state = ray_queue[ray_idx];
+
+	if (state.is_active == 0)
+		return;
+
+	Ray ray;
+	ray.origin = state.origin;
+	ray.dir = state.dir;
+
+	HitRecord rec;
+
+	bool hit = scene_hit(ray, 1e-3, FLT_MAX, rec);
+
+	if (hit)
+		hit_queue[ray_idx] = rec;
+	else
+	{
+		rec.t = -1.0;
+		hit_queue[ray_idx] = rec;
+	}
+}

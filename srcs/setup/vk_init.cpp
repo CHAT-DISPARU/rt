@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:21:08 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/16 14:39:31 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/27 14:58:31 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,68 +135,69 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 						const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
 						const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf)
 {
-
-	VkDeviceSize outputSize = width * height * sizeof(uint32_t);
+	uint32_t max_rays = width * height;
+	VkDeviceSize outputSize = max_rays * sizeof(uint32_t);
 	createBuffer(vCtx.device, vCtx.physicalDevice, outputSize,
 				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 				 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				 vCtx.outputBuffer.buffer, vCtx.outputBuffer.memory);
 
-	VkDeviceSize accumSize = width * height * 4 * sizeof(float);
+	VkDeviceSize accumSize = max_rays * 4 * sizeof(float);
 	createBuffer(vCtx.device, vCtx.physicalDevice, accumSize,
 				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 				 vCtx.accum_pixel.buffer, vCtx.accum_pixel.memory);
-	//cb de buffer on va envote
-	// 10 buffers 8 entree de la scene + 1 sortie les pixels
-	std::vector<VkDescriptorSetLayoutBinding>	bindings(11);
-	for (uint32_t i = 0; i < 11; i++)
+
+	VkDeviceSize rayStateSize = max_rays * 80;//sizeof en std 430
+	VkDeviceSize hitRecordSize = max_rays * 48;
+	VkDeviceSize counterSize = 16;
+
+	createBuffer(vCtx.device, vCtx.physicalDevice, rayStateSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.rayQueueA.buffer, vCtx.rayQueueA.memory);
+	createBuffer(vCtx.device, vCtx.physicalDevice, rayStateSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.rayQueueB.buffer, vCtx.rayQueueB.memory);
+	createBuffer(vCtx.device, vCtx.physicalDevice, hitRecordSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.hitQueue.buffer, vCtx.hitQueue.memory);
+	createBuffer(vCtx.device, vCtx.physicalDevice, counterSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.counterBuffer.buffer, vCtx.counterBuffer.memory);
+
+	std::vector<VkDescriptorSetLayoutBinding> bindings(15);
+	for (uint32_t i = 0; i < 15; i++)
 	{
 		bindings[i].binding = i;
-		bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER; // SSBO
+		bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		bindings[i].descriptorCount = 1;
 		bindings[i].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 		bindings[i].pImmutableSamplers = nullptr;
 	}
 
-	VkDescriptorSetLayoutCreateInfo	layoutInfo{};
+	VkDescriptorSetLayoutCreateInfo layoutInfo{};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutInfo.pBindings = bindings.data();
 
 	if (vkCreateDescriptorSetLayout(vCtx.device, &layoutInfo, nullptr, &vCtx.descriptorSetLayout) != VK_SUCCESS)
-	{
-		std::cerr << "Erreur: vkCreateDescriptorSetLayout\n";
 		return false;
-	}
 
-	//create pool
-	VkDescriptorPoolSize	poolSize{};
+	VkDescriptorPoolSize poolSize{};
 	poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	poolSize.descriptorCount = 11;
+	poolSize.descriptorCount = 15 * 2;
 
-	VkDescriptorPoolCreateInfo	poolInfo{};
+	VkDescriptorPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolInfo.poolSizeCount = 1;
 	poolInfo.pPoolSizes = &poolSize;
-	poolInfo.maxSets = 1;
+	poolInfo.maxSets = 2;
 
 	if (vkCreateDescriptorPool(vCtx.device, &poolInfo, nullptr, &vCtx.descriptorPool) != VK_SUCCESS)
 		return false;
 
-	// alloc descriptor set
+	VkDescriptorSetLayout layouts[] = {vCtx.descriptorSetLayout, vCtx.descriptorSetLayout};
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = vCtx.descriptorPool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &vCtx.descriptorSetLayout;
+	allocInfo.descriptorSetCount = 2;
+	allocInfo.pSetLayouts = layouts;
 
-	if (vkAllocateDescriptorSets(vCtx.device, &allocInfo, &vCtx.descriptorSet) != VK_SUCCESS)
+	if (vkAllocateDescriptorSets(vCtx.device, &allocInfo, vCtx.descriptorSets) != VK_SUCCESS)
 		return false;
-
-	//pour gpu on dit tel int et egualk a tel buffer
-	std::vector<VkDescriptorBufferInfo>	bufferInfos(11);
-
+	std::vector<VkDescriptorBufferInfo> bufferInfos(15);
 	bufferInfos[0] = {mat_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[1] = {tri_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[2] = {sph_buf.buffer, 0, VK_WHOLE_SIZE};
@@ -207,19 +208,29 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 	bufferInfos[7] = {bvh_qd_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[8] = {vCtx.outputBuffer.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[9] = {light_buf.buffer, 0, VK_WHOLE_SIZE};
-	bufferInfos[10] = {vCtx.accum_pixel.buffer, 0 , VK_WHOLE_SIZE};
-	std::vector<VkWriteDescriptorSet>	descriptorWrites(11);
-	for (uint32_t i = 0; i < 11; i++)
+	bufferInfos[10] = {vCtx.accum_pixel.buffer, 0, VK_WHOLE_SIZE};
+	bufferInfos[13] = {vCtx.hitQueue.buffer, 0, VK_WHOLE_SIZE};
+	bufferInfos[14] = {vCtx.counterBuffer.buffer, 0, VK_WHOLE_SIZE};
+
+	for (int setIdx = 0; setIdx < 2; ++setIdx)
 	{
-		descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[i].dstSet = vCtx.descriptorSet;
-		descriptorWrites[i].dstBinding = i;
-		descriptorWrites[i].dstArrayElement = 0;
-		descriptorWrites[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		descriptorWrites[i].descriptorCount = 1;
-		descriptorWrites[i].pBufferInfo = &bufferInfos[i];
+		bufferInfos[11] = (setIdx == 0) ? VkDescriptorBufferInfo{vCtx.rayQueueA.buffer, 0, VK_WHOLE_SIZE} : VkDescriptorBufferInfo{vCtx.rayQueueB.buffer, 0, VK_WHOLE_SIZE};
+		bufferInfos[12] = (setIdx == 0) ? VkDescriptorBufferInfo{vCtx.rayQueueB.buffer, 0, VK_WHOLE_SIZE} : VkDescriptorBufferInfo{vCtx.rayQueueA.buffer, 0, VK_WHOLE_SIZE};
+
+		std::vector<VkWriteDescriptorSet> descriptorWrites(15);
+		for (uint32_t i = 0; i < 15; i++)
+		{
+			descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[i].dstSet = vCtx.descriptorSets[setIdx];
+			descriptorWrites[i].dstBinding = i;
+			descriptorWrites[i].dstArrayElement = 0;
+			descriptorWrites[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			descriptorWrites[i].descriptorCount = 1;
+			descriptorWrites[i].pBufferInfo = &bufferInfos[i];
+		}
+		vkUpdateDescriptorSets(vCtx.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
-	vkUpdateDescriptorSets(vCtx.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-	std::cout << "descripoteur et ouput pres" << std::endl;
+
+	std::cout << "Descripteurs Wavefront" << std::endl;
 	return true;
 }
