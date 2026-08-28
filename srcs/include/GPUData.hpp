@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 16:53:13 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/27 14:50:58 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/28 13:31:48 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ struct alignas(16) GPUPushConstants
 	int			ru_enabled;     // 4
 	int			light_teck;     // 4
 	int			ping_pong;      // 4   <-- NOUVEAU
-	int			pad;            // 4   bloc 7
+	int			rand_light_samples;            // 4   bloc 7
 };
 
 
@@ -191,4 +191,22 @@ struct alignas(16) QueueCounters
 	uint32_t next_active_rays;
 	uint32_t pad;
 	
+};
+
+struct alignas(16) GPUHitRecordLayout
+{
+	float t;
+	float u;
+	float v;
+	float _pad0;
+
+	Vec3f normal;
+	float _pad1;
+
+	Vec3f point;
+	int   front_face;
+
+	int   mat_idx;
+	float ni_from;
+	float _pad2[2];
 };

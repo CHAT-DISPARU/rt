@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:24:32 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/08/27 15:56:00 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/28 14:48:43 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,147 +14,118 @@
 
 void run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total)
 {
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = vCtx.commandPool;
-    allocInfo.commandBufferCount = 1;
-    VkCommandBuffer cmd;
-    vkAllocateCommandBuffers(vCtx.device, &allocInfo, &cmd);
+	vkWaitForFences(vCtx.device, 1, &vCtx.inFlightFences[vCtx.currentFrame], VK_TRUE, UINT64_MAX);
+	vkResetFences(vCtx.device, 1, &vCtx.inFlightFences[vCtx.currentFrame]);
+	VkCommandBuffer cmd = vCtx.commandBuffers[vCtx.currentFrame];
+	vkResetCommandBuffer(cmd, 0);
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    vkBeginCommandBuffer(cmd, &beginInfo);
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	vkBeginCommandBuffer(cmd, &beginInfo);
+	GPUPushConstants pc{};
+	pc.cam_origin = cam.getOrigin();
+	pc.cam_forward = cam.getDir();
+	pc.cam_right = cam.getRight();
+	pc.cam_up = cam.getUp();
+	pc.fov = cam.getFov();
+	pc.frame_count = render_total.frame_count;
+	pc.max_depth = render_total.depth_max;
+	pc.seed = (uint32_t)rand();
+	pc.time = (float)SDL_GetTicks() / 1000.0f;
+	pc.w_h = render_total.height;
+	pc.w_w = render_total.width;
+	pc.ru_enabled = render_total.ru_enabled;
+	pc.shadow_ray = render_total.shadow_ray;
+	pc.light_count = render_total.scene.getLightsCount();
+	pc.m_focus_dist = cam.get_focus_dist();
+	pc.m_lens_radius = cam.get_lens_radius();
+	pc.light_teck = render_total.light_tech;
+	pc.rand_light_samples = render_total.rand_light_samples;
+	pc.ping_pong = 0;
 
-    // Nettoyage de la VRAM d'accumulation au lancement/reset de la premiere frame
-    if (render_total.frame_count == 1)
-    {
-        vkCmdFillBuffer(cmd, vCtx.accum_pixel.buffer, 0, VK_WHOLE_SIZE, 0);
-        VkMemoryBarrier clearBarrier{};
-        clearBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-        clearBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        clearBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &clearBarrier, 0, nullptr, 0, nullptr);
-    }
+	uint32_t max_pixels = render_total.width * render_total.height;
+	uint32_t groupCount2D_X = (render_total.width + 15) / 16;
+	uint32_t groupCount2D_Y = (render_total.height + 15) / 16;
 
-    GPUPushConstants pc{};
-    pc.cam_origin = cam.getOrigin();
-    pc.cam_forward = cam.getDir();
-    pc.cam_right = cam.getRight();
-    pc.cam_up = cam.getUp();
-    pc.fov = cam.getFov();
-    pc.frame_count = render_total.frame_count;
-    pc.max_depth = render_total.depth_max;
-    pc.seed = (uint32_t)rand();
-    pc.time = (float)SDL_GetTicks() / 1000.0f;
-    pc.w_h = render_total.height;
-    pc.w_w = render_total.width;
-    pc.ru_enabled = render_total.ru_enabled;
-    pc.shadow_ray = render_total.shadow_ray;
-    pc.light_count = render_total.scene.getLightsCount();
-    pc.m_focus_dist = cam.get_focus_dist();
-    pc.m_lens_radius = cam.get_lens_radius();
-    pc.light_teck = render_total.light_tech;
-    pc.ping_pong = 1;
+	uint32_t initial_counters[4] = { max_pixels, 0, 0, 0 };
+	vkCmdUpdateBuffer(cmd, vCtx.counterBuffer.buffer, 0, sizeof(initial_counters), initial_counters);
 
-    uint32_t max_pixels = render_total.width * render_total.height;
-    uint32_t groupCount2D_X = (render_total.width + 15) / 16;
-    uint32_t groupCount2D_Y = (render_total.height + 15) / 16;
-    uint32_t groupCount1D = (max_pixels + 63) / 64;
+	VkMemoryBarrier transferBarrier{};
+	transferBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+	transferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	transferBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+	vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &transferBarrier, 0, nullptr, 0, nullptr);
 
-    uint32_t initial_counters[4] = { max_pixels, 0, 0, 0 };
-    vkCmdUpdateBuffer(cmd, vCtx.counterBuffer.buffer, 0, sizeof(initial_counters), initial_counters);
+	VkMemoryBarrier compBarrier{};
+	compBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+	compBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	compBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 
-    VkMemoryBarrier initTransferBarrier{};
-    initTransferBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-    initTransferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    initTransferBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &initTransferBarrier, 0, nullptr, 0, nullptr);
+	VkMemoryBarrier toTransferBarrier{};
+	toTransferBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+	toTransferBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	toTransferBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
 
-    // Raygen
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.raygenPipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.pipelineLayout, 0, 1, &vCtx.descriptorSets[0], 0, nullptr);
-    vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
-    vkCmdDispatch(cmd, groupCount2D_X, groupCount2D_Y, 1);
+	VkMemoryBarrier toIndirectBarrier{};
+	toIndirectBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+	toIndirectBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+	toIndirectBarrier.dstAccessMask = VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
 
-    // Barriere Compute -> Compute entre Raygen et Intersect
-    VkMemoryBarrier computeToComputeBarrier{};
-    computeToComputeBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-    computeToComputeBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-    computeToComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &computeToComputeBarrier, 0, nullptr, 0, nullptr);
+	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.raygenPipeline);
+	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.pipelineLayout, 0, 1, &vCtx.descriptorSets[0], 0, nullptr);
+	vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
+	vkCmdDispatch(cmd, groupCount2D_X, groupCount2D_Y, 1);
 
-    for (int depth = 0; depth < render_total.depth_max; ++depth)
-    {
-        int setIdx = depth % 2;
-        pc.ping_pong = setIdx;
-        
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.pipelineLayout, 0, 1, &vCtx.descriptorSets[setIdx], 0, nullptr);
-        vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
+	vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &compBarrier, 0, nullptr, 0, nullptr);
 
-        // Intersect
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.intersectPipeline);
-        vkCmdDispatch(cmd, groupCount1D, 1, 1);
+	for (int depth = 0; depth < render_total.depth_max; ++depth)
+	{
+		int setIdx = depth % 2;
+		pc.ping_pong = setIdx;
 
-        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &computeToComputeBarrier, 0, nullptr, 0, nullptr);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.pipelineLayout, 0, 1, &vCtx.descriptorSets[setIdx], 0, nullptr);
+		vkCmdPushConstants(cmd, vCtx.pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(GPUPushConstants), &pc);
 
-        // Shade
-        vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.shadePipeline);
-        vkCmdDispatch(cmd, groupCount1D, 1, 1);
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.prepareIndirectPipeline);
+		vkCmdDispatch(cmd, 1, 1, 1);
+		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT, 0, 1, &toIndirectBarrier, 0, nullptr, 0, nullptr);
 
-        // 1. Barriere Compute -> Transfer (rend visible l'atomicAdd du shader pour le CopyBuffer)
-        VkMemoryBarrier computeToTransferBarrier{};
-        computeToTransferBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-        computeToTransferBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        computeToTransferBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &computeToTransferBarrier, 0, nullptr, 0, nullptr);
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.intersectPipeline);
+		vkCmdDispatchIndirect(cmd, vCtx.indirectBuffer.buffer, 0);
+		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &compBarrier, 0, nullptr, 0, nullptr);
 
-        // Copie next_global_active_rays (8) -> global_active_rays (0)
-        VkBufferCopy copyRegion{};
-        copyRegion.srcOffset = 8;
-        copyRegion.dstOffset = 0;
-        copyRegion.size = 4;
-        vkCmdCopyBuffer(cmd, vCtx.counterBuffer.buffer, vCtx.counterBuffer.buffer, 1, &copyRegion);
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.shadePipeline);
+		vkCmdDispatchIndirect(cmd, vCtx.indirectBuffer.buffer, 0);
 
-        // 2. Barriere Transfer Read -> Transfer Write (empeche FillBuffer d'ecraser offset 8 avant la fin de CopyBuffer)
-        VkMemoryBarrier transferToTransferBarrier{};
-        transferToTransferBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-        transferToTransferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        transferToTransferBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &transferToTransferBarrier, 0, nullptr, 0, nullptr);
+		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 1, &toTransferBarrier, 0, nullptr, 0, nullptr);
 
-        // Remise a zero de next_global_active_rays (8)
-        vkCmdFillBuffer(cmd, vCtx.counterBuffer.buffer, 8, 4, 0);
+		VkBufferCopy copyRegion{};
+		copyRegion.srcOffset = 8;
+		copyRegion.dstOffset = 0;
+		copyRegion.size = 4;
+		vkCmdCopyBuffer(cmd, vCtx.counterBuffer.buffer, vCtx.counterBuffer.buffer, 1, &copyRegion);
+		vkCmdFillBuffer(cmd, vCtx.counterBuffer.buffer, 8, 4, 0);
+		vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &transferBarrier, 0, nullptr, 0, nullptr);
+	}
+	
+	vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &compBarrier, 0, nullptr, 0, nullptr);
+	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.tonemapPipeline);
+	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.pipelineLayout, 0, 1, &vCtx.descriptorSets[0], 0, nullptr);
+	vkCmdDispatch(cmd, groupCount2D_X, groupCount2D_Y, 1);
 
-        // 3. Barriere Transfer & Compute -> Compute (synchronise la memoire pour l'iteration suivante)
-        VkMemoryBarrier endLoopBarrier{};
-        endLoopBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-        endLoopBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-        endLoopBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
-        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 1, &endLoopBarrier, 0, nullptr, 0, nullptr);
-    }
 
-    // Tonemap
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.tonemapPipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, vCtx.pipelineLayout, 0, 1, &vCtx.descriptorSets[0], 0, nullptr);
-    vkCmdDispatch(cmd, groupCount2D_X, groupCount2D_Y, 1);
-    vkEndCommandBuffer(cmd);
+	vkEndCommandBuffer(cmd);
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &cmd;
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmd;
 
-    vkQueueSubmit(vCtx.computeQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(vCtx.computeQueue);
-    vkFreeCommandBuffers(vCtx.device, vCtx.commandPool, 1, &cmd);
-
-    void* mappedData;
-    VkDeviceSize outputSize = render_total.width * render_total.height * sizeof(uint32_t);
-    vkMapMemory(vCtx.device, vCtx.outputBuffer.memory, 0, outputSize, 0, &mappedData);
-    memcpy(render_total.definitive, mappedData, outputSize);
-    vkUnmapMemory(vCtx.device, vCtx.outputBuffer.memory);
+	vkQueueSubmit(vCtx.computeQueue, 1, &submitInfo, vCtx.inFlightFences[vCtx.currentFrame]);
+	VkDeviceSize outputSize = render_total.width * render_total.height * sizeof(uint32_t);
+	memcpy(render_total.definitive, vCtx.mappedOutputBuffer, outputSize);
+	vCtx.currentFrame = (vCtx.currentFrame + 1) % 2;
 }
 
 //500 1,7

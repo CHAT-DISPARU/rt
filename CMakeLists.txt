@@ -133,7 +133,7 @@ endif()
 
 file(GLOB SHADER_INCLUDES "${CMAKE_SOURCE_DIR}/srcs/shaders_test/*.glsl")
 
-set(SHADER_NAMES "raygen" "intersect" "shade" "tonemap")
+set(SHADER_NAMES "raygen" "intersect" "shade" "tonemap" "prepare_indirect")
 set(ALL_SHADER_OUTS "")
 
 foreach(SHADER_NAME ${SHADER_NAMES})

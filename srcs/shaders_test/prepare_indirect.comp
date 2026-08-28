@@ -1,0 +1,27 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+layout(std430, set = 0, binding = 14) buffer CounterBuffer
+{
+	uint global_active_rays;
+	uint shadow_rays;
+	uint next_global_active_rays;
+	uint _pad;
+};
+
+
+layout(std430, set = 0, binding = 15) buffer IndirectBuffer
+{
+	uint indirect_x;
+	uint indirect_y;
+	uint indirect_z;
+};
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+void main()
+{
+	indirect_x = (global_active_rays + 63u) / 64u;
+	indirect_y = 1u;
+	indirect_z = 1u;
+}

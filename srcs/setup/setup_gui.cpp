@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/11 11:23:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/08/27 13:34:20 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/28 13:33:55 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,19 @@ void	show_settings_window(SDLContext &sdl, Render &render_total, AppContext &app
             render_total.light_tech = current_light_idx;
             render_total.frame_count = 1;
         }
+		if (render_total.light_tech == 1)
+		{
+			int max_lights = (int)render_total.scene.getLightsCount();
+			if (max_lights < 1)
+				max_lights = 1;
+			if (render_total.rand_light_samples > max_lights)
+				render_total.rand_light_samples = max_lights;
+
+			ImGui::Indent();
+			if (ImGui::SliderInt("Lights per Hit", &render_total.rand_light_samples, 1, max_lights))
+				render_total.frame_count = 1;
+			ImGui::Unindent();
+		}
 		ImGui::Spacing();
 		if (ImGui::Checkbox("HDRI Env", &render_total.hdri))
 			render_total.frame_count = 1;

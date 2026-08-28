@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:20:51 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/27 14:55:45 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/28 14:42:54 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,19 +21,23 @@
 
 struct VulkanContext
 {
-	VkInstance			instance = VK_NULL_HANDLE;
-	VkPhysicalDevice	physicalDevice = VK_NULL_HANDLE;
-	VkDevice			device = VK_NULL_HANDLE;
-	VkQueue				computeQueue = VK_NULL_HANDLE;
-	uint32_t			computeQueueIndex = 0;
-	VkCommandPool		commandPool = VK_NULL_HANDLE;
-
+	VkInstance				instance = VK_NULL_HANDLE;
+	VkPhysicalDevice		physicalDevice = VK_NULL_HANDLE;
+	VkDevice				device = VK_NULL_HANDLE;
+	VkQueue					computeQueue = VK_NULL_HANDLE;
+	uint32_t				computeQueueIndex = 0;
+	VkCommandPool			commandPool = VK_NULL_HANDLE;
+	VkCommandBuffer			commandBuffers[2];
+    VkFence					inFlightFences[2];
+    uint32_t				currentFrame = 0;
+    void*					mappedOutputBuffer = nullptr;
 	VulkanBuffer			outputBuffer;// buffer nouveau pixel...
 	VulkanBuffer			accum_pixel;
 	VulkanBuffer			rayQueueA;
 	VulkanBuffer			rayQueueB;
 	VulkanBuffer			hitQueue;
 	VulkanBuffer			counterBuffer;
+	VulkanBuffer			indirectBuffer;
 	VkDescriptorSetLayout	descriptorSetLayout = VK_NULL_HANDLE;
 	VkDescriptorPool		descriptorPool = VK_NULL_HANDLE;
 	VkDescriptorSet			descriptorSets[2];
@@ -42,6 +46,7 @@ struct VulkanContext
 	VkPipeline				intersectPipeline = VK_NULL_HANDLE;
 	VkPipeline				shadePipeline = VK_NULL_HANDLE;
 	VkPipeline				tonemapPipeline = VK_NULL_HANDLE;
+	VkPipeline				prepareIndirectPipeline = VK_NULL_HANDLE;
 };
 
 

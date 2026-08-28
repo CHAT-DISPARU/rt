@@ -24,7 +24,7 @@ layout(push_constant) uniform PushConstants
 	int   ru_enabled;
 	int   light_teck;
 	int   ping_pong;
-	int   _pad5;
+	int   rand_light_samples;
 } pc;
 
 layout(std430, set = 0, binding = 8) writeonly buffer OutputBuffer { uint out_pixels[]; };

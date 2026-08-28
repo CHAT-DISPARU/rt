@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:54:58 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/27 14:54:33 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/28 14:36:01 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,14 @@ bool init_pipeline(VulkanContext& vCtx)
 	VkShaderModule intersectModule;
 	VkShaderModule shadeModule;
 	VkShaderModule tonemapModule;
+	VkShaderModule prepareIndirectModule;
 
 	try {
-		raygenModule    = createShaderModule("raygen.spv");
+		raygenModule = createShaderModule("raygen.spv");
 		intersectModule = createShaderModule("intersect.spv");
-		shadeModule     = createShaderModule("shade.spv");
-		tonemapModule   = createShaderModule("tonemap.spv");
+		shadeModule = createShaderModule("shade.spv");
+		tonemapModule = createShaderModule("tonemap.spv");
+		prepareIndirectModule = createShaderModule("prepare_indirect.spv");
 	} catch (const std::exception& e) {
 		std::cerr << e.what() << "\n";
 		return false;
@@ -70,10 +72,10 @@ bool init_pipeline(VulkanContext& vCtx)
 		std::cerr << "error Pipeline layout\n";
 		return false;
 	}
-	std::array<VkComputePipelineCreateInfo, 4> pipelineInfos{};
-	std::array<VkShaderModule, 4> modules = {raygenModule, intersectModule, shadeModule, tonemapModule};
+	std::array<VkComputePipelineCreateInfo, 5> pipelineInfos{};
+	std::array<VkShaderModule, 5> modules = {raygenModule, intersectModule, shadeModule, tonemapModule, prepareIndirectModule};
 	
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		pipelineInfos[i].sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 		pipelineInfos[i].layout = vCtx.pipelineLayout;
@@ -83,8 +85,8 @@ bool init_pipeline(VulkanContext& vCtx)
 		pipelineInfos[i].stage.pName = "main";
 	}
 
-	std::array<VkPipeline, 4> pipelines{};
-	if (vkCreateComputePipelines(vCtx.device, VK_NULL_HANDLE, 4, pipelineInfos.data(), nullptr, pipelines.data()) != VK_SUCCESS)
+	std::array<VkPipeline, 5> pipelines{};
+	if (vkCreateComputePipelines(vCtx.device, VK_NULL_HANDLE, 5, pipelineInfos.data(), nullptr, pipelines.data()) != VK_SUCCESS)
 	{
 		std::cerr << "error Compute Pipelines\n";
 		return false;
@@ -94,6 +96,7 @@ bool init_pipeline(VulkanContext& vCtx)
 	vCtx.intersectPipeline = pipelines[1];
 	vCtx.shadePipeline = pipelines[2];
 	vCtx.tonemapPipeline = pipelines[3];
+	vCtx.prepareIndirectPipeline = pipelines[4];
 
 	for (auto module : modules)
 		vkDestroyShaderModule(vCtx.device, module, nullptr);

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:21:08 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/27 14:58:31 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/28 14:46:23 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,17 +116,54 @@ bool	init_vulkan(VulkanContext& vCtx)
 	}
 
 	std::cout << "wtttttttttttfffffffffffffffff finalement ca marche ?\n";
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = vCtx.commandPool;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = 2;
+
+    if (vkAllocateCommandBuffers(vCtx.device, &allocInfo, vCtx.commandBuffers) != VK_SUCCESS) {
+        std::cerr << "Erreur allocation command buffers\n";
+        return false;
+    }
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    for (int i = 0; i < 2; i++) {
+        if (vkCreateFence(vCtx.device, &fenceInfo, nullptr, &vCtx.inFlightFences[i]) != VK_SUCCESS) {
+            std::cerr << "Erreur création fences\n";
+            return false;
+        }
+    }
 	return (true);
 }
 
-void	cleanup_vulkan(VulkanContext& vCtx)
+void    cleanup_vulkan(VulkanContext& vCtx)
 {
-	if (vCtx.commandPool)
-		vkDestroyCommandPool(vCtx.device, vCtx.commandPool, nullptr);
-	if (vCtx.device)
-		vkDestroyDevice(vCtx.device, nullptr);
-	if (vCtx.instance)
-		vkDestroyInstance(vCtx.instance, nullptr);
+    if (vCtx.device)
+        vkDeviceWaitIdle(vCtx.device);
+    if (vCtx.mappedOutputBuffer && vCtx.device) {
+        vkUnmapMemory(vCtx.device, vCtx.outputBuffer.memory);
+        vCtx.mappedOutputBuffer = nullptr;
+    }
+
+    if (vCtx.device) {
+        for (int i = 0; i < 2; i++) {
+            if (vCtx.inFlightFences[i]) {
+                vkDestroyFence(vCtx.device, vCtx.inFlightFences[i], nullptr);
+                vCtx.inFlightFences[i] = VK_NULL_HANDLE;
+            }
+        }
+    }
+
+    if (vCtx.commandPool)
+        vkDestroyCommandPool(vCtx.device, vCtx.commandPool, nullptr);
+    if (vCtx.device)
+        vkDestroyDevice(vCtx.device, nullptr);
+    if (vCtx.instance)
+        vkDestroyInstance(vCtx.instance, nullptr);
 }
 
 bool init_descriptors(VulkanContext& vCtx, int width, int height,
@@ -141,24 +178,28 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 				 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				 vCtx.outputBuffer.buffer, vCtx.outputBuffer.memory);
-
+	vkMapMemory(vCtx.device, vCtx.outputBuffer.memory, 0, outputSize, 0, &vCtx.mappedOutputBuffer);
 	VkDeviceSize accumSize = max_rays * 4 * sizeof(float);
 	createBuffer(vCtx.device, vCtx.physicalDevice, accumSize,
 				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 				 vCtx.accum_pixel.buffer, vCtx.accum_pixel.memory);
 
-	VkDeviceSize rayStateSize = max_rays * 80;//sizeof en std 430
-	VkDeviceSize hitRecordSize = max_rays * 48;
+	VkDeviceSize rayStateSize = max_rays * 80;
+	VkDeviceSize hitRecordSize = max_rays * 64;
 	VkDeviceSize counterSize = 16;
+	VkDeviceSize indirectSize = 12;
 
 	createBuffer(vCtx.device, vCtx.physicalDevice, rayStateSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.rayQueueA.buffer, vCtx.rayQueueA.memory);
 	createBuffer(vCtx.device, vCtx.physicalDevice, rayStateSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.rayQueueB.buffer, vCtx.rayQueueB.memory);
 	createBuffer(vCtx.device, vCtx.physicalDevice, hitRecordSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.hitQueue.buffer, vCtx.hitQueue.memory);
 	createBuffer(vCtx.device, vCtx.physicalDevice, counterSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.counterBuffer.buffer, vCtx.counterBuffer.memory);
-
-	std::vector<VkDescriptorSetLayoutBinding> bindings(15);
-	for (uint32_t i = 0; i < 15; i++)
+	createBuffer(vCtx.device, vCtx.physicalDevice, indirectSize,
+				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.indirectBuffer.buffer, vCtx.indirectBuffer.memory);
+	
+	std::vector<VkDescriptorSetLayoutBinding> bindings(16);
+	for (uint32_t i = 0; i < 16; i++)
 	{
 		bindings[i].binding = i;
 		bindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -177,7 +218,7 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 
 	VkDescriptorPoolSize poolSize{};
 	poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	poolSize.descriptorCount = 15 * 2;
+	poolSize.descriptorCount = 16 * 2;
 
 	VkDescriptorPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -197,7 +238,7 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 
 	if (vkAllocateDescriptorSets(vCtx.device, &allocInfo, vCtx.descriptorSets) != VK_SUCCESS)
 		return false;
-	std::vector<VkDescriptorBufferInfo> bufferInfos(15);
+	std::vector<VkDescriptorBufferInfo> bufferInfos(16);
 	bufferInfos[0] = {mat_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[1] = {tri_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[2] = {sph_buf.buffer, 0, VK_WHOLE_SIZE};
@@ -211,14 +252,14 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 	bufferInfos[10] = {vCtx.accum_pixel.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[13] = {vCtx.hitQueue.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[14] = {vCtx.counterBuffer.buffer, 0, VK_WHOLE_SIZE};
-
+	bufferInfos[15] = {vCtx.indirectBuffer.buffer, 0, VK_WHOLE_SIZE};
 	for (int setIdx = 0; setIdx < 2; ++setIdx)
 	{
 		bufferInfos[11] = (setIdx == 0) ? VkDescriptorBufferInfo{vCtx.rayQueueA.buffer, 0, VK_WHOLE_SIZE} : VkDescriptorBufferInfo{vCtx.rayQueueB.buffer, 0, VK_WHOLE_SIZE};
 		bufferInfos[12] = (setIdx == 0) ? VkDescriptorBufferInfo{vCtx.rayQueueB.buffer, 0, VK_WHOLE_SIZE} : VkDescriptorBufferInfo{vCtx.rayQueueA.buffer, 0, VK_WHOLE_SIZE};
 
-		std::vector<VkWriteDescriptorSet> descriptorWrites(15);
-		for (uint32_t i = 0; i < 15; i++)
+		std::vector<VkWriteDescriptorSet> descriptorWrites(16);
+		for (uint32_t i = 0; i < 16; i++)
 		{
 			descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[i].dstSet = vCtx.descriptorSets[setIdx];
@@ -232,5 +273,6 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 	}
 
 	std::cout << "Descripteurs Wavefront" << std::endl;
+	
 	return true;
 }

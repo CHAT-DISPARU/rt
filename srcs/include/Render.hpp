@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/09 11:06:54 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/08/27 13:33:49 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/28 13:33:05 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ struct Render
 	bool				ru_enabled = true;
 	bool				cpu = false;
 	int					light_tech = 0;
+	int					rand_light_samples = 4;
 };
 
 void	render(Render &render);
