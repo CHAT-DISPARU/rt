@@ -123,6 +123,17 @@ void run_compute_frame(VulkanContext& vCtx, Camera& cam, Render& render_total)
 	submitInfo.pCommandBuffers = &cmd;
 
 	vkQueueSubmit(vCtx.computeQueue, 1, &submitInfo, vCtx.inFlightFences[vCtx.currentFrame]);
+
+	// IMPORTANT : counterBuffer / indirectBuffer / hitQueue sont partages (une seule
+	// instance, pas doublee comme les command buffers/fences). Sans attendre ici,
+	// la frame suivante peut demarrer sur le GPU pendant que celle-ci tourne encore,
+	// et les deux se marchent dessus sur ces buffers -> compteurs corrompus -> dispatch
+	// avec un nombre de threads n'importe quoi -> lectures/ecritures hors bornes sur GPU.
+	// On attend donc la fin complete de cette frame avant de repartir (pas d'overlap
+	// pour l'instant, mais plus de race). Pour retrouver l'overlap plus tard il faudra
+	// dupliquer counterBuffer/indirectBuffer/hitQueue par frame-in-flight.
+	vkWaitForFences(vCtx.device, 1, &vCtx.inFlightFences[vCtx.currentFrame], VK_TRUE, UINT64_MAX);
+
 	VkDeviceSize outputSize = render_total.width * render_total.height * sizeof(uint32_t);
 	memcpy(render_total.definitive, vCtx.mappedOutputBuffer, outputSize);
 	vCtx.currentFrame = (vCtx.currentFrame + 1) % 2;

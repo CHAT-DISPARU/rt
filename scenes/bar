@@ -1,17 +1,19 @@
 Settings {
-	resolution 1200 675
-	samples inf
+    resolution 1200 675
+    samples inf
 }
+
 Camera {
-	position -53.3 172.2 -61.1
-	direction 0.88 -0.07 -0.48
-	fov 50
+    position 12.8 221.2 -51
+    direction 0.88 -0.13 -0.46
+    fov 70
 }
 
 Mesh {
-	path scenes/bar2/Interior/interior.obj
-	scale 1
-	position 0 0 0 
-	normal 0 1 0
-	roll 0
+    path scenes/bar2/Interior/interior.obj
+    scale 1
+    position 0 0 0 
+    normal  0 1 0
+    roll 0
 }
+

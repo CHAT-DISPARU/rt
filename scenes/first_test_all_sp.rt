@@ -80,12 +80,12 @@ Sphere {
 	material sol
 }
 
-Sphere {
-	position 0 28 0
-	radius 10
-	normal 0 1 0
-	material plafond_light
-}
+# Sphere {
+# 	position 0 28 0
+# 	radius 10
+# 	normal 0 1 0
+# 	material plafond_light
+# }
 
 Plane {
 	position 0 0 20

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 17:23:28 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/16 15:28:54 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/31 09:39:49 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,12 +57,15 @@ void	ScenePacker::pack_materials(const std::unordered_map<std::string, std::shar
 			gpu_mat.emission = 0.0;
 		gpu_mat.ior = raw_mat->ior();
 		
-		//pas encore gerre juste 0 ou -1
 		gpu_mat.albedo_tex_idx = raw_mat->hasTexture() ? register_texture(raw_mat->getTexture()) : -1;
 		gpu_mat.normal_tex_idx = raw_mat->hasNormal() ? register_texture(raw_mat->getNormal()) : -1;
 		gpu_mat.roughness_tex_idx = raw_mat->hasRoughness() ? register_texture(raw_mat->getRoughness()) : -1;
 		gpu_mat.metallic_tex_idx = raw_mat->hasMetallic() ? register_texture(raw_mat->getMetallic()) : -1;
 		gpu_mat.emission_tex_idx = raw_mat->hasEmissive() ? register_texture(raw_mat->getEmissive()) : -1;
+		// Texture.cpp: applyNormalMap() lit rec.material->getNormalStrength() / getNormalScale().
+		// On copie toujours ces deux valeurs (utilisees uniquement si normal_tex_idx >= 0 cote GPU).
+		gpu_mat.normal_strength = raw_mat->getNormalStrength();
+		gpu_mat.normal_uv_scale = raw_mat->getNormalScale();
 		gpu_mat.is_opaq = raw_mat->isOpaq() ? 1 : 0;
 		gpu_mat.is_spec = raw_mat->isSpecular() ? 1 : 0;
 		if (dynamic_cast<Lambertian*>(raw_mat))
@@ -218,7 +221,15 @@ int	ScenePacker::register_texture(SDL_Surface* tex)
 {
 	if (!tex)
 		return (-1);
-	return (0);
+
+	auto	it = tex_to_idx.find(tex);
+	if (it != tex_to_idx.end())
+		return (it->second);
+
+	int	new_idx = static_cast<int>(gpu_texture_sources.size());
+	gpu_texture_sources.push_back(tex);
+	tex_to_idx[tex] = new_idx;
+	return (new_idx);
 }
 
 void	ScenePacker::pack_bvh(const BVHNode& root_bvh, std::vector<GPUBVHNode>& target_buffer)

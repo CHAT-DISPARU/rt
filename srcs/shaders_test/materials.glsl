@@ -6,7 +6,7 @@
 bool scatter_lambertian(GPUMaterial mat, Ray r_in, HitRecord rec, out vec3 attenuation,
 						 out Ray scattered, out float pdf, inout uint seed)
 {
-	vec3 albedo = mat.color;
+	vec3 albedo = get_albedo(mat, vec2(rec.u, rec.v));
 	float ao = 1.0;
 	vec3 scatter_direction = rec.normal + random_unit_vector(seed);
 
@@ -30,8 +30,8 @@ float scattering_pdf_lambertian(GPUMaterial mat, Ray r_in, HitRecord rec, Ray sc
 bool scatter_metal(GPUMaterial mat, Ray r_in, HitRecord rec, out vec3 attenuation,
 					out Ray scattered, out float pdf, inout uint seed)
 {
-	vec3 albedo = mat.color;
-	float fuzz = mat.roughness;
+	vec3 albedo = get_albedo(mat, vec2(rec.u, rec.v));
+	float fuzz = get_roughness(mat, vec2(rec.u, rec.v));
 	vec3 reflected = vec_reflect(normalize(r_in.dir), rec.normal);
 
 	scattered.origin = rec.point;
@@ -52,8 +52,8 @@ float schlick(float cosine, float ior_in, float ior_out)
 bool scatter_dielectric(GPUMaterial mat, Ray r_in, HitRecord rec, out vec3 attenuation,
 						 out Ray scattered, out float pdf, inout uint seed)
 {
-	vec3 albedo = mat.color;
-	float fuzz = mat.roughness;
+	vec3 albedo = get_albedo(mat, vec2(rec.u, rec.v));
+	float fuzz = get_roughness(mat, vec2(rec.u, rec.v));
 
 	attenuation = albedo;
 	float ratio = rec.front_face ? (rec.ni_from / mat.ior) : (mat.ior / rec.ni_from);
@@ -109,10 +109,11 @@ vec3 fresnel_schlick(float cosTheta, vec3 F0)
 bool scatter_pbr(GPUMaterial mat, Ray r_in, HitRecord rec, out vec3 attenuation,
 				  out Ray scattered, out float pdf, inout uint seed)
 {
-	float roughness = mat.roughness;
-	float metallic = mat.metallic;
+	vec2 uv = vec2(rec.u, rec.v);
+	float roughness = get_roughness(mat, uv);
+	float metallic = get_metallic(mat, uv);
 	float ao = 1.0;
-	vec3 base_color = mat.color;
+	vec3 base_color = get_albedo(mat, uv);
 
 	vec3 N = rec.normal;
 	vec3 F0 = vec3(0.04) * (1.0 - metallic) + base_color * metallic;
@@ -179,8 +180,8 @@ bool scatter_pbr(GPUMaterial mat, Ray r_in, HitRecord rec, out vec3 attenuation,
 
 float scattering_pdf_pbr(GPUMaterial mat, Ray r_in, HitRecord rec, Ray scattered)
 {
-	float roughness = mat.roughness;
-	float metallic = mat.metallic;
+	float roughness = get_roughness(mat, vec2(rec.u, rec.v));
+	float metallic = get_metallic(mat, vec2(rec.u, rec.v));
 	vec3 N = rec.normal;
 	vec3 V = normalize(-r_in.dir);
 	vec3 L = normalize(scattered.dir);

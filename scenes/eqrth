@@ -5,11 +5,11 @@ Settings {
 }
 
 # --- Éclairage global (HDRI) ---
-Environment {
-    path /home/titan/Téléchargements/sky.hdr
-    intensity 3.0
-    rotation 0
-}
+//Environment {
+    //path /home/titan/Téléchargements/sky.hdr
+    //intensity 3.0
+    //rotation 0
+//}
 
 # --- Configuration de la caméra ---
 # Placée à Z=6.5, elle regarde vers l'avant (Z négatif)
@@ -31,23 +31,23 @@ Material sun_mat {
 # 2. Terre avec Relief (Gauche)
 Material earth_bump_mat {
     type lambertian
-    texture /home/titan/Téléchargements/earth.jpg
-    normal /home/titan/Téléchargements/images.jpeg
-    normal_strength 1.2
+    texture scenes/ter.jpg
+    normal scenes/terb.png
+    normal_strength 10
 }
 
 # 3. Terre Lisse (Droite)
 Material earth_flat_mat {
     type lambertian
-    texture /home/titan/Téléchargements/earth.jpg
+    texture scenes/ter.jpg
 }
 
 # 4. Mur avec Relief (Arrière-plan gauche)
 Material wall_bump {
     type lambertian
     color 0.6 0.6 0.6
-    normal /home/titan/Téléchargements/8k_earth_normal_map_normal.png
-    normal_strength 0.15
+    normal scenes/btest.jpg
+    normal_strength 1
 }
 
 # 5. Mur Lisse (Arrière-plan droit)

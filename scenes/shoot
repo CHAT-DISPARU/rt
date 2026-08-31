@@ -1,0 +1,19 @@
+Settings {
+    resolution 1920 1080
+    samples inf
+}
+
+Camera {
+    # Caméra placée sur la droite, focale très resserrée (35) pour un effet zoom de profil
+    position 7.0 1.0 0.5
+    direction -1.0 -0.05 -0.1
+    fov 35
+}
+
+Mesh {
+    path scenes/.obj
+    scale 0.8
+    position 0.0 0.0 0.0
+    normal 0 1 0
+    roll 0
+}

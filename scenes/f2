@@ -100,7 +100,7 @@ Mesh {
     position -1.3 1.0 6.6
     normal 0 0 -1
     roll 180
-    material verre_cockpit
+    material rouge_mat
 }
 
 # Dragon 2 : METAL (Focus parfait, distance caméra = 4.53m)
@@ -120,5 +120,5 @@ Mesh {
     position 1.3 1.0 3.4
     normal 0 0 -1
     roll 180
-    material rouge_mat
+    material verre_cockpit
 }

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 16:53:13 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/28 13:31:48 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/31 09:45:01 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ struct alignas(16)	GPUMaterial
 
 	float	ior;// 4 
 	int	type;// 4 
-	int	albedo_tex_idx;// 4  => -1 soit pas de texture
+	int	albedo_tex_idx;// 4 
 	int	normal_tex_idx;// 4  troisieme bloc
 
 	int	roughness_tex_idx;// 4 
@@ -43,7 +43,9 @@ struct alignas(16)	GPUMaterial
 	int is_opaq;// 4    bloc 4
 
 	int	is_spec;// 4
-	int	pad0[3];// bloc 5
+	float normal_strength;// 4
+	float normal_uv_scale;// 4 
+	int	pad0;// 4 bloc 5
 };
 
 // 64  4 x 16 ok
@@ -140,7 +142,7 @@ struct alignas(16) GPUPushConstants
 	int			shadow_ray;     // 4   bloc 6
 	int			ru_enabled;     // 4
 	int			light_teck;     // 4
-	int			ping_pong;      // 4   <-- NOUVEAU
+	int			ping_pong;      // 4
 	int			rand_light_samples;            // 4   bloc 7
 };
 

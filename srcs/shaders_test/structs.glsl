@@ -23,10 +23,10 @@ struct RayState
 	uint  pixel_index;        // 4   bloc 1 (16)
 
 	vec3  dir;                // 12
-	uint  seed;               // 4   bloc 2 (16)
+	uint  seed;                // 4   bloc 2 (16)
 
 	vec3  throughput;         // 12
-	int   depth;              // 4   bloc 3 (16)
+	int   depth;               // 4   bloc 3 (16)
 
 	vec3  accumulated_light;  // 12
 	float prev_pdf_scatter;   // 4   bloc 4 (16)
@@ -34,7 +34,7 @@ struct RayState
 	int   prev_was_specular;  // 4
 	int   is_active;          // 4
 	int   _pad0;              // 4
-	int   _pad1;              // 4   bloc 5 (16)
+	int   _pad1;               // 4   bloc 5 (16)
 };
 
 struct ShadowRay
@@ -46,7 +46,7 @@ struct ShadowRay
 	float max_dist;           // 4   bloc 2 (16)
 
 	vec3  radiance_contrib;   // 12
-	int   _pad0;              // 4   bloc 3 (16)
+	int   _pad0;               // 4   bloc 3 (16)
 };
 
 struct GPUMaterial
@@ -57,7 +57,7 @@ struct GPUMaterial
 	vec3  emission;           // 12
 	float metallic;           // 4   bloc 2
 
-	float ior;                // 4
+	float ior;                 // 4
 	int   type;                // 4
 	int   albedo_tex_idx;      // 4
 	int   normal_tex_idx;      // 4   bloc 3
@@ -65,12 +65,12 @@ struct GPUMaterial
 	int   roughness_tex_idx;   // 4
 	int   metallic_tex_idx;    // 4
 	int   emission_tex_idx;    // 4
-	int   is_opaq;             // 4   bloc 4
+	int   is_opaq;              // 4   bloc 4
 
-	int   is_spec;             // 4
-	int   _pad0_0;
-	int   _pad0_1;
-	int   _pad0_2;             // 4   bloc 5
+	int   is_spec;              // 4
+	float normal_strength;      // 4
+	float normal_uv_scale;      // 4
+	int   _pad0_2;               // 4   bloc 5
 };
 
 struct GPUTriangle
@@ -100,21 +100,21 @@ struct GPUSphere
 	int   mat_idx; // 4
 	float _pad0;
 	float _pad1;
-	float _pad2;   // 12  bloc 6
+	float _pad2;    // 12  bloc 6
 };
 
 struct GPUBVHNode
 {
-	vec3 aabb_min;                   // 12
-	int  left_child_or_prim_offset;  // 4   bloc 1
+	vec3 aabb_min;                     // 12
+	int  left_child_or_prim_offset;    // 4   bloc 1
 
-	vec3 aabb_max;                   // 12
-	int  right_child;                // 4   bloc 2
+	vec3 aabb_max;                     // 12
+	int  right_child;                  // 4   bloc 2
 
-	int  primitive_count;            // 4  (>0 => feuille)
-	int  axis;                       // 4
+	int  primitive_count;              // 4  (>0 => feuille)
+	int  axis;                          // 4
 	int  _pad0;
-	int  _pad1;                      // 8   bloc 3
+	int  _pad1;                         // 8   bloc 3
 };
 
 
@@ -126,7 +126,7 @@ struct GPUPlane
 	int   mat_idx; // 4   bloc 5
 
 	vec3  normal;  // 12
-	int   _pad0;   // 4   bloc 6
+	int   _pad0;    // 4   bloc 6
 };
 
 
@@ -138,12 +138,12 @@ struct GPUQuad
 	int   mat_idx; // 4   bloc 5
 
 	vec3  normal;  // 12
-	float w;       // 4   bloc 6
+	float w;        // 4   bloc 6
 
-	float h;       // 4
+	float h;        // 4
 	float _pad0;
 	float _pad1;
-	float _pad2;   // 12  bloc 7
+	float _pad2;    // 12  bloc 7
 };
 
 struct GPULight
@@ -151,7 +151,7 @@ struct GPULight
 	int prim_type; // 4
 	int prim_idx;  // 4
 	int _pad0;
-	int _pad1;     // 8   bloc 1
+	int _pad1;      // 8   bloc 1
 };
 
 struct Ray

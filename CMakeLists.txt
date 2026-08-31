@@ -51,6 +51,7 @@ set(SOURCES
 	srcs/setup/VulkanUtils.cpp
 	srcs/setup/vk_init.cpp
 	srcs/setup/vk_pipeline.cpp
+	srcs/setup/vk_textures.cpp
 	srcs/Hittables/BVHNodes.cpp
 	srcs/Hittables/Plane.cpp
 	srcs/Hittables/Quad.cpp

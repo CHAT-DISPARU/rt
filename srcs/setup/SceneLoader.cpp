@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/23 18:56:09 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/26 16:14:29 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/31 13:35:56 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,6 +241,8 @@ void	SceneLoader::buildSphere(std::unordered_map<std::string, std::string>& para
 	Vec3f		normal = params.count("normal") ? parseVec3(params["normal"]) : Vec3f(0.0f, 1.0f, 0.0f);
 	float		radius = params.count("radius") ? std::stof(params["radius"]) : 1.0f;
 	float 		roll = params.count("roll") ? std::stof(params["roll"]) * (float)M_PI / 180.0f : 0.0f;
+	//bool		is_invisible = params.count("invisible") ? std::stoi(params["invisible"]) : 0; // Par défaut, visible
+
 	std::string	mat_name = params["material"];
 
 	if (app.materials.find(mat_name) == app.materials.end())
@@ -403,10 +405,20 @@ void	SceneLoader::buildMesh(std::unordered_map<std::string, std::string>& params
 	{
 		if (name.empty())
 			return (nullptr);
+
+
 		std::string		tex_path = config.mtl_search_path + name;
 		SDL_Surface*	raw = IMG_Load(tex_path.c_str());
+
+if (!raw)
+			raw = IMG_Load(name.c_str());
+
 		if (!raw)
+		{
+			std::cerr << "texture introuvable ( \"" << tex_path
+					  << "\" et \"" << name << "\"): " << SDL_GetError() << "\n";
 			return (nullptr);
+		}
 		SDL_Surface*	conv = SDL_ConvertSurface(raw, SDL_PIXELFORMAT_RGBA32);
 		SDL_DestroySurface(raw);
 		return (conv);
@@ -457,7 +469,15 @@ void	SceneLoader::buildMesh(std::unordered_map<std::string, std::string>& params
 			auto	glass = std::make_shared<Dielectric>();
 			
 			glass->setNi(m.ior > 0.0f ? m.ior : 1.5f);
-			glass->setColor(Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]));
+
+
+			Vec3f	tint(m.transmittance[0], m.transmittance[1], m.transmittance[2]);
+			if (tint.length_sq() < 1e-6f)
+				tint = Vec3f(m.diffuse[0], m.diffuse[1], m.diffuse[2]); 
+			if (tint.length_sq() < 1e-6f)
+				tint = Vec3f(1.0f, 1.0f, 1.0f);
+
+			glass->setColor(tint);
 			if (SDL_Surface* s = loadTex(m.diffuse_texname))
 			{
 				glass->setTexture(s);

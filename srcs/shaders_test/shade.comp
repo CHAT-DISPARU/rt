@@ -53,6 +53,7 @@ layout(std430, set = 0, binding = 14) buffer CounterBuffer       {
 #include "random.glsl"
 #include "intersect.glsl"
 #include "bvh.glsl"
+#include "textures.glsl"
 #include "materials.glsl"
 #include "lighting.glsl"
 
@@ -80,6 +81,9 @@ void main()
 	}
 	else
 	{
+
+		GPUMaterial hit_mat = materials[rec.mat_idx];
+		rec.normal = apply_normal_map(hit_mat, vec2(rec.u, rec.v), rec.normal);
 
 		vec3 emitted = material_emitted(rec.mat_idx, rec.u, rec.v, rec.point);
 		if (dot(emitted, emitted) > 0.0)

@@ -6,11 +6,12 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/08 16:17:25 by gajanvie          #+#    #+#             */
-/*   Updated: 2026/07/16 14:26:34 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/31 11:10:40 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rt.hpp"
+#include "vk_textures.hpp"
 
 int main(int ac, char **av)
 {
@@ -53,6 +54,7 @@ int main(int ac, char **av)
 	std::cout << "  -> Spheres: " << packer.gpu_spheres.size()   << " (" << packer.gpu_spheres.size() * sizeof(GPUSphere) << " bites)\n";
 	std::cout << "  -> Quads: " << packer.gpu_quads.size()     << " (" << packer.gpu_quads.size() * sizeof(GPUQuad) << " bites)\n";
 	std::cout << "  -> Planes: " << packer.gpu_planes.size()    << " (" << packer.gpu_planes.size() * sizeof(GPUPlane) << " bites)\n";
+	std::cout << "  -> Textures: " << packer.gpu_texture_sources.size() << "\n";
 	srand(static_cast<unsigned int>(time(NULL)));
 
 	VulkanContext vCtx;
@@ -69,9 +71,53 @@ int main(int ac, char **av)
 	VulkanBuffer	gpu_bvh_qd_buffer = createAndUploadSSBO(vCtx.device, vCtx.physicalDevice, vCtx.commandPool, vCtx.computeQueue, packer.gpu_bvh_quads);
 	VulkanBuffer	gpu_light_buffer = createAndUploadSSBO(vCtx.device, vCtx.physicalDevice, vCtx.commandPool, vCtx.computeQueue, packer.gpu_lights);
 	VulkanBuffer	gpu_pl_buffer = createAndUploadSSBO(vCtx.device, vCtx.physicalDevice, vCtx.commandPool, vCtx.computeQueue, packer.gpu_planes);
+
+std::cout << "\n[VULKAN] upload des textures bindless..." << std::endl;
+	std::vector<GPUTextureImage>	gpu_textures;
+	gpu_textures.reserve(packer.gpu_texture_sources.size());
+	for (SDL_Surface* surf : packer.gpu_texture_sources)
+	{
+SDL_Surface*	rgba = surf;
+		bool			need_free = false;
+
+		if (surf->format != SDL_PIXELFORMAT_RGBA32)
+		{
+			rgba = SDL_ConvertSurface(surf, SDL_PIXELFORMAT_RGBA32);
+			if (!rgba)
+			{
+				std::cerr << "SDL_ConvertSurface a echoue: " << SDL_GetError() << "\n";
+				continue;
+			}
+			need_free = true;
+		}
+
+		const uint8_t*			upload_ptr = (const uint8_t*)rgba->pixels;
+		std::vector<uint8_t>	tight_buffer;
+
+		if (rgba->pitch != rgba->w * 4)
+		{
+			tight_buffer.resize((size_t)rgba->w * rgba->h * 4);
+			for (int y = 0; y < rgba->h; y++)
+				memcpy(tight_buffer.data() + (size_t)y * rgba->w * 4,
+					   (const uint8_t*)rgba->pixels + (size_t)y * rgba->pitch,
+					   (size_t)rgba->w * 4);
+			upload_ptr = tight_buffer.data();
+		}
+
+		gpu_textures.push_back(createTextureImage(vCtx.device, vCtx.physicalDevice,
+			vCtx.commandPool, vCtx.computeQueue,
+			upload_ptr, (uint32_t)rgba->w, (uint32_t)rgba->h,
+			/*isColorData=*/true));
+
+		if (need_free)
+			SDL_DestroySurface(rgba);
+	}
+	VkSampler	bindlessSampler = createGlobalBindlessSampler(vCtx.device);
+
 	if (!init_descriptors(vCtx, app.width, app.height,
 						  gpu_mat_buffer, gpu_tri_buffer, gpu_sph_buffer, gpu_qd_buffer, gpu_pl_buffer,
-						  gpu_bvh_tri_buffer, gpu_bvh_sph_buffer, gpu_bvh_qd_buffer, gpu_light_buffer))
+						  gpu_bvh_tri_buffer, gpu_bvh_sph_buffer, gpu_bvh_qd_buffer, gpu_light_buffer,
+						  gpu_textures, bindlessSampler))
 	{
 		std::cerr << "Failed to init Vulkan descriptors" << std::endl;
 		return (1);
@@ -86,7 +132,7 @@ int main(int ac, char **av)
 
 	Render			render_total(app.camera, app.scene, bvh_debug, app.env_map);
 	ThreadPool		threads(THREAD_MAX);
-	
+
 	setup_base_render(app, render_total);
 	
 	if (!sdl_init(sdl, app.width, app.height))
@@ -100,6 +146,13 @@ int main(int ac, char **av)
 	cleanup_render(render_total);
 	clean_gui();
 	sdl_cleanup(sdl);
+
+	// nettoyage des textures bindless AVANT cleanup_vulkan (qui detruit le device)
+	for (auto& tex : gpu_textures)
+		destroyTextureImage(vCtx.device, tex);
+	if (bindlessSampler)
+		vkDestroySampler(vCtx.device, bindlessSampler, nullptr);
+
 	cleanup_vulkan(vCtx);
 	return (0);
 }

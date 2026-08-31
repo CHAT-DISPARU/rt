@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:20:51 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/28 14:42:54 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/31 09:51:29 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <array>
 #include "VulkanUtils.hpp"
 #include "GPUData.hpp"
+#include "vk_textures.hpp"
 
 struct VulkanContext
 {
@@ -51,9 +52,10 @@ struct VulkanContext
 
 
 bool	init_vulkan(VulkanContext& vCtx);
-bool	init_descriptors(VulkanContext& vCtx, int width, int height,
-							const VulkanBuffer& mat_buf, const VulkanBuffer& tri_buf, const VulkanBuffer& sph_buf, 
-							const VulkanBuffer& qd_buf, const VulkanBuffer& pl_buf,
-							const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
-							const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf);
+bool init_descriptors(VulkanContext& vCtx, int width, int height,
+						const VulkanBuffer& mat_buf, const VulkanBuffer& tri_buf, const VulkanBuffer& sph_buf, 
+						const VulkanBuffer& qd_buf, const VulkanBuffer& pl_buf,
+						const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
+						const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf,
+						const std::vector<GPUTextureImage>& bindless_textures, VkSampler bindless_sampler);
 void	cleanup_vulkan(VulkanContext& vCtx);

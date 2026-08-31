@@ -6,11 +6,15 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 18:21:08 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/08/28 14:46:23 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/31 11:41:28 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "vk_context.hpp"
+#include "vk_textures.hpp"
+
+
+static constexpr uint32_t MAX_BINDLESS_TEXTURES = 512;
 
 static uint32_t	get_compute_queue_family(VkPhysicalDevice physicalDevice)
 {
@@ -87,10 +91,17 @@ bool	init_vulkan(VulkanContext& vCtx)
 	queueCreateInfo.queueFamilyIndex = vCtx.computeQueueIndex;
 	queueCreateInfo.queueCount = 1;
 	queueCreateInfo.pQueuePriorities = &queuePriority;
+	VkPhysicalDeviceVulkan12Features features12{};
+	features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+	features12.descriptorBindingPartiallyBound           = VK_TRUE;
+	features12.descriptorBindingVariableDescriptorCount  = VK_TRUE;
+	features12.runtimeDescriptorArray                    = VK_TRUE;
+	features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 
 	VkDeviceCreateInfo	deviceInfo{};
 	
 	deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	deviceInfo.pNext = &features12;
 	deviceInfo.pQueueCreateInfos = &queueCreateInfo;
 	deviceInfo.queueCreateInfoCount = 1;
 	deviceInfo.enabledLayerCount = 0;
@@ -170,7 +181,8 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 						const VulkanBuffer& mat_buf, const VulkanBuffer& tri_buf, const VulkanBuffer& sph_buf, 
 						const VulkanBuffer& qd_buf, const VulkanBuffer& pl_buf,
 						const VulkanBuffer& bvh_tri_buf, const VulkanBuffer& bvh_sph_buf, 
-						const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf)
+						const VulkanBuffer& bvh_qd_buf, const VulkanBuffer& light_buf,
+						const std::vector<GPUTextureImage>& bindless_textures, VkSampler bindless_sampler)
 {
 	uint32_t max_rays = width * height;
 	VkDeviceSize outputSize = max_rays * sizeof(uint32_t);
@@ -185,8 +197,9 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 				 vCtx.accum_pixel.buffer, vCtx.accum_pixel.memory);
 
-	VkDeviceSize rayStateSize = max_rays * 80;
-	VkDeviceSize hitRecordSize = max_rays * 64;
+
+	VkDeviceSize rayStateSize = max_rays * sizeof(RayState);
+	VkDeviceSize hitRecordSize = max_rays * sizeof(GPUHitRecordLayout);
 	VkDeviceSize counterSize = 16;
 	VkDeviceSize indirectSize = 12;
 
@@ -198,7 +211,8 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 				 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
 				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vCtx.indirectBuffer.buffer, vCtx.indirectBuffer.memory);
 	
-	std::vector<VkDescriptorSetLayoutBinding> bindings(16);
+
+	std::vector<VkDescriptorSetLayoutBinding> bindings(17);
 	for (uint32_t i = 0; i < 16; i++)
 	{
 		bindings[i].binding = i;
@@ -207,37 +221,64 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 		bindings[i].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 		bindings[i].pImmutableSamplers = nullptr;
 	}
+	bindings[16].binding = 16;
+	bindings[16].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	bindings[16].descriptorCount = MAX_BINDLESS_TEXTURES;
+	bindings[16].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+	bindings[16].pImmutableSamplers = nullptr;
+
+	std::vector<VkDescriptorBindingFlags> bindingFlags(17, 0);
+	bindingFlags[16] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+					  | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+
+	VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo{};
+	bindingFlagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+	bindingFlagsInfo.bindingCount = static_cast<uint32_t>(bindingFlags.size());
+	bindingFlagsInfo.pBindingFlags = bindingFlags.data();
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo{};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.pNext = &bindingFlagsInfo;
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutInfo.pBindings = bindings.data();
 
 	if (vkCreateDescriptorSetLayout(vCtx.device, &layoutInfo, nullptr, &vCtx.descriptorSetLayout) != VK_SUCCESS)
 		return false;
 
-	VkDescriptorPoolSize poolSize{};
-	poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	poolSize.descriptorCount = 16 * 2;
+	VkDescriptorPoolSize poolSizes[2]{};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	poolSizes[0].descriptorCount = 16 * 2;
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = MAX_BINDLESS_TEXTURES * 2;
 
 	VkDescriptorPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = 1;
-	poolInfo.pPoolSizes = &poolSize;
+	poolInfo.poolSizeCount = 2;
+	poolInfo.pPoolSizes = poolSizes;
 	poolInfo.maxSets = 2;
 
 	if (vkCreateDescriptorPool(vCtx.device, &poolInfo, nullptr, &vCtx.descriptorPool) != VK_SUCCESS)
 		return false;
 
+	uint32_t texCount = static_cast<uint32_t>(bindless_textures.size());
+	uint32_t variableCounts[2] = { texCount, texCount };
+
+	VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo{};
+	variableCountInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+	variableCountInfo.descriptorSetCount = 2;
+	variableCountInfo.pDescriptorCounts = variableCounts;
+
 	VkDescriptorSetLayout layouts[] = {vCtx.descriptorSetLayout, vCtx.descriptorSetLayout};
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.pNext = &variableCountInfo;
 	allocInfo.descriptorPool = vCtx.descriptorPool;
 	allocInfo.descriptorSetCount = 2;
 	allocInfo.pSetLayouts = layouts;
 
 	if (vkAllocateDescriptorSets(vCtx.device, &allocInfo, vCtx.descriptorSets) != VK_SUCCESS)
 		return false;
+
 	std::vector<VkDescriptorBufferInfo> bufferInfos(16);
 	bufferInfos[0] = {mat_buf.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[1] = {tri_buf.buffer, 0, VK_WHOLE_SIZE};
@@ -253,12 +294,22 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 	bufferInfos[13] = {vCtx.hitQueue.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[14] = {vCtx.counterBuffer.buffer, 0, VK_WHOLE_SIZE};
 	bufferInfos[15] = {vCtx.indirectBuffer.buffer, 0, VK_WHOLE_SIZE};
+
+	// info des textures bindless : identique pour les 2 sets (tableau statique)
+	std::vector<VkDescriptorImageInfo> imageInfos(texCount);
+	for (uint32_t i = 0; i < texCount; i++)
+	{
+		imageInfos[i].sampler     = bindless_sampler;
+		imageInfos[i].imageView   = bindless_textures[i].view;
+		imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	}
+
 	for (int setIdx = 0; setIdx < 2; ++setIdx)
 	{
 		bufferInfos[11] = (setIdx == 0) ? VkDescriptorBufferInfo{vCtx.rayQueueA.buffer, 0, VK_WHOLE_SIZE} : VkDescriptorBufferInfo{vCtx.rayQueueB.buffer, 0, VK_WHOLE_SIZE};
 		bufferInfos[12] = (setIdx == 0) ? VkDescriptorBufferInfo{vCtx.rayQueueB.buffer, 0, VK_WHOLE_SIZE} : VkDescriptorBufferInfo{vCtx.rayQueueA.buffer, 0, VK_WHOLE_SIZE};
 
-		std::vector<VkWriteDescriptorSet> descriptorWrites(16);
+		std::vector<VkWriteDescriptorSet> descriptorWrites(texCount > 0 ? 17 : 16);
 		for (uint32_t i = 0; i < 16; i++)
 		{
 			descriptorWrites[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -269,10 +320,21 @@ bool init_descriptors(VulkanContext& vCtx, int width, int height,
 			descriptorWrites[i].descriptorCount = 1;
 			descriptorWrites[i].pBufferInfo = &bufferInfos[i];
 		}
+		if (texCount > 0)
+		{
+			descriptorWrites[16] = {};
+			descriptorWrites[16].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[16].dstSet = vCtx.descriptorSets[setIdx];
+			descriptorWrites[16].dstBinding = 16;
+			descriptorWrites[16].dstArrayElement = 0;
+			descriptorWrites[16].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[16].descriptorCount = texCount;
+			descriptorWrites[16].pImageInfo = imageInfos.data();
+		}
 		vkUpdateDescriptorSets(vCtx.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 
-	std::cout << "Descripteurs Wavefront" << std::endl;
+	std::cout << "Descripteurs Wavefront (+ " << texCount << " textures bindless)" << std::endl;
 	
 	return true;
 }

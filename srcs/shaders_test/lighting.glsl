@@ -193,7 +193,8 @@ vec3 shadow_transmittance(vec3 origin, vec3 surface_normal, vec3 target_pos)
 		if (hmat.is_opaq != 0)
 			return vec3(0.0);
 
-		vec3 mat_color = hmat.color;
+		// hit.material->sampleAlbedo(hit.u, hit.v) cote CPU
+		vec3 mat_color = get_albedo(hmat, vec2(hit.u, hit.v));
 		transmittance *= mat_color;
 
 		if (dot(transmittance, transmittance) < 1e-6)

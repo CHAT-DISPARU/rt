@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/25 17:22:23 by CHAT-DISPAR       #+#    #+#             */
-/*   Updated: 2026/07/02 12:38:38 by gajanvie         ###   ########.fr       */
+/*   Updated: 2026/08/31 09:49:00 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,13 @@ public:
 	std::vector<GPUBVHNode>		gpu_bvh_spheres;
 	std::vector<GPUBVHNode>		gpu_bvh_quads;
 	std::vector<GPULight>		gpu_lights;
+	std::vector<SDL_Surface*>	gpu_texture_sources;
 	void	pack_scene_to_gpu(const AppContext& app);
 
 private:
 	// dictionner lie pointeur a structure applati
 	std::unordered_map<Material*, int>	mat_to_idx;
+	std::unordered_map<SDL_Surface*, int>	tex_to_idx;
 	void	pack_materials(const std::unordered_map<std::string, std::shared_ptr<Material>>& materials);
 	void	pack_geometry(const Scene& scene);
 	void	pack_bvh(const BVHNode& root_bvh, std::vector<GPUBVHNode>& target_buffer);
